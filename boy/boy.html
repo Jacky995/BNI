@@ -3,118 +3,110 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>Mai Mai Studio 名片</title>
-
-  <!-- 引入優雅字體 -->
-  <link href="https://fonts.googleapis.com/css2?family=Great+Vibes&family=Noto+Sans+TC&display=swap" rel="stylesheet">
-
+  <title>𝑴𝒂𝒊 𝑴𝒂𝒊 𝑺𝒕𝒖𝒅𝒊𝒐 名片</title>
   <style>
     * {
       box-sizing: border-box;
     }
-
     body {
       margin: 0;
       padding: 2rem 1rem;
       background: url('https://jacky995.github.io/BNI/boy/b.jpg') no-repeat center center fixed;
       background-size: cover;
-      font-family: 'Noto Sans TC', sans-serif;
+      font-family: "Yuanti TC", "FangSong", "微軟正黑體", "PingFang TC", sans-serif;
       text-align: center;
       color: #333;
     }
-
-    .wrapper {
-      max-width: 420px;
-      margin: auto;
-      background-color: rgba(255, 255, 255, 0.85);
-      backdrop-filter: blur(6px);
-      padding: 2rem 1.5rem;
-      border-radius: 16px;
-    }
-
     .logo {
-      max-width: 60%;
+      position: absolute;
+      top: 1rem;
+      left: 1rem;
+      width: 60px;
       height: auto;
-      margin-bottom: 1.5rem;
-      border-radius: 12px;
-      box-shadow: 0 4px 12px rgba(0,0,0,0.08);
     }
-
+    .avatar {
+      width: 120px;
+      height: 120px;
+      border-radius: 50%;
+      object-fit: cover;
+      margin: 4rem auto 1.2rem;
+      border: 4px solid #fdd835;
+    }
     h1 {
-      color: #f6b100;
-      font-size: 1.6rem;
-      font-weight: bold;
-      margin: 0.5rem 0;
+      font-size: 1.8rem;
+      margin: 0.2rem 0;
+      color: #fbc02d;
+      font-family: "Yuanti TC", "FangSong", serif;
     }
-
     h2 {
-      font-family: 'Great Vibes', cursive;
-      font-size: 1.4rem;
-      margin: 0.2rem 0 1.2rem;
+      font-size: 1.2rem;
       color: #666;
+      margin-bottom: 1rem;
+      font-family: serif;
     }
-
     .quote {
       font-style: italic;
       font-size: 1rem;
-      background-color: #fff3cd;
-      padding: 0.6rem 1rem;
+      color: #5d4037;
+      background-color: rgba(255, 243, 205, 0.85);
+      padding: 0.8rem;
       border-radius: 10px;
-      color: #795548;
-      margin-bottom: 1.2rem;
+      margin: 1rem auto;
+      max-width: 90%;
     }
-
-    .services {
+    .services, .locations {
       font-size: 1rem;
       line-height: 1.6;
       margin-bottom: 1rem;
+      background: rgba(255, 255, 255, 0.7);
+      padding: 0.5rem;
+      border-radius: 8px;
+      display: inline-block;
     }
-
     .locations {
       font-weight: bold;
-      margin-bottom: 1.5rem;
-      font-size: 1rem;
     }
-
-    .button {
-      display: inline-block;
+    a.button {
+      display: block;
+      margin: 0.5rem auto;
+      padding: 0.6rem 1.2rem;
       background-color: #fdd835;
       color: #333;
-      padding: 0.5rem 1.2rem;
-      margin: 0.4rem;
-      border-radius: 20px;
+      text-decoration: none;
+      border-radius: 25px;
       font-weight: bold;
       font-size: 1rem;
-      text-decoration: none;
-      transition: background-color 0.3s ease;
+      width: 80%;
+      max-width: 280px;
+      transition: background-color 0.3s;
     }
-
-    .button:hover {
+    a.button:hover {
       background-color: #fbc02d;
     }
   </style>
 </head>
 <body>
 
-  <div class="wrapper">
-    <!-- Logo -->
-    <img class="logo" src="https://jacky995.github.io/BNI/boy/boy.jpg" alt="Logo">
+  <img class="logo" src="https://jacky995.github.io/BNI/boy/boy.jpg" alt="Logo" />
+  <img class="avatar" src="https://jacky995.github.io/BNI/boy/boy.jpg" alt="大頭貼" />
+  <h1>麥麥美學工作室</h1>
+  <h2>𝑴𝒂𝒊 𝑴𝒂𝒊 𝑺𝒕𝒖𝒅𝒊𝒐</h2>
 
-    <h1>麥麥美學工作室</h1>
-    <h2>Mai Mai Studio</h2>
+  <div class="quote">「不只是除毛，更是一個帶給人祝福的地方💐†」</div>
 
-    <div class="quote">「不只是除毛，更是一個帶給人祝福的地方💐†」</div>
-
-    <div class="services">
-      ・女性熱蠟除毛｜孕婦除毛<br/>
-      ・產後無痛泌乳｜到府服務
-    </div>
-
-    <div class="locations">西屯｜龍井｜沙鹿</div>
-
-    <a class="button" href="https://www.instagram.com/maimaiwaxing?igsh=OTdlYTRuejEwNTVq&utm_source=qr" target="_blank">Instagram（日常）</a>
-    <a class="button" href="https://lin.ee/b8apeJM" target="_blank">LINE（預約）</a>
+  <div class="services">
+    ．女性熱蠟除毛｜孕婦除毛<br/>
+    ．產後無痛泌乳｜到府服務
   </div>
+
+  <div class="locations">西屯｜龍井｜沙鹿</div>
+
+  <a class="button" href="https://www.instagram.com/maimaiwaxing?igsh=OTdlYTRuejEwNTVq&utm_source=qr" target="_blank">
+    𝑰𝒏𝒔𝒕𝒂𝒈𝒓𝒂𝒎（日常）
+  </a>
+  <a class="button" href="https://lin.ee/b8apeJM" target="_blank">
+    𝑳𝑰𝑵𝑬（預約）
+  </a>
 
 </body>
 </html>
