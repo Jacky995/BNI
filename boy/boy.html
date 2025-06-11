@@ -13,16 +13,9 @@
       padding: 2rem 1rem;
       background: url('https://jacky995.github.io/BNI/boy/b.jpg') no-repeat center center fixed;
       background-size: cover;
-      font-family: "Yuanti TC", "FangSong", "微軟正黑體", "PingFang TC", sans-serif;
+      font-family: "Yuanti TC", "FangSong", "Microsoft JhengHei", "PingFang TC", "Noto Sans TC", sans-serif;
       text-align: center;
       color: #333;
-    }
-    .logo {
-      position: absolute;
-      top: 1rem;
-      left: 1rem;
-      width: 60px;
-      height: auto;
     }
     .avatar {
       width: 120px;
@@ -53,17 +46,31 @@
       border-radius: 10px;
       margin: 1rem auto;
       max-width: 90%;
+      line-height: 1.6;
+      white-space: pre-line;
     }
-    .services, .locations {
+    .info {
+      margin-bottom: 1rem;
+    }
+    .services {
       font-size: 1rem;
       line-height: 1.6;
-      margin-bottom: 1rem;
       background: rgba(255, 255, 255, 0.7);
       padding: 0.5rem;
       border-radius: 8px;
       display: inline-block;
+      margin-bottom: 0.5rem;
     }
     .locations {
+      font-size: 1rem;
+      line-height: 1.6;
+      background: rgba(255, 255, 255, 0.7);
+      padding: 0.5rem;
+      border-radius: 8px;
+      display: inline-block;
+      font-weight: normal;
+    }
+    .place {
       font-weight: bold;
     }
     a.button {
@@ -87,19 +94,25 @@
 </head>
 <body>
 
-
   <img class="avatar" src="https://jacky995.github.io/BNI/boy/boy.jpg" alt="大頭貼" />
   <h1>麥麥美學工作室</h1>
   <h2>𝑴𝒂𝒊 𝑴𝒂𝒊 𝑺𝒕𝒖𝒅𝒊𝒐</h2>
 
-  <div class="quote">不只是除毛，更是一個帶給人祝福的地方💐†</div>
-
-  <div class="services">
-    ．女性熱蠟除毛｜孕婦除毛<br/>
-    ．產後無痛泌乳｜到府服務
+  <div class="quote">不只是除毛<br>更是一個帶給人祝福的地方💐†
   </div>
 
-  <div class="locations">西屯｜龍井｜沙鹿</div>
+  <div class="info">
+    <div class="services">
+      · 女性熱蠟除毛｜孕婦除毛<br>
+      · 產後無痛泌乳｜到府服務
+    </div><br>
+    <div class="locations">
+      <span></span>
+      <span class="place">西屯</span>｜
+      <span class="place">龍井</span>｜
+      <span class="place">沙鹿</span>
+    </div>
+  </div>
 
   <a class="button" href="https://www.instagram.com/maimaiwaxing?igsh=OTdlYTRuejEwNTVq&utm_source=qr" target="_blank">
     𝑰𝒏𝒔𝒕𝒂𝒈𝒓𝒂𝒎（日常）
