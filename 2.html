@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>B & P 永恆的紀念</title>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display&family=Lora&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --main-bg: #fdfcf8;
+      --accent: #a58e7c;
+      --highlight: #f2ede7;
+      --text-dark: #3e3e3e;
+      --text-light: #7a7a7a;
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      font-family: 'Lora', serif;
+      background: var(--main-bg);
+      color: var(--text-dark);
+      text-align: center;
+      overflow-x: hidden;
+    }
+    .container {
+      max-width: 700px;
+      margin: auto;
+      padding: 1.5rem;
+    }
+    h1 {
+      font-family: 'Playfair Display', serif;
+      font-size: 2.6em;
+      color: var(--accent);
+      margin: 2rem 0 1rem;
+    }
+    p.subtitle {
+      color: var(--text-light);
+      font-size: 1.1rem;
+      margin-bottom: 2rem;
+      font-style: italic;
+    }
+    #lockscreen {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(255,255,255,0.96);
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+      font-family: 'Lora', serif;
+      color: #6d5c4f;
+      text-align: center;
+      padding: 2rem;
+      font-size: 1.2rem;
+    }
+    .memory-slider h2 {
+      font-family: 'Playfair Display', serif;
+      font-size: 1.5rem;
+      color: var(--accent);
+      margin: 2rem 0 0.5rem;
+      border-bottom: 1px solid #e0dcd5;
+      display: inline-block;
+      padding-bottom: 0.3rem;
+    }
+    .scroll-hint {
+      font-size: 1.3rem;
+      color: #c3b8ad;
+      margin-top: 0.5rem;
+      animation: blink 2s infinite;
+    }
+    @keyframes blink {
+      0%, 100% { opacity: 1; }
+      50% { opacity: 0.3; }
+    }
+    .memories {
+      display: flex;
+      overflow-x: auto;
+      gap: 1rem;
+      padding: 1rem 0;
+      scroll-snap-type: x mandatory;
+      scroll-behavior: smooth;
+    }
+    .memory-card {
+      flex: 0 0 85%;
+      scroll-snap-align: center;
+      background: var(--highlight);
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0,0,0,0.06);
+      padding: 1rem;
+      text-align: center;
+      transition: transform 0.4s;
+    }
+    .memory-card .date {
+      font-weight: bold;
+      color: var(--text-dark);
+      margin: 0.5rem 0;
+    }
+    .memory-card .desc {
+      color: var(--text-light);
+      margin-bottom: 0.5rem;
+    }
+    .memory-card img {
+      width: 100%;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    .quote {
+      margin: 3rem 1rem 2rem;
+      font-style: italic;
+      font-size: 1.1rem;
+      color: var(--text-light);
+    }
+    footer {
+      margin-top: 3rem;
+      font-size: 0.9rem;
+      color: #b0aead;
+      padding-bottom: 2rem;
+    }
+    .lightbox {
+      position: fixed;
+      top: 0; left: 0;
+      width: 100%; height: 100%;
+      background: rgba(0,0,0,0.85);
+      display: none;
+      justify-content: center;
+      align-items: center;
+      z-index: 1000;
+    }
+    .lightbox img {
+      max-width: 90%;
+      max-height: 85%;
+      border-radius: 10px;
+    }
+    .lightbox.show {
+      display: flex;
+    }
+  </style>
+</head>
+<body>
+
+  <div id="lockscreen">
+    <h2>尚未開放</h2>
+    <p id="countdown">距離解鎖還有...</p>
+  </div>
+
+  <div class="container" onclick="startMusic()" style="cursor: pointer;">
+    <h1>人名1 & 人名2</h1>
+    <p class="subtitle">文字1</p>
+
+    <section class="memory-slider">
+      <h2>我們的旅程</h2>
+      <p class="scroll-hint">← 滑動看看 →</p>
+      <div class="memories" id="memories">
+        <div class="memory-card">
+          <p class="date">2024.02.14</p>
+          <p class="desc">第一次情人節</p>
+          <img src="https://jkey-envolvingyourself.github.io/520/1.3.jpg" alt="照片1" onclick="showLightbox(this.src)">
+        </div>
+        <div class="memory-card">
+          <p class="date">時間2</p>
+          <p class="desc">事件2</p>
+          <img src="https://jkey-envolvingyourself.github.io/1/1.2.jpg" alt="照片2" onclick="showLightbox(this.src)">
+        </div>
+        <div class="memory-card">
+          <p class="date">時間3</p>
+          <p class="desc">事件3</p>
+          <img src="https://jkey-envolvingyourself.github.io/1/1.3.jpg" alt="照片3" onclick="showLightbox(this.src)">
+        </div>
+      </div>
+    </section>
+
+    <div class="quote">「文字2」</div>
+    <footer>&copy; 2025 人名1 & 人名2 愛情紀念相簿</footer>
+  </div>
+
+  <div class="lightbox" id="lightbox">
+    <img src="" alt="preview">
+  </div>
+
+  <audio id="bgm" loop>
+    <source src="https:*//jkey-envolvingyourself.github.io/520/1.mp3" type="audio/mp3">
+  </audio>
+
+  <script>
+    // 時間鎖
+    const unlockDate = new Date("2025-05-15T16:00:00").getTime();
+    const lockscreen = document.getElementById("lockscreen");
+    const countdown = document.getElementById("countdown");
+    function updateCountdown() {
+      const now = new Date().getTime();
+      const diff = unlockDate - now;
+      if (diff <= 0) {
+        lockscreen.style.display = "none";
+        return;
+      }
+      const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+      const h = Math.floor((diff % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+      const m = Math.floor((diff % (1000 * 60 * 60)) / (1000 * 60));
+      const s = Math.floor((diff % (1000 * 60)) / 1000);
+      countdown.textContent = `還有 ${d} 天 ${h} 小時 ${m} 分 ${s} 秒`;
+    }
+    updateCountdown();
+    setInterval(updateCountdown, 1000);
+
+    // 點圖放大
+    const lightbox = document.getElementById("lightbox");
+    const lightboxImg = lightbox.querySelector("img");
+    function showLightbox(src) {
+      lightboxImg.src = src;
+      lightbox.classList.add("show");
+    }
+    lightbox.addEventListener("click", () => {
+      lightbox.classList.remove("show");
+      lightboxImg.src = "";
+    });
+
+    // 自動輪播滑動
+    const memories = document.getElementById("memories");
+    let scrollIndex = 0;
+    setInterval(() => {
+      const cards = memories.children;
+      scrollIndex = (scrollIndex + 1) % cards.length;
+      memories.scrollTo({
+        left: cards[scrollIndex].offsetLeft,
+        behavior: 'smooth'
+      });
+    }, 6000);
+
+    // 音樂觸發
+    const bgm = document.getElementById("bgm");
+    let played = false;
+    function startMusic() {
+      if (!played) {
+        bgm.play();
+        played = true;
+      }
+    }
+  </script>
+</body>
+</html>

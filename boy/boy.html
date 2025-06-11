@@ -1,106 +1,97 @@
-
 <!DOCTYPE html>
 <html lang="zh-Hant">
-<head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>𝑴𝒂𝒊 𝑴𝒂𝒊 𝑺𝒕𝒖𝒅𝒊𝒐 名片</title>
-  <style>
-    * {
-      box-sizing: border-box;
-    }
-    body {
-      margin: 0;
-      padding: 0;
-      background-color: #fffde7;
-      font-family: 'Segoe UI', sans-serif;
-      display: flex;
-      justify-content: center;
-    }
-    .card {
-      width: 100%;
-      max-width: 400px;
-      padding: 2rem 1rem;
-      text-align: center;
-      color: #333;
-    }
-    .avatar {
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      object-fit: cover;
-      margin-bottom: 1.2rem;
-      border: 4px solid #fdd835;
-    }
-    h1 {
-      font-size: 6vw;
-      margin: 0.2rem 0;
-      color: #fbc02d;
-    }
-    h2 {
-      font-size: 5vw;
-      color: #666;
-      margin-bottom: 1rem;
-    }
-    .quote {
-      font-style: italic;
-      font-size: 4vw;
-      color: #795548;
-      background-color: #fff3cd;
-      padding: 0.8rem;
-      border-radius: 10px;
-      margin-bottom: 1.2rem;
-    }
-    .services {
-      font-size: 4vw;
-      margin-bottom: 1rem;
-      line-height: 1.5;
-    }
-    .locations {
-      font-weight: bold;
-      font-size: 4.2vw;
-      margin-bottom: 1.5rem;
-    }
-    a.button {
-      display: block;
-      margin: 0.5rem auto;
-      padding: 0.6rem 1rem;
-      background-color: #fdd835;
-      color: #333;
-      text-decoration: none;
-      border-radius: 25px;
-      font-weight: bold;
-      font-size: 4.2vw;
-      width: 80%;
-      max-width: 250px;
-      transition: background-color 0.3s;
-    }
-    a.button:hover {
-      background-color: #fbc02d;
-    }
-  </style>
-</head>
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>𝑴𝒂𝒊 𝑴𝒂𝒊 𝑺𝒕𝒖𝒅𝒊𝒐 名片</title>
+  
+    <!-- 引入 Google Fonts 的 Noto Serif TC -->
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC&display=swap" rel="stylesheet">
+  
+    <style>
+      body {
+        background-color: #fffde7;
+        margin: 0;
+        padding: 2rem 1rem;
+        font-family: "Noto Serif TC", "FangSong", "Yuanti TC", "Microsoft JhengHei", "PingFang TC", sans-serif;
+        text-align: center;
+        color: #333;
+      }
+  
+      h1 {
+        font-size: 1.8rem;
+        color: #fbc02d;
+        font-weight: bold;
+      }
+  
+      h2 {
+        font-size: 1.2rem;
+        font-family: 'Segoe UI', sans-serif;
+        color: #666;
+      }
+  
+      .quote {
+        font-style: italic;
+        background-color: #fff3cd;
+        padding: 0.8rem;
+        border-radius: 8px;
+        margin: 1rem auto;
+        max-width: 90%;
+        color: #795548;
+      }
+  
+      .services {
+        font-size: 1rem;
+        line-height: 1.6;
+        margin-bottom: 1rem;
+      }
+  
+      .locations {
+        font-weight: bold;
+        margin-bottom: 1.5rem;
+        font-size: 1rem;
+      }
+  
+      .button {
+        display: inline-block;
+        background-color: #fdd835;
+        padding: 0.6rem 1.5rem;
+        margin: 0.5rem auto;
+        text-decoration: none;
+        color: #333;
+        font-weight: bold;
+        font-size: 1rem;
+        border-radius: 25px;
+        transition: background-color 0.3s;
+      }
+  
+      .button:hover {
+        background-color: #fbc02d;
+      }
+    </style>
+  </head>
+  
 <body>
-  <div class="card">
-    <img class="avatar" src="C:\Users\lll\Downloads\S__30826553.jpg" alt="大頭貼" />
-    <h1>麥麥美學工作室</h1>
-    <h2>𝑴𝒂𝒊 𝑴𝒂𝒊 𝑺𝒕𝒖𝒅𝒊𝒐</h2>
 
-    <div class="quote">「不只是除毛，更是一個帶給人祝福的地方💐†」</div>
+  <img class="avatar" src="https://i.imgur.com/YOUR_IMAGE.jpg" alt="大頭貼" />
+  <h1>麥麥美學工作室</h1>
+  <h2>𝑴𝒂𝒊 𝑴𝒂𝒊 𝑺𝒕𝒖𝒅𝒊𝒐</h2>
 
-    <div class="services">
-      ．女性熱蠟除毛｜孕婦除毛<br/>
-      ．產後無痛泌乳｜到府服務
-    </div>
+  <div class="quote">「不只是除毛，更是一個帶給人祝福的地方💐†」</div>
 
-    <div class="locations">西屯｜龍井｜沙鹿</div>
-
-    <a class="button" href="https://www.instagram.com/maimaiwaxing?igsh=OTdlYTRuejEwNTVq&utm_source=qr" target="_blank">
-      𝑰𝒏𝒔𝒕𝒂𝒈𝒓𝒂𝒎（日常）
-    </a>
-    <a class="button" href="https://lin.ee/b8apeJM" target="_blank">
-      𝑳𝑰𝑵𝑬（預約）
-    </a>
+  <div class="services">
+    ．女性熱蠟除毛｜孕婦除毛<br/>
+    ．產後無痛泌乳｜到府服務
   </div>
+
+  <div class="locations">西屯｜龍井｜沙鹿</div>
+
+  <a class="button" href="https://www.instagram.com/maimaiwaxing?igsh=OTdlYTRuejEwNTVq&utm_source=qr" target="_blank">
+    𝑰𝒏𝒔𝒕𝒂𝒈𝒓𝒂𝒎（日常）
+  </a>
+  <a class="button" href="https://lin.ee/b8apeJM" target="_blank">
+    𝑳𝑰𝑵𝑬（預約）
+  </a>
+
 </body>
 </html>
