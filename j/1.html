@@ -3,68 +3,139 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>J·KEY 訂購網站</title>
+  <title>J·KEY 官方網站</title>
   <style>
     body {
       font-family: "Microsoft JhengHei", sans-serif;
-      margin: 0;
-      background: #f8f9fa;
-      padding: 1rem;
-    }
-    h1 {
-      text-align: center;
+      background: #fffaf5;
       color: #333;
+      margin: 0;
+      padding: 0;
     }
-    .product {
+    header {
+      background-color: #ff6f61;
+      color: white;
+      padding: 1.5rem;
+      text-align: center;
+    }
+    nav {
+      background: #fff3e0;
+      display: flex;
+      justify-content: center;
+      gap: 1.5rem;
+      padding: 1rem;
+      flex-wrap: wrap;
+    }
+    nav a {
+      color: #333;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    section {
+      padding: 2rem;
+    }
+    .section-title {
+      font-size: 1.8rem;
+      margin-bottom: 1rem;
+      border-left: 4px solid #ff6f61;
+      padding-left: 0.5rem;
+    }
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+      gap: 1.5rem;
+    }
+    .card {
       background: white;
       border-radius: 12px;
       box-shadow: 0 4px 12px rgba(0,0,0,0.1);
-      margin: 1rem auto;
-      max-width: 400px;
-      overflow: hidden;
-    }
-    .product img {
-      width: 100%;
-      object-fit: cover;
-    }
-    .product .info {
       padding: 1rem;
+    }
+    footer {
+      background: #f8f8f8;
       text-align: center;
-    }
-    .product .info h2 {
-      margin: 0 0 1rem;
-      font-size: 1.2rem;
-    }
-    .order-btn {
-      display: inline-block;
-      background-color: #ff6f61;
-      color: white;
-      padding: 0.75rem 1.5rem;
-      border: none;
-      border-radius: 8px;
-      text-decoration: none;
-      font-size: 1rem;
-      transition: background-color 0.3s ease;
-    }
-    .order-btn:hover {
-      background-color: #e55a4f;
+      padding: 2rem;
+      font-size: 0.9rem;
     }
   </style>
 </head>
 <body>
+  <header>
+    <h1>J·KEY 官方網站</h1>
+    <p>Just Keep Evolving Yourself ｜ 讓每段關係，都有科技與情感的連結。</p>
+  </header>
 
-  <h1>J·KEY 訂購專區</h1>
+  <nav>
+    <a href="#products">客製禮品</a>
+    <a href="#solutions">數位整合</a>
+    <a href="#tech">技術合作</a>
+    <a href="#showcase">作品展示</a>
+    <a href="#contact">聯絡我</a>
+  </nav>
 
-  <!-- 商品 1 -->
-  <div class="product">
-    <img src="https://i.imgur.com/your-image.jpg" alt="商品圖">
-    <div class="info">
-      <h2>1314 情侶 NFC 鑰匙圈組</h2>
-      <a class="order-btn" href="https://docs.google.com/forms/your-google-form-link" target="_blank">立即訂購</a>
+  <section id="products">
+    <h2 class="section-title">🎁 客製禮品</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>J·KEY NFC 鑰匙圈</h3>
+        <p>三種價格方案（520 / 999 / 1314），可搭配香氛、雙面照片、語音留言、時間倒數、LED 點燈等模組。</p>
+      </div>
+      <div class="card">
+        <h3>紀念影片製作</h3>
+        <p>199 元加購，快速生成專屬回憶影片，可與產品連動。</p>
+      </div>
     </div>
-  </div>
+  </section>
 
-  <!-- 可以複製上方區塊新增商品 -->
+  <section id="solutions">
+    <h2 class="section-title">🧠 數位整合</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>LINE + Google 表單自動化</h3>
+        <p>用戶填單後自動發送回覆、自動建檔、整合 Line Pay 或 Notion。</p>
+      </div>
+      <div class="card">
+        <h3>最簡 ERP 原型</h3>
+        <p>用網頁 + 表單 + Sheets 自建下單系統，不需後端。</p>
+      </div>
+    </div>
+  </section>
 
+  <section id="tech">
+    <h2 class="section-title">🔧 技術合作</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>ESP32 / ESP8266 專案開發</h3>
+        <p>支援感測器整合、IR 控制、Blynk、RemoteXY、實時控制系統等。</p>
+      </div>
+      <div class="card">
+        <h3>AI + Python 自動化應用</h3>
+        <p>包含 GPT API 串接、資料擷取、自動命令系統、微控制器訓練等。</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="showcase">
+    <h2 class="section-title">📸 作品展示</h2>
+    <div class="grid">
+      <div class="card">
+        <h3>母親節專案</h3>
+        <p>香氛＋語音祝福＋NFC連結專屬網頁，實體販售搭配展場。</p>
+      </div>
+      <div class="card">
+        <h3>婚禮鑰匙圈合作</h3>
+        <p>與攝影、婚禮布置廠商聯名販售，支援雙面設計與客製語音。</p>
+      </div>
+    </div>
+  </section>
+
+  <section id="contact">
+    <h2 class="section-title">📬 聯絡我</h2>
+    <p>加入 <strong>官方 LINE：@jkey</strong><br>或寄信至：jkey.contact@example.com</p>
+  </section>
+
+  <footer>
+    &copy; 2025 J·KEY ｜ Just Keep Evolving Yourself
+  </footer>
 </body>
 </html>
