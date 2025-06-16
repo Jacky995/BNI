@@ -5,6 +5,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>我願為祢去｜信仰見證頁</title>
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/css/lightbox.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/js/lightbox-plus-jquery.min.js"></script>
   <style>
     :root {
       --bg: #fefcf9;
@@ -81,10 +83,24 @@
       border-radius: 999px;
       margin-bottom: 1rem;
     }
-    .photo {
-      width: 100%;
-      border-radius: 12px;
+    .photo-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 12px;
       margin: 1rem 0;
+    }
+    .photo-grid a {
+      display: block;
+      overflow: hidden;
+      border-radius: 12px;
+    }
+    .photo-grid img {
+      width: 100%;
+      display: block;
+      transition: transform 0.3s ease;
+    }
+    .photo-grid img:hover {
+      transform: scale(1.05);
     }
     .description {
       font-size: 1rem;
@@ -113,9 +129,11 @@
   <div class="section">
     <div class="card" id="group">
       <div class="section-title">❤️ 帶領幸福小組</div>
-      <img src="https://jacky995.github.io/BNI/boy/幸福小組.jpg" class="photo">
-      <img src="https://jacky995.github.io/BNI/boy/幸福小組2.jpg" class="photo">
-      <img src="https://jacky995.github.io/BNI/boy/幸福小組3.jpg" class="photo">
+      <div class="photo-grid">
+        <a href="https://jacky995.github.io/BNI/boy/幸福小組.jpg" data-lightbox="group"><img src="https://jacky995.github.io/BNI/boy/幸福小組.jpg"></a>
+        <a href="https://jacky995.github.io/BNI/boy/幸福小組2.jpg" data-lightbox="group"><img src="https://jacky995.github.io/BNI/boy/幸福小組2.jpg"></a>
+        <a href="https://jacky995.github.io/BNI/boy/幸福小組3.jpg" data-lightbox="group"><img src="https://jacky995.github.io/BNI/boy/幸福小組3.jpg"></a>
+      </div>
       <div class="description">
         為了得著靈魂必然全力以赴！不只是小組，更是一個家。也精心規劃各式各樣軟性活動。
       </div>
@@ -123,9 +141,11 @@
 
     <div class="card" id="work">
       <div class="section-title">❤️ 工作是福音禾場</div>
-      <img src="img/mucao1.jpg" class="photo">
-      <img src="img/mucao2.jpg" class="photo">
-      <img src="img/waxing.jpg" class="photo">
+      <div class="photo-grid">
+        <a href="img/mucao1.jpg" data-lightbox="work"><img src="img/mucao1.jpg"></a>
+        <a href="img/mucao2.jpg" data-lightbox="work"><img src="img/mucao2.jpg"></a>
+        <a href="img/waxing.jpg" data-lightbox="work"><img src="img/waxing.jpg"></a>
+      </div>
       <div class="description">
         不只是除毛，更是一個帶給人祝福的地方。<br>
         每一次的相遇，都是為了讓人遇見神。
@@ -140,15 +160,19 @@
         因為熱蠟除毛而有的一場福音談話，感謝神使用這份工作、使用我的口，帶領自己的百姓回到家中。
         <br><br>
         <b>宗豫：</b><br>
-        <img src="img/zongyu.jpg" class="photo">
+        <div class="photo-grid">
+          <a href="img/zongyu.jpg" data-lightbox="witness"><img src="img/zongyu.jpg"></a>
+        </div>
         當初選擇小組具備在週六最大的原因是得知教會一位姊妹的男朋友只能來週六，而他——是7歲開始信佛20年的老信徒。但也因著小組，在2023年底受洗歸入主內，也成我們的小組同工。
       </div>
     </div>
 
     <div class="card" id="disciples">
       <div class="section-title">❤️ 帶領小羊</div>
-      <img src="img/yurou.jpg" class="photo">
-      <img src="img/yiwei.jpg" class="photo">
+      <div class="photo-grid">
+        <a href="img/yurou.jpg" data-lightbox="disciples"><img src="img/yurou.jpg"></a>
+        <a href="img/yiwei.jpg" data-lightbox="disciples"><img src="img/yiwei.jpg"></a>
+      </div>
       <div class="description">
         一對一門徒訓練，不只是成為基督徒，更要成為門徒！<br>
         語柔——當初穩定參與週六小組，後來受洗成為小組同工，並且也是媒體部成員。<br>
@@ -158,7 +182,9 @@
 
     <div class="card" id="media">
       <div class="section-title">❤️ 媒體事工</div>
-      <img src="img/ig-screenshot.jpg" class="photo">
+      <div class="photo-grid">
+        <a href="img/ig-screenshot.jpg" data-lightbox="media"><img src="img/ig-screenshot.jpg"></a>
+      </div>
       <a href="https://www.instagram.com/yourchurch" class="external-link" target="_blank">前往教會 Instagram</a>
       <div class="description">
         2024/9開始接手媒體事工，使教會的Instagram得以發展，已發布45支影片。
@@ -168,7 +194,7 @@
 
     <div class="card" id="family">
       <div class="section-title">❤️ 家人信主</div>
-      <div class="description" style="poe">
+      <div class="description">
         2022/5/1 我與先生受洗（當時為男友）<br>
         2023/3/1 媽媽受洗<br>
         2023/7/2 爸爸、妹妹受洗<br>
