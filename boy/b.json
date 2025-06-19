@@ -1,31 +1,176 @@
 [
-  { "page": 1, "title": "《外表的安全感》", "photo": "https://jacky995.github.io/BNI/boy/god.jpg", "txt": "1.txt" },
-  { "page": 2, "title": "《辭舊迎新經文-明白何謂倚靠》", "photo": "https://jacky995.github.io/BNI/boy/god.jpg", "txt": "2.txt" },
-  { "page": 3, "title": "《對神的回應》", "photo": "https://jacky995.github.io/BNI/boy/god.jpg", "txt": "3.txt" },
-  { "page": 4, "title": "《愛的禮物》", "photo": "https://jacky995.github.io/BNI/boy/god.jpg", "txt": "4.txt" },
-  { "page": 5, "title": "《跟著神的腳步走》", "photo": "https://jacky995.github.io/BNI/boy/god.jpg", "txt": "5.txt" },
-  { "page": 6, "title": "《神不務實嗎？》", "photo": "https://jacky995.github.io/BNI/boy/god.jpg", "txt": "6.txt" },
-  { "page": 7, "title": "《那雙看不見的手》", "photo": "https://jacky995.github.io/BNI/boy/god.jpg", "txt": "7.txt" },
-  { "page": 8, "title": "《神為我開的門》", "photo": "https://jacky995.github.io/BNI/boy/god.jpg", "txt": "8.txt" },
-  { "page": 9, "title": "《神也會管我的業績嗎？》", "photo": "https://jacky995.github.io/BNI/boy/god.jpg", "txt": "9.txt" },
-  { "page": 10, "title": "《我願為祢去》", "photo": "https://jacky995.github.io/BNI/boy/god.jpg", "txt": "10.txt" },
-  { "page": 11, "title": "《幸福的起點》", "photo": "https://jacky995.github.io/BNI/boy/god.jpg", "txt": "11.txt" },
-  { "page": 12, "title": "《從未離開的愛》", "photo": "https://jacky995.github.io/BNI/boy/god.jpg", "txt": "12.txt" },
-  { "page": 13, "title": "《破碎與恢復》", "photo": "https://jacky995.github.io/BNI/boy/god.jpg", "txt": "13.txt" },
-  { "page": 14, "title": "《我們結婚了》", "photo": "https://jacky995.github.io/BNI/boy/14.jpg", "txt": "14.txt" },
-  { "page": 15, "title": "《孩子的禱告》", "photo": "https://jacky995.github.io/BNI/boy/15.jpg", "txt": "15.txt" },
-  { "page": 16, "title": "《祂知道我需要什麼》", "photo": "https://jacky995.github.io/BNI/boy/16.jpg", "txt": "16.txt" },
-  { "page": 17, "title": "《無法逃避的愛》", "photo": "https://jacky995.github.io/BNI/boy/god.jpg", "txt": "17.txt" },
-  { "page": 18, "title": "《醫治與釋放》", "photo": "https://jacky995.github.io/BNI/boy/18.jpg", "txt": "18.txt" },
-  { "page": 19, "title": "《找到家的感覺》", "photo": "https://jacky995.github.io/BNI/boy/19.jpg", "txt": "19.txt" },
-  { "page": 20, "title": "《再見，我的憂鬱症》", "photo": "https://jacky995.github.io/BNI/boy/20.jpg", "txt": "20.txt" },
-  { "page": 21, "title": "《從鬼附到得救》", "photo": "https://jacky995.github.io/BNI/boy/21.jpg", "txt": "21.txt" },
-  { "page": 22, "title": "《呼叫主名得自由》", "photo": "https://jacky995.github.io/BNI/boy/22.jpg", "txt": "22.txt" },
-  { "page": 23, "title": "《祂正在對我說話》", "photo": "https://jacky995.github.io/BNI/boy/god.jpg", "txt": "23.txt" },
-  { "page": 24, "title": "《神也會管我的業績嗎？》", "photo": "https://jacky995.github.io/BNI/boy/24.jpg", "txt": "24.txt" },
-  { "page": 25, "title": "《我願為祢去》", "photo": "https://jacky995.github.io/BNI/boy/25.jpg", "txt": "25.txt" },
-  { "page": 26, "title": "《使人和睦的神》", "photo": "https://jacky995.github.io/BNI/boy/26.jpg", "txt": "26.txt" },
-  { "page": 27, "title": "《異夢——天國的盼望》", "photo": "https://jacky995.github.io/BNI/boy/27.jpg", "txt": "27.txt" },
-  { "page": 28, "title": "《耶和華以勒》", "photo": "https://jacky995.github.io/BNI/boy/28.jpg", "txt": "28.txt" },
-  { "page": 29, "title": "《考試得勝》", "photo": "https://jacky995.github.io/BNI/boy/29.jpg", "txt": "29.txt" }
+  {
+    "page": 1,
+    "title": "《外表的安全感》",
+    "photo": "https://jacky995.github.io/BNI/boy/god.jpg",
+    "txt": "1.txt"
+  },
+  {
+    "page": 2,
+    "title": "《辭舊迎新經文-明白何謂倚靠》",
+    "photo": "https://jacky995.github.io/BNI/boy/god.jpg",
+    "txt": "2.txt"
+  },
+  {
+    "page": 3,
+    "title": "《對神的回應》",
+    "photo": "https://jacky995.github.io/BNI/boy/god.jpg",
+    "txt": "3.txt"
+  },
+  {
+    "page": 4,
+    "title": "《愛的禮物》",
+    "photo": "https://jacky995.github.io/BNI/boy/god.jpg",
+    "txt": "4.txt"
+  },
+  {
+    "page": 5,
+    "title": "《跟著神的腳步走》",
+    "photo": "https://jacky995.github.io/BNI/boy/god.jpg",
+    "txt": "5.txt"
+  },
+  {
+    "page": 6,
+    "title": "《神不務實嗎？》",
+    "photo": "https://jacky995.github.io/BNI/boy/god.jpg",
+    "txt": "6.txt"
+  },
+  {
+    "page": 7,
+    "title": "《那雙看不見的手》",
+    "photo": "https://jacky995.github.io/BNI/boy/god.jpg",
+    "txt": "7.txt"
+  },
+  {
+    "page": 8,
+    "title": "《神為我開的門》",
+    "photo": "https://jacky995.github.io/BNI/boy/god.jpg",
+    "txt": "8.txt"
+  },
+  {
+    "page": 9,
+    "title": "《神也會管我的業績嗎？》",
+    "photo": "https://jacky995.github.io/BNI/boy/god.jpg",
+    "txt": "9.txt"
+  },
+  {
+    "page": 10,
+    "title": "《我願為祢去》",
+    "photo": "https://jacky995.github.io/BNI/boy/god.jpg",
+    "txt": "10.txt"
+  },
+  {
+    "page": 11,
+    "title": "《幸福的起點》",
+    "photo": "https://jacky995.github.io/BNI/boy/god.jpg",
+    "txt": "11.txt"
+  },
+  {
+    "page": 12,
+    "title": "《從未離開的愛》",
+    "photo": "https://jacky995.github.io/BNI/boy/god.jpg",
+    "txt": "12.txt"
+  },
+  {
+    "page": 13,
+    "title": "《破碎與恢復》",
+    "photo": "https://jacky995.github.io/BNI/boy/god.jpg",
+    "txt": "13.txt"
+  },
+  {
+    "page": 14,
+    "title": "《我們結婚了》",
+    "photo": "https://jacky995.github.io/BNI/boy/14.jpg",
+    "txt": "14.txt"
+  },
+  {
+    "page": 15,
+    "title": "《孩子的禱告》",
+    "photo": "https://jacky995.github.io/BNI/boy/15.jpg",
+    "txt": "15.txt"
+  },
+  {
+    "page": 16,
+    "title": "《祂知道我需要什麼》",
+    "photo": "https://jacky995.github.io/BNI/boy/16.jpg",
+    "txt": "16.txt"
+  },
+  {
+    "page": 17,
+    "title": "《無法逃避的愛》",
+    "photo": "https://jacky995.github.io/BNI/boy/god.jpg",
+    "txt": "17.txt"
+  },
+  {
+    "page": 18,
+    "title": "《醫治與釋放》",
+    "photo": "https://jacky995.github.io/BNI/boy/18.jpg",
+    "txt": "18.txt"
+  },
+  {
+    "page": 19,
+    "title": "《找到家的感覺》",
+    "photo": "https://jacky995.github.io/BNI/boy/19.jpg",
+    "txt": "19.txt"
+  },
+  {
+    "page": 20,
+    "title": "《再見，我的憂鬱症》",
+    "photo": "https://jacky995.github.io/BNI/boy/20.jpg",
+    "txt": "20.txt"
+  },
+  {
+    "page": 21,
+    "title": "《從鬼附到得救》",
+    "photo": "https://jacky995.github.io/BNI/boy/21.jpg",
+    "txt": "21.txt"
+  },
+  {
+    "page": 22,
+    "title": "《呼叫主名得自由》",
+    "photo": "https://jacky995.github.io/BNI/boy/22.jpg",
+    "txt": "22.txt"
+  },
+  {
+    "page": 23,
+    "title": "《祂正在對我說話》",
+    "photo": "https://jacky995.github.io/BNI/boy/god.jpg",
+    "txt": "23.txt"
+  },
+  {
+    "page": 24,
+    "title": "《神也會管我的業績嗎？》",
+    "photo": "https://jacky995.github.io/BNI/boy/24.jpg",
+    "txt": "24.txt"
+  },
+  {
+    "page": 25,
+    "title": "《我願為祢去》",
+    "photo": "https://jacky995.github.io/BNI/boy/25.jpg",
+    "txt": "25.txt"
+  },
+  {
+    "page": 26,
+    "title": "《使人和睦的神》",
+    "photo": "https://jacky995.github.io/BNI/boy/26.jpg",
+    "txt": "26.txt"
+  },
+  {
+    "page": 27,
+    "title": "《異夢——天國的盼望》",
+    "photo": "https://jacky995.github.io/BNI/boy/27.jpg",
+    "txt": "27.txt"
+  },
+  {
+    "page": 28,
+    "title": "《耶和華以勒》",
+    "photo": "https://jacky995.github.io/BNI/boy/28.jpg",
+    "txt": "28.txt"
+  },
+  {
+    "page": 29,
+    "title": "《考試得勝》",
+    "photo": "https://jacky995.github.io/BNI/boy/29.jpg",
+    "txt": "29.txt"
+  }
 ]
