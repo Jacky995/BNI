@@ -95,7 +95,7 @@
 
     fetch('b.json')
       .then(res => res.json())
-      .then(data => {
+      .then(async data => {
         const testimony = data.find(d => d.page === page);
         if (!testimony) {
           document.getElementById('title').textContent = '找不到此篇見證';
@@ -105,7 +105,15 @@
 
         document.getElementById('title').textContent = testimony.title;
         document.getElementById('photo').src = testimony.photo;
-        document.getElementById('content').textContent = testimony.content;
+
+        try {
+          const txtRes = await fetch(testimony.txt);
+          const txtContent = await txtRes.text();
+          document.getElementById('content').textContent = txtContent;
+        } catch (err) {
+          document.getElementById('content').textContent = '無法載入文字內容。';
+          console.error(err);
+        }
 
         const currentPath = window.location.pathname.split('/').pop();
         const prevLink = page > 1 ? `${currentPath}?page=${page - 1}` : '#';
