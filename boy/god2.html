@@ -1,0 +1,115 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>見證集｜我願為祢去</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700&display=swap" rel="stylesheet">
+  <link href="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/css/lightbox.min.css" rel="stylesheet">
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/lightbox2/2.11.4/js/lightbox-plus-jquery.min.js"></script>
+  <style>
+    :root {
+      --bg: #fefcf9;
+      --text: #1a1a1a;
+      --accent: #c2925b;
+      --highlight: #fbc02d;
+      --card: #ffffff;
+      --shadow: 0 10px 30px rgba(0, 0, 0, 0.08);
+    }
+    * { box-sizing: border-box; }
+    body {
+      margin: 0;
+      background: var(--bg);
+      font-family: 'Noto Sans TC', sans-serif;
+      color: var(--text);
+      line-height: 1.8;
+      padding: 1rem;
+    }
+    .container {
+      max-width: 800px;
+      margin: auto;
+      background: var(--card);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 2rem;
+    }
+    .title {
+      text-align: center;
+      font-size: 1.8rem;
+      font-weight: bold;
+      color: var(--accent);
+      margin-bottom: 1rem;
+    }
+    .image-box {
+      text-align: center;
+      margin-bottom: 1.5rem;
+    }
+    .image-box img {
+      max-width: 100%;
+      border-radius: 12px;
+      box-shadow: var(--shadow);
+    }
+    .content {
+      white-space: pre-wrap;
+      font-size: 1.1rem;
+      line-height: 2.1;
+      text-align: justify;
+    }
+    .nav {
+      display: flex;
+      justify-content: space-between;
+      margin-top: 2rem;
+    }
+    .nav a {
+      background: var(--highlight);
+      padding: 0.6rem 1.2rem;
+      border-radius: 999px;
+      text-decoration: none;
+      color: #000;
+      font-weight: bold;
+      box-shadow: var(--shadow);
+      transition: 0.2s ease;
+    }
+    .nav a:hover {
+      background: var(--accent);
+      color: #fff;
+    }
+  </style>
+</head>
+<body>
+  <div class="container" id="testimony-container">
+    <div class="title" id="title">載入中...</div>
+    <div class="image-box">
+      <img id="photo" src="" alt="見證照片">
+    </div>
+    <div class="content" id="content">請稍候...</div>
+    <div class="nav">
+      <a id="prev" href="#">← 上一篇</a>
+      <a href="https://jacky995.github.io/BNI/boy/god.html">回首頁</a>
+      <a id="next" href="#">下一篇 →</a>
+    </div>
+  </div>
+
+  <script>
+    const page = parseInt(new URLSearchParams(window.location.search).get('page')) || 1;
+    fetch('testimonies.json')
+      .then(res => res.json())
+      .then(data => {
+        const testimony = data.find(d => d.page === page);
+        if (!testimony) {
+          document.getElementById('title').textContent = '找不到此篇見證';
+          document.getElementById('content').textContent = '';
+          return;
+        }
+        document.getElementById('title').textContent = testimony.title;
+        document.getElementById('photo').src = testimony.photo;
+        document.getElementById('content').textContent = testimony.content;
+
+        const prevLink = page > 1 ? `testimony.html?page=${page - 1}` : '#';
+        const nextLink = page < data.length ? `testimony.html?page=${page + 1}` : '#';
+        document.getElementById('prev').href = prevLink;
+        document.getElementById('next').href = nextLink;
+      });
+  </script>
+</body>
+</html>
