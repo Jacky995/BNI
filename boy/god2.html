@@ -92,6 +92,7 @@
 
   <script>
     const page = parseInt(new URLSearchParams(window.location.search).get('page')) || 1;
+
     fetch('b.json')
       .then(res => res.json())
       .then(data => {
@@ -101,12 +102,15 @@
           document.getElementById('content').textContent = '';
           return;
         }
+
         document.getElementById('title').textContent = testimony.title;
         document.getElementById('photo').src = testimony.photo;
         document.getElementById('content').textContent = testimony.content;
 
-        const prevLink = page > 1 ? `testimony.html?page=${page - 1}` : '#';
-        const nextLink = page < data.length ? `testimony.html?page=${page + 1}` : '#';
+        const currentPath = window.location.pathname.split('/').pop();
+        const prevLink = page > 1 ? `${currentPath}?page=${page - 1}` : '#';
+        const nextLink = page < data.length ? `${currentPath}?page=${page + 1}` : '#';
+
         document.getElementById('prev').href = prevLink;
         document.getElementById('next').href = nextLink;
       });
