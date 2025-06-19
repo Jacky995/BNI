@@ -92,7 +92,7 @@
 
   <script>
     const page = parseInt(new URLSearchParams(window.location.search).get('page')) || 1;
-    fetch('testimonies.json')
+    fetch('b.json')
       .then(res => res.json())
       .then(data => {
         const testimony = data.find(d => d.page === page);
