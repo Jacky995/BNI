@@ -93,7 +93,7 @@
   <script>
     const page = parseInt(new URLSearchParams(window.location.search).get('page')) || 1;
 
-    fetch('b.json')
+    fetch('https://jacky995.github.io/BNI/boy/b.json')
       .then(res => res.json())
       .then(async data => {
         const testimony = data.find(d => d.page === page);
@@ -107,7 +107,7 @@
         document.getElementById('photo').src = testimony.photo;
 
         try {
-          const txtRes = await fetch(testimony.txt);
+          const txtRes = await fetch(`https://jacky995.github.io/BNI/boy/${testimony.txt}`);
           const txtContent = await txtRes.text();
           document.getElementById('content').textContent = txtContent;
         } catch (err) {
