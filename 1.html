@@ -229,6 +229,8 @@
       .then(data => {
         const d = data.find(item => item["編號"] == uid);
         if (!d) return;
+        document.title = `${d["人名1"] || "人名1"} & ${d["人名2"] || "人名2"} 的永恆紀念`;
+
 
         document.querySelector("h1").innerText = `${d["人名1"] || "人名1"} & ${d["人名2"] || "人名2"}`;
         document.querySelector(".subtitle").innerText = d["文字1"] || "文字1";
