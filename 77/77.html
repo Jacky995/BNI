@@ -1,0 +1,101 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <title>婚禮祝福牆</title>
+  <style>
+    body {margin:0; background:radial-gradient(circle at top,#ffe4f4,#d4c1f2,#c1e0f7); overflow:hidden; font-family:'Segoe UI',sans-serif;}
+    .heart {position:absolute;width:100px;height:90px;background-color:pink;transform:rotate(-45deg);animation:fall linear;cursor:pointer;z-index:1;}
+    .heart::before,.heart::after {content:"";position:absolute;width:100px;height:90px;background-color:pink;border-radius:50%;}
+    .heart::before {top:-50px;left:0;}
+    .heart::after {left:50px;top:0;}
+    .heart span {position:absolute;width:100%;top:35px;text-align:center;font-weight:bold;color:white;pointer-events:none;transform:rotate(45deg);z-index:2;text-shadow:1px 1px 3px rgba(0,0,0,0.3);}
+    @keyframes fall {0%{top:-100px;opacity:1;}100%{top:100vh;opacity:0;}}
+    .popup {position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;padding:30px 20px;border-radius:20px;box-shadow:0 0 20px rgba(0,0,0,0.3);z-index:10;display:none;max-width:90%;text-align:center;animation:popupFade 0.5s;}
+    .popup h3 {margin:0 0 10px;color:#b80000;}
+    .popup p {margin:0;font-size:18px;}
+    .overlay {position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:5;display:none;}
+    h2 {text-align:center;color:#b80000;margin:20px;position:relative;z-index:3;}
+    @keyframes popupFade {from{transform:translate(-50%,-60%) scale(0.8);opacity:0;}to{transform:translate(-50%,-50%) scale(1);opacity:1;}}
+  </style>
+</head>
+<body>
+  <h2>💌 黃大 愛 文琪 💌</h2>
+  <div id="container"></div>
+  <div class="overlay" id="overlay"></div>
+  <div class="popup" id="popup"><h3 id="popupName"></h3><p id="popupMessage"></p></div>
+  <script>
+    const apiUrl = "https://script.google.com/macros/s/AKfycbziJDYbABodbunjfYvcSCJzZz8YFHCI_3Rbvc9aCChLuZXWIswJBVbho9nDbnNP_LxS/exec";
+    const urlParams = new URLSearchParams(window.location.search);
+    const codeParam = urlParams.get('code');
+    let currentWishes = [];
+
+    function fetchWishes() {
+      fetch(apiUrl)
+        .then(response => response.json())
+        .then(wishes => {
+          let filtered = wishes;
+          if (codeParam) {
+            filtered = wishes.filter(w => String(w.code) === codeParam);
+            if (filtered.length === 0) {
+              showNoData();
+              return;
+            }
+          }
+          currentWishes = filtered;
+        })
+        .catch(error => console.error('API 載入失敗:', error));
+    }
+
+    function showNoData() {
+      const noData = document.createElement('div');
+      noData.textContent = "查無此編號的祝福內容。";
+      noData.style.cssText = "position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);color:#b80000;font-size:20px;background:white;padding:20px;border-radius:12px;box-shadow:0 0 10px rgba(0,0,0,0.2);z-index:10;";
+      document.body.appendChild(noData);
+    }
+
+    fetchWishes();
+    setInterval(fetchWishes, 30000);
+
+    setInterval(() => {
+      if (currentWishes.length > 0) {
+        const wish = currentWishes[Math.floor(Math.random() * currentWishes.length)];
+        createHeart(wish);
+      }
+    }, 1200);
+
+    setInterval(() => {
+      if (currentWishes.length > 0 && document.getElementById('popup').style.display === 'none') {
+        const wish = currentWishes[Math.floor(Math.random() * currentWishes.length)];
+        showPopup(wish);
+      }
+    }, 7000);
+
+    function createHeart(wish) {
+      const heart = document.createElement('div');
+      heart.classList.add('heart');
+      heart.style.left = Math.random() * 90 + 'vw';
+      heart.style.animationDuration = (Math.random() * 3 + 5) + 's';
+      heart.innerHTML = `<span>${wish.name}</span>`;
+      heart.onclick = () => showPopup(wish);
+      document.getElementById('container').appendChild(heart);
+      setTimeout(() => heart.remove(), 10000);
+    }
+
+    function showPopup(wish) {
+      document.getElementById('popupName').textContent = `💖 ${wish.name} 的祝福 💖`;
+      document.getElementById('popupMessage').textContent = wish.message;
+      document.getElementById('popup').style.display = 'block';
+      document.getElementById('overlay').style.display = 'block';
+      setTimeout(() => closePopup(), 5000);
+    }
+
+    function closePopup() {
+      document.getElementById('popup').style.display = 'none';
+      document.getElementById('overlay').style.display = 'none';
+    }
+
+    document.getElementById('overlay').onclick = closePopup;
+  </script>
+</body>
+</html>
