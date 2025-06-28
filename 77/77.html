@@ -21,13 +21,21 @@
       pointer-events: none;
       z-index: 0;
     }
+    #demo-canvas {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+    }
     .heart {
       position: absolute;
-      top: 0; /* 從頂端開始 */
+      top: 0;
       width: 100px;
       height: 90px;
       background-color: #f7c4d2;
-      transform: rotate(-45deg) translateY(-200px); /* 從螢幕外200px上方開始 */
+      transform: rotate(-45deg) translateY(-200px);
       animation: fall linear;
       cursor: pointer;
       z-index: 1;
@@ -103,10 +111,153 @@
   </style>
 </head>
 <body>
+  <canvas id="demo-canvas"></canvas>
   <h2>💌 黃大烜 & 文娸 💌</h2>
   <div id="container"></div>
   <div class="overlay" id="overlay"></div>
   <div class="popup" id="popup"><h3 id="popupName"></h3><p id="popupMessage"></p></div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.20.3/TweenLite.min.js"></script>
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.20.3/easing/EasePack.min.js"></script>
+  <script>
+    // 雷電特效 + 愛心點
+    (function () {
+      var width, height, canvas, ctx, points, target, animateHeader = true;
+
+      initCanvas();
+      initAnimation();
+      addListeners();
+
+      function initCanvas() {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        target = { x: width / 2, y: height / 2 };
+
+        canvas = document.getElementById('demo-canvas');
+        canvas.width = width;
+        canvas.height = height;
+        ctx = canvas.getContext('2d');
+
+        points = [];
+        for (var x = 0; x < width; x += width / 20) {
+          for (var y = 0; y < height; y += height / 20) {
+            var px = x + Math.random() * width / 20;
+            var py = y + Math.random() * height / 20;
+            var p = { x: px, originX: px, y: py, originY: py };
+            points.push(p);
+          }
+        }
+
+        for (var i = 0; i < points.length; i++) {
+          var closest = [];
+          var p1 = points[i];
+          for (var j = 0; j < points.length; j++) {
+            var p2 = points[j];
+            if (p1 !== p2) {
+              for (var k = 0; k < 5; k++) {
+                if (!closest[k] || getDistance(p1, p2) < getDistance(p1, closest[k])) {
+                  closest[k] = p2;
+                  break;
+                }
+              }
+            }
+          }
+          p1.closest = closest;
+        }
+
+        for (var i in points) {
+          var c = new Circle(points[i], 2 + Math.random() * 2, 'rgba(255,255,255,0.3)');
+          points[i].circle = c;
+        }
+      }
+
+      function addListeners() {
+        if (!('ontouchstart' in window)) window.addEventListener('mousemove', mouseMove);
+        window.addEventListener('scroll', scrollCheck);
+        window.addEventListener('resize', resize);
+      }
+
+      function mouseMove(e) {
+        target.x = e.pageX || e.clientX + document.body.scrollLeft + document.documentElement.scrollLeft;
+        target.y = e.pageY || e.clientY + document.body.scrollTop + document.documentElement.scrollTop;
+      }
+
+      function scrollCheck() {
+        animateHeader = document.body.scrollTop <= height;
+      }
+
+      function resize() {
+        width = window.innerWidth;
+        height = window.innerHeight;
+        canvas.width = width;
+        canvas.height = height;
+      }
+
+      function initAnimation() {
+        animate();
+        for (var i in points) shiftPoint(points[i]);
+      }
+
+      function animate() {
+        if (animateHeader) {
+          ctx.clearRect(0, 0, width, height);
+          for (var i in points) {
+            var dist = Math.abs(getDistance(target, points[i]));
+            points[i].active = dist < 4000 ? 0.3 : dist < 20000 ? 0.1 : dist < 40000 ? 0.02 : 0;
+            points[i].circle.active = points[i].active * 2;
+
+            drawLines(points[i]);
+            points[i].circle.draw();
+          }
+        }
+        requestAnimationFrame(animate);
+      }
+
+      function shiftPoint(p) {
+        TweenLite.to(p, 1 + Math.random(), {
+          x: p.originX - 50 + Math.random() * 100,
+          y: p.originY - 50 + Math.random() * 100,
+          ease: Circ.easeInOut,
+          onComplete: () => shiftPoint(p)
+        });
+      }
+
+      function drawLines(p) {
+        if (!p.active) return;
+        for (var i in p.closest) {
+          ctx.beginPath();
+          ctx.moveTo(p.x, p.y);
+          ctx.lineTo(p.closest[i].x, p.closest[i].y);
+          ctx.strokeStyle = 'rgba(156,217,249,' + p.active + ')';
+          ctx.stroke();
+        }
+      }
+
+      function Circle(pos, rad, color) {
+        this.pos = pos;
+        this.radius = rad;
+        this.color = color;
+        this.draw = function () {
+          if (!this.active) return;
+          ctx.save();
+          ctx.translate(this.pos.x, this.pos.y);
+          ctx.scale(this.radius / 6, this.radius / 6);
+          ctx.beginPath();
+          ctx.moveTo(0, -5);
+          ctx.bezierCurveTo(-5, -15, -15, -5, 0, 5);
+          ctx.bezierCurveTo(15, -5, 5, -15, 0, -5);
+          ctx.closePath();
+          ctx.fillStyle = 'rgba(247,196,210,' + this.active + ')'; // 粉紅愛心
+          ctx.fill();
+          ctx.restore();
+        };
+      }
+
+      function getDistance(p1, p2) {
+        return (p1.x - p2.x) ** 2 + (p1.y - p2.y) ** 2;
+      }
+    })();
+  </script>
   <script>
     const apiUrl = "https://script.google.com/macros/s/AKfycbziJDYbABodbunjfYvcSCJzZz8YFHCI_3Rbvc9aCChLuZXWIswJBVbho9nDbnNP_LxS/exec";
     const urlParams = new URLSearchParams(window.location.search);
@@ -157,9 +308,7 @@
     function createHeart(wish) {
       const heart = document.createElement('div');
       heart.classList.add('heart');
-      const minLeft = 5; // 避免太邊緣
-      const maxLeft = 85;
-      heart.style.left = (Math.random() * (maxLeft - minLeft) + minLeft) + 'vw';
+      heart.style.left = (Math.random() * 80 + 10) + 'vw';
       heart.style.animationDuration = (Math.random() * 3 + 5) + 's';
       heart.innerHTML = `<span>${wish.name}</span>`;
       heart.onclick = () => showPopup(wish);
