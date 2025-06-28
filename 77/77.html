@@ -4,19 +4,102 @@
   <meta charset="UTF-8">
   <title>婚禮祝福牆</title>
   <style>
-    body {margin:0; background:radial-gradient(circle at top,#ffe4f4,#d4c1f2,#c1e0f7); overflow:hidden; font-family:'Segoe UI',sans-serif;}
-    .heart {position:absolute;width:100px;height:90px;background-color:pink;transform:rotate(-45deg);animation:fall linear;cursor:pointer;z-index:1;}
-    .heart::before,.heart::after {content:"";position:absolute;width:100px;height:90px;background-color:pink;border-radius:50%;}
-    .heart::before {top:-50px;left:0;}
-    .heart::after {left:50px;top:0;}
-    .heart span {position:absolute;width:100%;top:35px;text-align:center;font-weight:bold;color:white;pointer-events:none;transform:rotate(45deg);z-index:2;text-shadow:1px 1px 3px rgba(0,0,0,0.3);}
-    @keyframes fall {0%{top:-100px;opacity:1;}100%{top:100vh;opacity:0;}}
-    .popup {position:fixed;top:50%;left:50%;transform:translate(-50%,-50%);background:white;padding:30px 20px;border-radius:20px;box-shadow:0 0 20px rgba(0,0,0,0.3);z-index:10;display:none;max-width:90%;text-align:center;animation:popupFade 0.5s;}
-    .popup h3 {margin:0 0 10px;color:#b80000;}
-    .popup p {margin:0;font-size:18px;}
-    .overlay {position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:5;display:none;}
-    h2 {text-align:center;color:#b80000;margin:20px;position:relative;z-index:3;}
-    @keyframes popupFade {from{transform:translate(-50%,-60%) scale(0.8);opacity:0;}to{transform:translate(-50%,-50%) scale(1);opacity:1;}}
+    body {
+      margin: 0;
+      background: linear-gradient(135deg, #f8e1f4 0%, #e5d5f0 100%);
+      overflow: hidden;
+      font-family: 'Segoe UI', sans-serif;
+      color: #333;
+      position: relative;
+    }
+    body::before {
+      content: "";
+      position: fixed;
+      inset: 0;
+      background: url('https://www.transparenttextures.com/patterns/white-diamond.png');
+      opacity: 0.05;
+      pointer-events: none;
+      z-index: 0;
+    }
+    .heart {
+      position: absolute;
+      top: 0; /* 從頂端開始 */
+      width: 100px;
+      height: 90px;
+      background-color: #f7c4d2;
+      transform: rotate(-45deg) translateY(-200px); /* 從螢幕外200px上方開始 */
+      animation: fall linear;
+      cursor: pointer;
+      z-index: 1;
+    }
+    .heart::before,
+    .heart::after {
+      content: "";
+      position: absolute;
+      width: 100px;
+      height: 90px;
+      background-color: #f7c4d2;
+      border-radius: 50%;
+    }
+    .heart::before { top: -50px; left: 0; }
+    .heart::after { left: 50px; top: 0; }
+    .heart span {
+      position: absolute;
+      width: 100%;
+      top: 35px;
+      text-align: center;
+      font-weight: bold;
+      color: white;
+      pointer-events: none;
+      transform: rotate(45deg);
+      z-index: 2;
+      text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
+    }
+    @keyframes fall {
+      0% { transform: rotate(-45deg) translateY(-200px); opacity: 1; }
+      100% { transform: rotate(-45deg) translateY(110vh); opacity: 0; }
+    }
+    .popup {
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%,-50%);
+      background: white;
+      padding: 30px 20px;
+      border-radius: 20px;
+      box-shadow: 0 0 20px rgba(0,0,0,0.3);
+      z-index: 10;
+      display: none;
+      max-width: 90%;
+      text-align: center;
+      animation: popupFade 0.5s;
+    }
+    .popup h3 {
+      margin: 0 0 10px;
+      color: #b80000;
+    }
+    .popup p {
+      margin: 0;
+      font-size: 18px;
+    }
+    .overlay {
+      position: fixed;
+      inset: 0;
+      background: rgba(0,0,0,0.4);
+      z-index: 5;
+      display: none;
+    }
+    h2 {
+      text-align: center;
+      color: #b80000;
+      margin: 20px;
+      position: relative;
+      z-index: 3;
+    }
+    @keyframes popupFade {
+      from { transform: translate(-50%,-60%) scale(0.8); opacity: 0; }
+      to { transform: translate(-50%,-50%) scale(1); opacity: 1; }
+    }
   </style>
 </head>
 <body>
@@ -74,7 +157,9 @@
     function createHeart(wish) {
       const heart = document.createElement('div');
       heart.classList.add('heart');
-      heart.style.left = Math.random() * 90 + 'vw';
+      const minLeft = 5; // 避免太邊緣
+      const maxLeft = 85;
+      heart.style.left = (Math.random() * (maxLeft - minLeft) + minLeft) + 'vw';
       heart.style.animationDuration = (Math.random() * 3 + 5) + 's';
       heart.innerHTML = `<span>${wish.name}</span>`;
       heart.onclick = () => showPopup(wish);
