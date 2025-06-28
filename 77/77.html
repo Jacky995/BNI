@@ -68,28 +68,36 @@
       100% { transform: rotate(-45deg) translateY(110vh); opacity: 0; }
     }
     .popup {
-      position: fixed;
-      top: 50%;
-      left: 50%;
-      transform: translate(-50%,-50%);
-      background: white;
-      padding: 30px 20px;
-      border-radius: 20px;
-      box-shadow: 0 0 20px rgba(0,0,0,0.3);
-      z-index: 10;
-      display: none;
-      max-width: 90%;
-      text-align: center;
-      animation: popupFade 0.5s;
-    }
-    .popup h3 {
-      margin: 0 0 10px;
-      color: #b80000;
-    }
-    .popup p {
-      margin: 0;
-      font-size: 18px;
-    }
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background: white;
+  padding: 50px 40px;           /* 增加內邊距 */
+  border-radius: 30px;          /* 增大圓角，讓視覺更溫潤 */
+  box-shadow: 0 0 30px rgba(0, 0, 0, 0.4);
+  z-index: 10;
+  display: none;
+  width: 80%;                   /* 寬度增加到 80% */
+  max-width: 700px;             /* 最大寬度擴展到 700px */
+  text-align: center;
+  animation: popupFade 0.5s;
+}
+
+.popup h3 {
+  margin: 0 0 20px;
+  font-size: 28px;              /* 增大標題字體 */
+  color: #b80000;
+}
+
+.popup p {
+  margin: 0;
+  font-size: 22px;              /* 增大訊息字體 */
+  line-height: 1.6;
+}
+
+
+
     .overlay {
       position: fixed;
       inset: 0;
