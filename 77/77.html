@@ -4,6 +4,65 @@
   <meta charset="UTF-8">
   <title>婚禮祝福牆</title>
   <style>
+        /* 手機版針對寬度小於600px */
+    @media (max-width: 600px) {
+      .heart {
+        width: 60px;
+        height: 54px;
+      }
+      .heart::before,
+      .heart::after {
+        width: 60px;
+        height: 54px;
+      }
+      .heart span {
+        font-size: 12px;  /* 愛心中文字縮小 */
+        top: 22px;        /* 垂直位置微調 */
+      }
+      .popup {
+        padding: 30px 20px;   /* 手機上減少內邊距 */
+        border-radius: 20px;  /* 減少圓角，避免過度佔空間 */
+        width: 90%;           /* 彈窗寬度增加到90% */
+        max-width: none;      /* 移除最大寬度限制 */
+      }
+      .popup h3 {
+        font-size: 20px;      /* 彈窗標題縮小 */
+      }
+      .popup p {
+        font-size: 16px;      /* 彈窗內容縮小 */
+      }
+      h2 {
+        font-size: 20px;      /* 標題縮小 */
+        margin: 15px;         /* 標題間距縮小 */
+      }
+    }
+
+    /* 針對特小設備：寬度400px以下進一步優化 */
+    @media (max-width: 400px) {
+      .heart {
+        width: 40px;
+        height: 36px;
+      }
+      .heart::before,
+      .heart::after {
+        width: 40px;
+        height: 36px;
+      }
+      .heart span {
+        font-size: 10px;
+        top: 15px;
+      }
+      .popup h3 {
+        font-size: 18px;
+      }
+      .popup p {
+        font-size: 14px;
+      }
+      h2 {
+        font-size: 18px;
+      }
+    }
+
     body {
       margin: 0;
       background: linear-gradient(135deg, #f8e1f4 0%, #e5d5f0 100%);
