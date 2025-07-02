@@ -4,82 +4,30 @@
   <meta charset="UTF-8">
   <title>婚禮祝福牆</title>
   <style>
-        /* 手機版針對寬度小於600px */
-    @media (max-width: 600px) {
-      .heart {
-        width: 60px;
-        height: 54px;
-      }
-      .heart::before,
-      .heart::after {
-        width: 60px;
-        height: 54px;
-      }
-      .heart span {
-        font-size: 12px;  /* 愛心中文字縮小 */
-        top: 22px;        /* 垂直位置微調 */
-      }
-      .popup {
-        padding: 30px 20px;   /* 手機上減少內邊距 */
-        border-radius: 20px;  /* 減少圓角，避免過度佔空間 */
-        width: 90%;           /* 彈窗寬度增加到90% */
-        max-width: none;      /* 移除最大寬度限制 */
-      }
-      .popup h3 {
-        font-size: 20px;      /* 彈窗標題縮小 */
-      }
-      .popup p {
-        font-size: 16px;      /* 彈窗內容縮小 */
-      }
-      h2 {
-        font-size: 20px;      /* 標題縮小 */
-        margin: 15px;         /* 標題間距縮小 */
-      }
-    }
-
-    /* 針對特小設備：寬度400px以下進一步優化 */
-    @media (max-width: 400px) {
-      .heart {
-        width: 40px;
-        height: 36px;
-      }
-      .heart::before,
-      .heart::after {
-        width: 40px;
-        height: 36px;
-      }
-      .heart span {
-        font-size: 10px;
-        top: 15px;
-      }
-      .popup h3 {
-        font-size: 18px;
-      }
-      .popup p {
-        font-size: 14px;
-      }
-      h2 {
-        font-size: 18px;
-      }
-    }
-
-    body {
+    html, body {
+      width: 100%;
+      height: 100%;
       margin: 0;
-      background: linear-gradient(135deg, #f8e1f4 0%, #e5d5f0 100%);
-      overflow: hidden;
+      overflow-x: hidden;
+      background-color: #e5d5f0;  /* 單色背景改成右側粉紫色 */
       font-family: 'Segoe UI', sans-serif;
       color: #333;
       position: relative;
     }
+
     body::before {
       content: "";
-      position: fixed;
-      inset: 0;
+      position: absolute;        /* 修正: 用 absolute 避免手機錯位 */
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
       background: url('https://www.transparenttextures.com/patterns/white-diamond.png');
       opacity: 0.05;
       pointer-events: none;
       z-index: 0;
     }
+
     #demo-canvas {
       position: fixed;
       top: 0;
@@ -88,6 +36,7 @@
       height: 100vh;
       z-index: 0;
     }
+
     .heart {
       position: absolute;
       top: 0;
@@ -99,6 +48,7 @@
       cursor: pointer;
       z-index: 1;
     }
+
     .heart::before,
     .heart::after {
       content: "";
@@ -108,8 +58,10 @@
       background-color: #f7c4d2;
       border-radius: 50%;
     }
+
     .heart::before { top: -50px; left: 0; }
     .heart::after { left: 50px; top: 0; }
+
     .heart span {
       position: absolute;
       width: 100%;
@@ -122,40 +74,40 @@
       z-index: 2;
       text-shadow: 1px 1px 3px rgba(0,0,0,0.3);
     }
+
     @keyframes fall {
       0% { transform: rotate(-45deg) translateY(-200px); opacity: 1; }
       100% { transform: rotate(-45deg) translateY(110vh); opacity: 0; }
     }
+
     .popup {
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  transform: translate(-50%, -50%);
-  background: white;
-  padding: 50px 40px;           /* 增加內邊距 */
-  border-radius: 30px;          /* 增大圓角，讓視覺更溫潤 */
-  box-shadow: 0 0 30px rgba(0, 0, 0, 0.4);
-  z-index: 10;
-  display: none;
-  width: 80%;                   /* 寬度增加到 80% */
-  max-width: 700px;             /* 最大寬度擴展到 700px */
-  text-align: center;
-  animation: popupFade 0.5s;
-}
+      position: fixed;
+      top: 50%;
+      left: 50%;
+      transform: translate(-50%, -50%);
+      background: white;
+      padding: 50px 40px;
+      border-radius: 30px;
+      box-shadow: 0 0 30px rgba(0, 0, 0, 0.4);
+      z-index: 10;
+      display: none;
+      width: 80%;
+      max-width: 700px;
+      text-align: center;
+      animation: popupFade 0.5s;
+    }
 
-.popup h3 {
-  margin: 0 0 20px;
-  font-size: 28px;              /* 增大標題字體 */
-  color: #b80000;
-}
+    .popup h3 {
+      margin: 0 0 20px;
+      font-size: 28px;
+      color: #b80000;
+    }
 
-.popup p {
-  margin: 0;
-  font-size: 22px;              /* 增大訊息字體 */
-  line-height: 1.6;
-}
-
-
+    .popup p {
+      margin: 0;
+      font-size: 22px;
+      line-height: 1.6;
+    }
 
     .overlay {
       position: fixed;
@@ -164,6 +116,7 @@
       z-index: 5;
       display: none;
     }
+
     h2 {
       text-align: center;
       color: #b80000;
@@ -171,6 +124,7 @@
       position: relative;
       z-index: 3;
     }
+
     @keyframes popupFade {
       from { transform: translate(-50%,-60%) scale(0.8); opacity: 0; }
       to { transform: translate(-50%,-50%) scale(1); opacity: 1; }
@@ -187,24 +141,18 @@
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.20.3/TweenLite.min.js"></script>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/gsap/1.20.3/easing/EasePack.min.js"></script>
   <script>
-    // 雷電特效 + 愛心點
     (function () {
       var width, height, canvas, ctx, points, target, animateHeader = true;
-
-      initCanvas();
-      initAnimation();
-      addListeners();
+      initCanvas(); initAnimation(); addListeners();
 
       function initCanvas() {
         width = window.innerWidth;
         height = window.innerHeight;
         target = { x: width / 2, y: height / 2 };
-
         canvas = document.getElementById('demo-canvas');
         canvas.width = width;
         canvas.height = height;
         ctx = canvas.getContext('2d');
-
         points = [];
         for (var x = 0; x < width; x += width / 20) {
           for (var y = 0; y < height; y += height / 20) {
@@ -214,7 +162,6 @@
             points.push(p);
           }
         }
-
         for (var i = 0; i < points.length; i++) {
           var closest = [];
           var p1 = points[i];
@@ -223,15 +170,13 @@
             if (p1 !== p2) {
               for (var k = 0; k < 5; k++) {
                 if (!closest[k] || getDistance(p1, p2) < getDistance(p1, closest[k])) {
-                  closest[k] = p2;
-                  break;
+                  closest[k] = p2; break;
                 }
               }
             }
           }
           p1.closest = closest;
         }
-
         for (var i in points) {
           var c = new Circle(points[i], 2 + Math.random() * 2, 'rgba(255,255,255,0.3)');
           points[i].circle = c;
@@ -272,7 +217,6 @@
             var dist = Math.abs(getDistance(target, points[i]));
             points[i].active = dist < 4000 ? 0.3 : dist < 20000 ? 0.1 : dist < 40000 ? 0.02 : 0;
             points[i].circle.active = points[i].active * 2;
-
             drawLines(points[i]);
             points[i].circle.draw();
           }
@@ -301,9 +245,7 @@
       }
 
       function Circle(pos, rad, color) {
-        this.pos = pos;
-        this.radius = rad;
-        this.color = color;
+        this.pos = pos; this.radius = rad; this.color = color;
         this.draw = function () {
           if (!this.active) return;
           ctx.save();
@@ -314,7 +256,7 @@
           ctx.bezierCurveTo(-5, -15, -15, -5, 0, 5);
           ctx.bezierCurveTo(15, -5, 5, -15, 0, -5);
           ctx.closePath();
-          ctx.fillStyle = 'rgba(247,196,210,' + this.active + ')'; // 粉紅愛心
+          ctx.fillStyle = 'rgba(247,196,210,' + this.active + ')';
           ctx.fill();
           ctx.restore();
         };
@@ -325,6 +267,7 @@
       }
     })();
   </script>
+
   <script>
     const apiUrl = "https://script.google.com/macros/s/AKfycbziJDYbABodbunjfYvcSCJzZz8YFHCI_3Rbvc9aCChLuZXWIswJBVbho9nDbnNP_LxS/exec";
     const urlParams = new URLSearchParams(window.location.search);
