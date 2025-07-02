@@ -1,0 +1,229 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>J·KEY 記憶鑰匙圈</title>
+  <style>
+    body {
+      font-family: 'Noto Sans', sans-serif;
+      background-color: #ffffff;
+      color: #111;
+      margin: 0;
+      padding: 0;
+    }
+    header {
+      background-color: #ffffff;
+      color: #111;
+      text-align: center;
+      padding: 2.5rem 1rem;
+      border-bottom: 4px solid #111; /* 黑色細線呼應LOGO */
+    }
+    header h1 {
+      font-size: 2.8rem;
+      font-weight: 900;
+      margin-bottom: 0.8rem;
+      letter-spacing: 1px;
+    }
+    header p {
+      font-size: 1.2rem;
+      color: #444;
+      margin-bottom: 40px;
+    }
+    header a {
+      display: inline-block;
+      background: #b80000;
+      color: #fff;
+      padding: 15px 30px;
+      border-radius: 30px;
+      text-decoration: none;
+      font-weight: 600;
+      transition: all 0.3s ease;
+    }
+    header a:hover {
+      background: #8c0000;
+    }
+    section {
+      max-width: 1200px;
+      margin: 60px auto;
+      padding: 0 20px;
+    }
+    section h2 {
+      text-align: left;
+      font-size: 2rem;
+      border-left: 5px solid #b80000;
+      padding-left: 0.8rem;
+      margin-bottom: 30px;
+    }
+    .flex {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: center;
+      gap: 40px;
+    }
+    .flex img {
+      max-width:500px;
+      width:100%;
+      border-radius:20px;
+    }
+    .flex .text {
+      flex:1;
+      min-width:280px;
+    }
+    .steps {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-around;
+      gap: 20px;
+      text-align: center;
+    }
+    .steps div {
+      flex: 1;
+      min-width: 180px;
+    }
+    .steps h3 {
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+    .carousel {
+      background: #f9f9f9;
+      padding: 40px 20px;
+      border-radius: 20px;
+    }
+    .carousel p {
+      font-size: 1.1em;
+      margin: 0 0 20px;
+    }
+    .products {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 20px;
+      justify-content: center;
+      text-align: center;
+    }
+    .product {
+      border: 1px solid #eee;
+      border-radius: 20px;
+      padding: 20px;
+      flex: 1;
+      min-width: 220px;
+    }
+    .product img {
+      width: 100%;
+      border-radius: 20px;
+    }
+    .product h3 {
+      margin: 15px 0 10px;
+      font-weight: 700;
+    }
+    .product p {
+      margin: 0 0 15px;
+    }
+    .product a {
+      display: inline-block;
+      background: #b80000;
+      color: #fff;
+      padding: 10px 20px;
+      border-radius: 20px;
+      text-decoration: none;
+      transition: all 0.3s ease;
+    }
+    .product a:hover {
+      background: #8c0000;
+    }
+    .faq h3 {
+      font-size: 1.2em;
+      margin-bottom: 10px;
+      font-weight: 700;
+    }
+    footer {
+      text-align: center;
+      padding: 20px;
+      font-size: 0.9em;
+      color: #555;
+      background: #f5f5f5;
+      margin-top: 60px;
+    }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>J KEY</h1>
+  <p>Just Keep Evolving Yourself</p>
+  <a href="#products">立即客製專屬鑰匙圈</a>
+</header>
+
+<section>
+  <div class="flex">
+    <div class="text">
+      <h2>把回憶留在掌心，讓愛觸手可及</h2>
+      <p>我們相信，真正的禮物不是物品，而是它所承載的情感與回憶。J·KEY 讓你把想說的話、想保留的影片或照片，透過 NFC 永遠記錄，傳遞給對的人。</p>
+    </div>
+    <img src="https://source.unsplash.com/500x500/?key,memories" alt="鑰匙圈故事">
+  </div>
+</section>
+
+<section>
+  <h2>專屬訂製流程</h2>
+  <div class="steps">
+    <div>
+      <h3>1️⃣ 選擇款式</h3>
+      <p>多種材質、顏色、形狀</p>
+    </div>
+    <div>
+      <h3>2️⃣ 上傳內容</h3>
+      <p>照片、影片或文字，輕鬆製作</p>
+    </div>
+    <div>
+      <h3>3️⃣ 完成下單</h3>
+      <p>2-3步驟快速訂製，專屬內容一鍵寫入</p>
+    </div>
+  </div>
+</section>
+
+<section class="carousel">
+  <h2>他們的真實故事</h2>
+  <p>「她不在的時候，我掃這把鑰匙圈，就像她在我身邊。」</p>
+  <p>「求婚時打開屬於我們的紀念影片，她立刻答應了。」</p>
+  <p>「送給母親節的禮物，媽媽每次想我就能重看我為她錄的祝福。」</p>
+</section>
+
+<section id="products">
+  <h2>精選商品</h2>
+  <div class="products">
+    <div class="product">
+      <img src="https://source.unsplash.com/300x300/?keychain" alt="經典銀色款">
+      <h3>經典銀色款</h3>
+      <p>NT$ 520</p>
+      <a href="#">立即訂購</a>
+    </div>
+    <div class="product">
+      <img src="https://source.unsplash.com/300x300/?key,rose" alt="玫瑰金限量款">
+      <h3>玫瑰金限量款</h3>
+      <p>NT$ 888</p>
+      <a href="#">立即訂購</a>
+    </div>
+    <div class="product">
+      <img src="https://source.unsplash.com/300x300/?leather,key" alt="復古真皮款">
+      <h3>復古真皮款</h3>
+      <p>NT$ 1314</p>
+      <a href="#">立即訂購</a>
+    </div>
+  </div>
+</section>
+
+<section class="faq">
+  <h2>常見問題</h2>
+  <h3>NFC支援哪些手機？</h3>
+  <p>支援絕大多數安卓手機及 iPhone XS 以上機型。</p>
+  <h3>可以重複寫入內容嗎？</h3>
+  <p>可免費修改 2 次，之後每次收取小額服務費。</p>
+</section>
+
+<footer>
+  &copy; 2025 J·KEY 記憶鑰匙圈。版權所有。
+</footer>
+
+</body>
+</html>
