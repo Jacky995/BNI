@@ -2,88 +2,115 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
-  <title>J·KEY 創辦人理念</title>
-  <meta property="og:title" content="J·KEY | 為內向的人，開一扇能表達愛的門"/>
-  <meta property="og:description" content="內向不是缺陷，而是一種深度。J·KEY 用科技保存情感，為靦腆的你創造一個安心表達的方式。"/>
-  <meta property="og:image" content="https://你的網站/jkey-og-image.jpg"/>
-  <meta property="og:type" content="website"/>
-  <meta property="og:url" content="https://你的網站網址"/>
-  <meta name="twitter:card" content="summary_large_image"/>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>J·KEY｜為內向的人開一扇門</title>
+  <meta property="og:title" content="J·KEY | 為內向的人，開一扇能表達愛的門" />
+  <meta property="og:description" content="內向不是缺陷，而是一種深度。J·KEY 用科技保存情感，讓靦腆的你，也能安心表達。" />
+  <meta property="og:image" content="https://你的網站/jkey-og-image.jpg" />
+  <meta property="og:url" content="https://你的網站網址" />
+  <meta name="twitter:card" content="summary_large_image" />
   <style>
-    body {
-      font-family: 'Noto Sans', sans-serif;
-      background-color: #ffffff;
-      color: #111;
+    :root {
+      --main-color: #b80000;
+      --dark-color: #8c0000;
+      --text-color: #111;
+      --bg-light: #fff;
+      --bg-gray: #f9f9f9;
+    }
+    * {
       margin: 0;
       padding: 0;
+      box-sizing: border-box;
     }
+    body {
+      font-family: 'Noto Sans TC', sans-serif;
+      line-height: 1.8;
+      color: var(--text-color);
+      background-color: var(--bg-light);
+    }
+
     header {
-      background-color: #ffffff;
-      color: #111;
+      background: linear-gradient(to bottom, #ffffff, #f9f9f9);
       text-align: center;
-      padding: 2.5rem 1rem;
-      border-bottom: 4px solid #111; /* 黑色底線 */
+      padding: 5rem 1rem 6rem;
     }
-    header h1 {
-      font-size: 2.6rem;
+    header .content h1 {
+      font-size: 2.8rem;
       font-weight: 900;
-      letter-spacing: 1px;
-      margin-bottom: 0.6rem;
+      letter-spacing: 2px;
+      color: var(--text-color);
+      animation: fadeIn 1.2s ease-in-out;
     }
-    header p {
-      font-size: 1.1rem;
-      color: #555;
+    header .content .slogan {
+      font-size: 1.2rem;
+      font-weight: 500;
+      color: var(--text-color);
+      margin-top: 0.5rem;
+      opacity: 0.9;
     }
+
     .container {
-      max-width: 860px;
+      max-width: 960px;
       margin: auto;
-      padding: 2.5rem 1.5rem;
-      line-height: 1.9;
+      padding: 3rem 1.5rem;
     }
     section {
       margin-bottom: 3rem;
     }
     h2 {
-      color: #111;
-      border-left: 5px solid #b80000;
-      padding-left: 0.6rem;
       font-size: 1.6rem;
-      font-weight: 700;
-    }
-    ul {
-      padding-left: 1.5rem;
-    }
-    footer {
-      background: #f5f5f5;
-      text-align: center;
-      padding: 1rem;
-      font-size: 0.95rem;
-      color: #555;
+      border-left: 5px solid var(--main-color);
+      padding-left: 0.8rem;
+      margin-bottom: 1rem;
     }
     .quote {
-      background: #f9f9f9;
+      background: var(--bg-gray);
+      border-left: 5px solid var(--main-color);
       padding: 1rem;
-      border-left: 5px solid #b80000;
-      margin: 1.5rem 0;
       font-style: italic;
-      border-radius: 12px;
-      color: #b80000;
+      color: var(--main-color);
+      border-radius: 10px;
+      margin: 1rem 0;
     }
-    .contact-links a {
+    .features {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+      gap: 1.5rem;
+    }
+    .card {
+      background: var(--bg-gray);
+      padding: 1.5rem;
+      border-radius: 16px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      transition: transform 0.3s ease;
+    }
+    .card:hover {
+      transform: translateY(-4px);
+    }
+    .cta {
+      text-align: center;
+      margin: 3rem 0;
+    }
+    .cta a {
       display: inline-block;
-      padding: 0.9rem 2rem;
-      border: 2px solid #111;
+      padding: 1rem 2rem;
       border-radius: 999px;
-      color: #111;
-      font-weight: 600;
+      background: var(--main-color);
+      color: white;
       text-decoration: none;
-      margin: 0.5rem;
-      transition: all 0.3s ease;
+      font-weight: 600;
+      font-size: 1rem;
+      transition: background 0.3s;
     }
-    .contact-links a:hover {
-      background: #111;
-      color: #fff;
+    .cta a:hover {
+      background: var(--dark-color);
+    }
+    footer {
+      text-align: center;
+      padding: 1.5rem;
+      font-size: 0.9rem;
+      color: #666;
+      background: #f0f0f0;
     }
     .floating-icons {
       position: fixed;
@@ -91,82 +118,115 @@
       right: 20px;
       display: flex;
       flex-direction: column;
-      gap: 12px;
-      z-index: 999;
+      gap: 10px;
+      z-index: 1000;
     }
-.floating-icons a {
-  background: #fff;  /* 白底 */
-
-}
-
-    .floating-icons a:hover {
-      transform: scale(1.1);
+    .floating-icons a img {
+      width: 32px;
+      height: 32px;
+      filter: grayscale(0.2);
+      transition: transform 0.3s ease;
     }
-    .floating-icons img {
-      width: 28px;
-      height: 28px;
-      filter: invert(1);
+    .floating-icons a:hover img {
+      transform: scale(1.2);
+    }
+
+    @keyframes fadeIn {
+      from { opacity: 0; transform: translateY(20px); }
+      to { opacity: 1; transform: translateY(0); }
+    }
+
+    @media (max-width: 768px) {
+      header .content h1 {
+        font-size: 2rem;
+      }
+      header .content .slogan {
+        font-size: 1rem;
+      }
+      h2 {
+        font-size: 1.4rem;
+      }
+      .features {
+        grid-template-columns: 1fr;
+      }
+      .card {
+        padding: 1.2rem;
+      }
+      .cta a {
+        font-size: 0.95rem;
+        padding: 0.9rem 1.5rem;
+      }
+      .quote {
+        font-size: 0.95rem;
+      }
+      footer {
+        font-size: 0.85rem;
+      }
+      .floating-icons a img {
+        width: 28px;
+        height: 28px;
+      }
     }
   </style>
 </head>
 <body>
-  <header>
-    <h1>J KEY</h1>
-    <p>Just Keep Evolving Yourself</p>
-  </header>
 
-  <div class="container">
-    <section>
-      <h2>我為什麼創造 J·KEY？</h2>
-      <div class="quote">「這個社會太吵了，反而讓安靜的人，更難被理解。」</div>
-      <p>
-        我是一個內向者，一個不擅長當場說出心裡話的人。<br><br>
-        在充滿社群、語音、即時分享的時代，內向反而像是一種被誤解的「缺陷」。<br><br>
-        但我始終相信：內向，是一種深度。我們擁有更細膩的觀察力、更強的反思能力、與更深的愛，只是缺少一個安心表達的方式。
-      </p>
-      <p>
-        所以我創造了 <strong>J·KEY</strong>，一個用 NFC 把情感、話語、記憶存進一個身邊小物的系統，給你一個不用說出口也能讓對方感受到的方式。
-      </p>
-    </section>
+<header>
+  <div class="content">
+    <h1>J·KEY</h1>
+    <p class="slogan">Just Keep Evolving Yourself</p>
+  </div>
+</header>
 
-    <section>
-      <h2>J·KEY 是什麼？</h2>
-      <p>
-        它不只是鑰匙圈，而是一段能感受到的連結 —— 一句藏起來的話、一段錄好的祝福、一張你們專屬的網頁。
-        <br><br>
-        你靠近，它打開。不只是手機螢幕，而是心與心之間的門。
-      </p>
-    </section>
+<div class="container">
+  <section>
+    <h2>我為什麼創造 J·KEY？</h2>
+    <div class="quote">「這個社會太吵了，反而讓安靜的人，更難被理解。」</div>
+    <p>我是個內向的人，不擅長即時表達，但我擁有深層的情感與觀察。J·KEY 是一個讓靦腆的人，也能安心表達的工具。</p>
+    <p>透過 NFC 技術，把你的心意、祝福、回憶存進一個實體小物中，讓你用最自然的方式傳遞溫度。</p>
+  </section>
 
-    <section>
-      <h2>合作邀請</h2>
-      <ul>
-        <li>婚禮影像、創意禮品、情感設計周邊</li>
-        <li>保險顧問或品牌聯名，擴展紀念應用場景</li>
-        <li>學校、展覽、心理輔導相關聯名主題</li>
-      </ul>
-    </section>
-
-    <section style="text-align: center;">
-      <h2>聯絡我 / Contact</h2>
-      <p style="font-size: 1rem; color: #555; margin-bottom: 1.5rem;">我會親自查看每一則訊息，也歡迎你主動敲我 👋</p>
-      <div class="contact-links">
-        <a href="https://www.instagram.com/j.key_evolving.youself" target="_blank">Instagram</a>
-        <a href="https://lin.ee/nk352Hf" target="_blank">LINE</a>
-        <a href="https://shopee.tw/..." target="_blank">Shopee</a>
-        <a href="mailto:930207jacky@gmail.com" style="border:none; color:#777; text-decoration: underline; margin-top:1rem;">寄信給我：930207jacky@gmail.com</a>
+  <section>
+    <h2>J·KEY 是什麼？</h2>
+    <div class="features">
+      <div class="card">
+        <h3>✨ 客製紀念</h3>
+        <p>可加入照片、錄音、留言與回憶，適合情侶、親情、朋友等情感連結。</p>
       </div>
-    </section>
-  </div>
+      <div class="card">
+        <h3>📱 NFC 快速觸發</h3>
+        <p>輕觸手機即可打開專屬網頁，無需 App，跨系統可用。</p>
+      </div>
+      <div class="card">
+        <h3>💌 情感設計</h3>
+        <p>不只是產品，是為安靜的人量身打造的「說不出口」方案。</p>
+      </div>
+    </div>
+  </section>
 
-  <footer>
-    J·KEY · Just Keep Evolving Yourself ｜ 讓科技重新連結人心
-  </footer>
+  <section class="cta">
+    <a href="https://shopee.tw/..." target="_blank">立即前往 Shopee 訂製 →</a>
+  </section>
 
-  <div class="floating-icons">
-    <a href="https://lin.ee/nk352Hf" target="_blank"><img src="https://cdn-icons-png.flaticon.com/512/2111/2111498.png" alt="LINE"></a>
-    <a href="https://www.instagram.com/j.key_evolving.youself" target="_blank"><img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="IG"></a>
-    <a href="https://shopee.tw/..." target="_blank"><img src="https://cdn-icons-png.flaticon.com/512/889/889140.png" alt="Shopee"></a>
-  </div>
+  <section>
+    <h2>合作邀請</h2>
+    <ul>
+      <li>婚禮攝影 / 情感禮品共同開發</li>
+      <li>心理諮詢 / 展覽單位主題策展</li>
+      <li>企業品牌聯名、紀念周邊整合</li>
+    </ul>
+  </section>
+</div>
+
+<footer>
+  J·KEY｜讓科技重新連結人心 · Just Keep Evolving Yourself
+</footer>
+
+<div class="floating-icons">
+  <a href="https://lin.ee/nk352Hf" target="_blank"><img src="https://cdn-icons-png.flaticon.com/512/2111/2111498.png" alt="LINE"></a>
+  <a href="https://www.instagram.com/j.key_evolving.youself" target="_blank"><img src="https://cdn-icons-png.flaticon.com/512/2111/2111463.png" alt="Instagram"></a>
+  <a href="https://shopee.tw/..." target="_blank"><img src="https://cdn-icons-png.flaticon.com/512/889/889140.png" alt="Shopee"></a>
+</div>
+
 </body>
 </html>
