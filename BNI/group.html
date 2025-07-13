@@ -114,41 +114,37 @@
       groupTitle.textContent = `BNI 震億分會｜${decodedGroup} 成員列表`;
       pageTitle.textContent = `BNI 震億分會｜${decodedGroup} 成員列表`;
 
-fetch(API_URL)
-  .then(res => res.json())
-  .then(data => {
-    const filtered = data.filter(item => item.group === decodedGroup);
+      fetch(API_URL)
+        .then(res => res.json())
+        .then(data => {
+          const filtered = data.filter(item => item.group === decodedGroup);
+          const defaultMember = data.find(item => item.id === "0");
 
-    // 找出預設的 0 號成員
-    const defaultMember = data.find(item => item.id == "0");
+          const displayMembers = filtered.length > 0 ? filtered : (defaultMember ? [defaultMember] : []);
 
-    // 如果找不到對應組別的成員，就放上預設的成員卡
-    const displayMembers = filtered.length > 0 ? filtered : (defaultMember ? [defaultMember] : []);
+          if (displayMembers.length === 0) {
+            memberList.innerHTML = `<p>找不到這個組別的資料，也沒有預設成員。</p>`;
+            return;
+          }
 
-    if (displayMembers.length === 0) {
-      memberList.innerHTML = `<p>找不到這個組別的資料，也沒有預設成員。</p>`;
-      return;
-    }
-
-    displayMembers.forEach(member => {
-      const card = document.createElement("div");
-      card.className = "member-card";
-      card.innerHTML = `
-        <img src="${member.photoUrl || 'https://via.placeholder.com/100'}" alt="${member.name}">
-        <h3>${member.name}</h3>
-        <p>${member.title || ''}</p>
-        <p>${member.company || ''}</p>
-        <p>${member.job || ''}</p>
-        ${member.cardUrl ? `<a href="${member.cardUrl}" target="_blank">查看名片</a>` : ''}
-      `;
-      memberList.appendChild(card);
-    });
-  })
-  .catch(err => {
-    memberList.innerHTML = `<p>資料載入失敗，請稍後再試。</p>`;
-    console.error(err);
-  });
-
+          displayMembers.forEach(member => {
+            const card = document.createElement("div");
+            card.className = "member-card";
+            card.innerHTML = `
+              <img src="${member.photoUrl || 'https://via.placeholder.com/120'}" alt="${member.name || ''}">
+              <h3>${member.name || ''}</h3>
+              <p>${member.title || ''}</p>
+              <p>${member.company || ''}</p>
+              <p>${member.job || ''}</p>
+              ${member.cardUrl ? `<a href="${member.cardUrl}" target="_blank">查看名片</a>` : ''}
+            `;
+            memberList.appendChild(card);
+          });
+        })
+        .catch(err => {
+          memberList.innerHTML = `<p>資料載入失敗，請稍後再試。</p>`;
+          console.error(err);
+        });
     } else {
       groupName.textContent = "無效的組別參數";
     }
