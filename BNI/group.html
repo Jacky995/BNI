@@ -98,56 +98,59 @@
     <a href="https://jacky995.github.io/NFC/%E9%9C%87%E5%84%842.html" class="back-link">← 回首頁</a>
   </div>
 
-  <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbyaAuDp3N10E3Wujk0L86P-U-9394pwLQ9u0StlXuD64GiTPoHGhSm5V_EP-eXb2w2jeA/exec";
+<script>
+  const API_URL = "https://script.google.com/macros/s/AKfycbzUOIZ2PNKECao-gLC1Mzdsf6uZ7o2ptVGcjTnqLxHxr9or67LmiYgMU0lmKJJWgOIpnQ/exec";
 
-    const urlParams = new URLSearchParams(window.location.search);
-    const groupParam = urlParams.get("group");
-    const groupTitle = document.getElementById("groupTitle");
-    const groupName = document.getElementById("groupName");
-    const pageTitle = document.getElementById("pageTitle");
-    const memberList = document.getElementById("memberList");
+  const urlParams = new URLSearchParams(window.location.search);
+  const groupParam = urlParams.get("group");
+  const groupTitle = document.getElementById("groupTitle");
+  const groupName = document.getElementById("groupName");
+  const pageTitle = document.getElementById("pageTitle");
+  const memberList = document.getElementById("memberList");
 
-    if (groupParam) {
-      const decodedGroup = decodeURIComponent(groupParam);
-      groupName.textContent = decodedGroup;
-      groupTitle.textContent = `BNI 震億分會｜${decodedGroup} 成員列表`;
-      pageTitle.textContent = `BNI 震億分會｜${decodedGroup} 成員列表`;
+  if (groupParam) {
+    const decodedGroup = decodeURIComponent(groupParam);
+    groupName.textContent = decodedGroup;
+    groupTitle.textContent = `BNI 震億分會｜${decodedGroup} 成員列表`;
+    pageTitle.textContent = `BNI 震億分會｜${decodedGroup} 成員列表`;
 
-      fetch(API_URL)
-        .then(res => res.json())
-        .then(data => {
-          const filtered = data.filter(item => item.group === decodedGroup);
-          const defaultMember = data.find(item => item.id === "0");
+    fetch(API_URL)
+      .then(res => res.json())
+      .then(data => {
+        const sameGroup = data.filter(item => item.group === decodedGroup);
+        const defaultMember = data.find(item => item.id === "0");
 
-          const displayMembers = filtered.length > 0 ? filtered : (defaultMember ? [defaultMember] : []);
+        // 如果整個 group 都是空，且沒有 default，也不顯示
+        if (sameGroup.length === 0 && !defaultMember) {
+          memberList.innerHTML = `<p>找不到這個組別的資料，也沒有預設成員。</p>`;
+          return;
+        }
 
-          if (displayMembers.length === 0) {
-            memberList.innerHTML = `<p>找不到這個組別的資料，也沒有預設成員。</p>`;
-            return;
-          }
+        sameGroup.forEach(member => {
+          const isEmpty = !member.name || member.name.trim() === "";
+          const displayData = isEmpty && defaultMember ? { ...defaultMember, group: member.group } : member;
 
-          displayMembers.forEach(member => {
-            const card = document.createElement("div");
-            card.className = "member-card";
-            card.innerHTML = `
-              <img src="${member.photoUrl || 'https://via.placeholder.com/120'}" alt="${member.name || ''}">
-              <h3>${member.name || ''}</h3>
-              <p>${member.title || ''}</p>
-              <p>${member.company || ''}</p>
-              <p>${member.job || ''}</p>
-              ${member.cardUrl ? `<a href="${member.cardUrl}" target="_blank">查看名片</a>` : ''}
-            `;
-            memberList.appendChild(card);
-          });
-        })
-        .catch(err => {
-          memberList.innerHTML = `<p>資料載入失敗，請稍後再試。</p>`;
-          console.error(err);
+          const card = document.createElement("div");
+          card.className = "member-card";
+          card.innerHTML = `
+            <img src="${displayData.photoUrl || 'https://via.placeholder.com/120'}" alt="${displayData.name || ''}">
+            <h3>${displayData.name || ''}</h3>
+            <p>${displayData.title || ''}</p>
+            <p>${displayData.company || ''}</p>
+            <p>${displayData.job || ''}</p>
+            ${displayData.cardUrl ? `<a href="${displayData.cardUrl}" target="_blank">查看名片</a>` : ''}
+          `;
+          memberList.appendChild(card);
         });
-    } else {
-      groupName.textContent = "無效的組別參數";
-    }
-  </script>
+      })
+      .catch(err => {
+        memberList.innerHTML = `<p>資料載入失敗，請稍後再試。</p>`;
+        console.error(err);
+      });
+  } else {
+    groupName.textContent = "無效的組別參數";
+  }
+</script>
+
 </body>
 </html>
