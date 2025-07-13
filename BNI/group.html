@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>BNI 震億分會｜服務組詳情</title>
+  <title id="pageTitle">BNI 震億分會｜服務組詳情</title>
   <style>
     body {
       font-family: 'Microsoft JhengHei', sans-serif;
@@ -43,10 +43,15 @@
       padding: 20px;
       text-align: center;
       box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+      transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+    }
+    .member-card:hover {
+      transform: translateY(-4px);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
     }
     .member-card img {
-      width: 100px;
-      height: 100px;
+      width: 120px;
+      height: 120px;
       border-radius: 50%;
       object-fit: cover;
       margin-bottom: 15px;
@@ -58,6 +63,17 @@
     .member-card p {
       font-size: 0.9em;
       color: #444;
+      margin: 4px 0;
+    }
+    .member-card a {
+      display: inline-block;
+      margin-top: 10px;
+      color: #b80000;
+      font-weight: bold;
+      text-decoration: none;
+    }
+    .member-card a:hover {
+      text-decoration: underline;
     }
     .back-link {
       display: inline-block;
@@ -83,18 +99,20 @@
   </div>
 
   <script>
-    const API_URL = "https://script.google.com/macros/s/AKfycbyXtuzXVKuMAG2lotBe3OA73b8nSUaaqyQU4Xtm8Oca_xGpzcNSvINWSlHNLZ-CmncR/exec";
+    const API_URL = "https://script.google.com/macros/s/AKfycbyaAuDp3N10E3Wujk0L86P-U-9394pwLQ9u0StlXuD64GiTPoHGhSm5V_EP-eXb2w2jeA/exec";
 
     const urlParams = new URLSearchParams(window.location.search);
     const groupParam = urlParams.get("group");
     const groupTitle = document.getElementById("groupTitle");
     const groupName = document.getElementById("groupName");
+    const pageTitle = document.getElementById("pageTitle");
     const memberList = document.getElementById("memberList");
 
     if (groupParam) {
       const decodedGroup = decodeURIComponent(groupParam);
       groupName.textContent = decodedGroup;
-      groupTitle.textContent = `BNI 震億分會｜${decodedGroup}`;
+      groupTitle.textContent = `BNI 震億分會｜${decodedGroup} 成員列表`;
+      pageTitle.textContent = `BNI 震億分會｜${decodedGroup} 成員列表`;
 
       fetch(API_URL)
         .then(res => res.json())
@@ -108,12 +126,19 @@
             const card = document.createElement("div");
             card.className = "member-card";
             card.innerHTML = `
-              <img src="${member.photo || 'https://via.placeholder.com/100'}" alt="${member.name}">
+              <img src="${member.photoUrl || 'https://via.placeholder.com/100'}" alt="${member.name}">
               <h3>${member.name}</h3>
-              <p>${member.intro || ''}</p>
+              <p>${member.title || ''}</p>
+              <p>${member.company || ''}</p>
+              <p>${member.job || ''}</p>
+              ${member.cardUrl ? `<a href="${member.cardUrl}" target="_blank">查看名片</a>` : ''}
             `;
             memberList.appendChild(card);
           });
+        })
+        .catch(err => {
+          memberList.innerHTML = `<p>資料載入失敗，請稍後再試。</p>`;
+          console.error(err);
         });
     } else {
       groupName.textContent = "無效的組別參數";
