@@ -6,8 +6,8 @@
 👉 主網址：[BNI震億分會](https://jacky995.github.io/BNI/BNI/震億.html)
 
 ## 📂 網頁列表（部分示意）
-- [1.html](https://jacky995.github.io/BNI/1.html)：會員 1 名片
-- [2.html](https://jacky995.github.io/BNI/2.html)：會員 2 名片
+- [婚禮組](https://jacky995.github.io/BNI/BNI/group.html?group=%E5%A9%9A%E7%A6%AE%E6%9C%8D%E5%8B%99)：婚禮服務組 名片
+- [里民服務](https://jacky995.github.io/BNI/2.html)：里民服務組 名片
 
 
 ## 🔧 功能與說明
