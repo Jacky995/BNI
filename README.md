@@ -20,8 +20,7 @@
 
 ## 🤝 聯絡與合作
 歡迎合作與客製化需求聯絡 J·KEY  
-📩 [keylinkteam@gmail.com](mailto:keylinkteam@gmail.com)  
-📱 [Instagram @jkey.link](https://www.instagram.com/jkey.link/)
+📩 [930207jacky@gmail.com](mailto:930207jacky@gmail.com)  
 
 ---
 
