@@ -25,4 +25,4 @@
 
 ---
 
-> Powered by [J·KEY｜Just Keep Evolving Yourself](https://jkey.link)
+> Powered by [J·KEY｜Just Keep Evolving Yourself](https://jacky995.github.io/BNI/j/j.html)
