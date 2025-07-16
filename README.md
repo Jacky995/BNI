@@ -1,13 +1,14 @@
 # BNI 分會成員網頁集合｜J·KEY
 
-這是一個由 [J·KEY](https://www.instagram.com/jkey.link/) 維護的 BNI 分會數位名片展示系統。每位會員的名片頁面以獨立 HTML 呈現，透過 GitHub Pages 發佈並可供搜尋引擎收錄。
+這是一個由 [J·KEY](https://jacky995.github.io/BNI/j/j.html) 維護的 BNI 分會數位名片展示系統。每位會員的名片頁面以獨立 HTML 呈現，透過 GitHub Pages 發佈並可供搜尋引擎收錄。
 
 ## 📌 網站連結
-👉 主網址：[https://jacky995.github.io/BNI/](https://jacky995.github.io/NFC/震億2.html)
+👉 主網址：[BNI震億分會](https://jacky995.github.io/BNI/BNI/震億.html)
 
 ## 📂 網頁列表（部分示意）
-- [1.html](https://jacky995.github.io/BNI/1.html)：會員 1 名片
-- [2.html](https://jacky995.github.io/BNI/2.html)：會員 2 名片
+- [里民服務組](https://jacky995.github.io/BNI/BNI/group.html?group=%E9%87%8C%E6%B0%91%E6%9C%8D%E5%8B%99)：里民服務組 名片
+- [婚禮服務組](https://jacky995.github.io/BNI/BNI/group.html?group=%E5%A9%9A%E7%A6%AE%E6%9C%8D%E5%8B%99)：婚禮服務組 名片
+
 
 
 ## 🔧 功能與說明
@@ -24,4 +25,4 @@
 
 ---
 
-> Powered by [J·KEY｜Just Keep Evolving Yourself](https://jkey.link)
+> Powered by [J·KEY｜Just Keep Evolving Yourself](https://jacky995.github.io/BNI/j/j.html)
