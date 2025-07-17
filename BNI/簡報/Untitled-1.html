@@ -1,0 +1,105 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+  <title>BNI 簡報</title>
+  <style>
+    body, html {
+      margin: 0;
+      padding: 0;
+      font-family: "Microsoft JhengHei", sans-serif;
+      background-color: #fff;
+      overflow: hidden;
+    }
+    .slide {
+      width: 100vw;
+      height: 100vh;
+      background: url("https://jacky995.github.io/BNI/BNI/簡報/背板.jpg") no-repeat center center;
+      background-size: cover;
+      display: flex;
+      flex-direction: row;
+      justify-content: space-around;
+      align-items: center;
+      padding: 40px;
+      box-sizing: border-box;
+    }
+    .left {
+      flex: 1;
+      color: #8c0000;
+      padding: 20px;
+    }
+    .left h1 { font-size: 3em; margin: 0; }
+    .left h2 { font-size: 2em; margin: 10px 0; color: #d00000; }
+    .left p { font-size: 1.5em; color: #333; }
+    .right {
+      flex: 1;
+      text-align: center;
+    }
+    .right img {
+      max-height: 80vh;
+      border-radius: 10px;
+      box-shadow: 5px 5px 20px rgba(0,0,0,0.2);
+    }
+  </style>
+</head>
+<body>
+  <div id="slide" class="slide">
+    <!-- 將由 JavaScript 填入 -->
+  </div>
+
+  <script>
+    let data = [];
+    let currentIndex = 0;
+
+    function renderSlide(index) {
+      const d = data[index];
+      const slide = document.getElementById("slide");
+
+      slide.innerHTML = `
+        <div class="left">
+          <h1>${d.name}</h1>
+          <h2>${d.job}</h2>
+          <p>${d.brand}</p>
+          <p style="color: #d00000;">${d.service.replace(/\//g, '<br>')}</p>
+          <p style="color: #555; font-weight: bold;">${d.target.replace(/\//g, '<br>')}</p>
+          <p style="color: #004488;">${d.slogan.replace(/\//g, '<br>')}</p>
+        </div>
+        <div class="right">
+          <img src="${d.image}" alt="${d.name}">
+        </div>
+      `;
+    }
+
+    function nextSlide() {
+      if (currentIndex < data.length - 1) {
+        currentIndex++;
+        renderSlide(currentIndex);
+      }
+    }
+
+    function prevSlide() {
+      if (currentIndex > 0) {
+        currentIndex--;
+        renderSlide(currentIndex);
+      }
+    }
+
+    document.addEventListener("keydown", (e) => {
+      if (e.key === "ArrowRight" || e.key === "ArrowDown") nextSlide();
+      if (e.key === "ArrowLeft" || e.key === "ArrowUp") prevSlide();
+    });
+
+    document.addEventListener("click", () => {
+      nextSlide();
+    });
+
+    fetch("https://script.google.com/macros/s/AKfycbycUFIsXE56l77bKkf0XfDud4z6wd2F0L8WoDcCVRm1lGu5KVWCmwQIY6kP_6prsbwb/exec") // 例如：https://script.google.com/macros/s/xxx/exec
+      .then(res => res.json())
+      .then(json => {
+        data = json;
+        renderSlide(currentIndex);
+      });
+  </script>
+</body>
+</html>
