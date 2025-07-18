@@ -18,21 +18,19 @@
       overflow: hidden;
     }
 
-body::before {
-  content: "";
-  position: fixed;
-  top: 0;
-  left: 0;
-  width: 100vw;
-  height: 100vh;
-  background: url('https://jacky995.github.io/BNI/BNI/簡報/背板1.jpg') no-repeat bottom right;
-  background-size: contain;
-  background-position: bottom right;
-  z-index: -1;
-  filter: brightness(1);
-}
-
-
+    body::before {
+      content: "";
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      background: url('https://jacky995.github.io/BNI/BNI/簡報/背板1.jpg') no-repeat bottom right;
+      background-size: contain;
+      background-position: bottom right;
+      z-index: -1;
+      filter: brightness(1);
+    }
 
     .slide {
       width: 100%;
@@ -54,7 +52,7 @@ body::before {
       flex-direction: column;
       align-items: center;
       text-align: center;
-      gap: 60px;
+      gap: 40px;
     }
 
     .left img {
@@ -80,13 +78,16 @@ body::before {
       font-size: 2.1em;
       color: #8c0000;
       opacity: 0.9;
-      margin-top: 20px;
     }
 
-    .center {
-      display: flex;
-      justify-content: center;
-      align-items: center;
+    .tagline {
+      font-size: 1.4em;
+      color: #333;
+      font-weight: 500;
+      margin-top: 10px;
+      text-align: center;
+      max-width: 300px;
+      line-height: 1.6em;
     }
 
     .center img {
@@ -119,14 +120,16 @@ body::before {
     .red {
       color: #b80000;
       font-weight: 600;
+      font-size: 1.1em;
     }
 
-    .blue {
-      color: #004488;
-      font-weight: 600;
-      font-size: 1.7em;
-      margin-top: 1.8em;
-      line-height: 1.8em;
+    .blue-slogan {
+      margin-top: 2.2em;
+      font-size: 1.5em;
+      line-height: 1.7em;
+      font-weight: 700;
+      color: #003366;
+      text-align: center;
     }
 
     .section {
@@ -154,6 +157,7 @@ body::before {
       <h1>陳晉融</h1>
       <h2>保險業</h2>
       <p>永達保險經紀人</p>
+      <div class="tagline">為身心障礙家庭<br>打造安心傳承的未來</div>
     </div>
 
     <!-- 中間欄 -->
@@ -181,7 +185,7 @@ body::before {
           離婚族群
         </div>
       </div>
-      <div class="section blue">
+      <div class="blue-slogan">
         資產保全找晉融<br>
         家庭美滿樂融融
       </div>
