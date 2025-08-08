@@ -1,0 +1,36 @@
+<!doctype html>
+<html lang="zh-Hant">
+<meta charset="utf-8">
+<title>Redirecting…</title>
+<body>
+<script>
+const API_URL = 'https://script.google.com/macros/s/AKfycby61Oi7oBuRl__oEkh25fShSnzAkzbVC26Hsigyk_tlQi0jM9OtFdTzprSHPE-o95M/exec'; // 改成你的 GAS JSON API
+const params = new URLSearchParams(location.search);
+const id = params.get('id');
+
+if (!id) {
+  location.href = 'https://example.com/404'; // 沒有 id 時直接去預設頁
+} else {
+  fetch(API_URL)
+    .then(r => r.json())
+    .then(data => {
+      // 篩選出 ID 一致的
+      const match = data.filter(row => String(row.ID).trim() === String(id).trim());
+      if (match.length === 0) {
+        location.href = 'https://example.com/404'; // 找不到 ID
+        return;
+      }
+      // 按時間戳記由新到舊排序
+      match.sort((a,b) => new Date(b["時間戳記"]) - new Date(a["時間戳記"]));
+      // 取最新一筆網址
+      const target = match[0]["網址"];
+      location.href = target;
+    })
+    .catch(err => {
+      console.error(err);
+      location.href = 'https://example.com/404';
+    });
+}
+</script>
+</body>
+</html>
