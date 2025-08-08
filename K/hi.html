@@ -9,7 +9,7 @@ const params = new URLSearchParams(location.search);
 const id = params.get('id');
 
 if (!id) {
-  location.href = 'https://example.com/404'; // 沒有 id 時直接去預設頁
+  location.href = 'https://line.me/R/ti/p/@426tkrah'; // 沒有 id 時直接去預設頁
 } else {
   fetch(API_URL)
     .then(r => r.json())
@@ -17,7 +17,7 @@ if (!id) {
       // 篩選出 ID 一致的
       const match = data.filter(row => String(row.ID).trim() === String(id).trim());
       if (match.length === 0) {
-        location.href = 'https://example.com/404'; // 找不到 ID
+        location.href = 'https://line.me/R/ti/p/@426tkrah'; // 找不到 ID
         return;
       }
       // 按時間戳記由新到舊排序
@@ -28,7 +28,7 @@ if (!id) {
     })
     .catch(err => {
       console.error(err);
-      location.href = 'https://example.com/404';
+      location.href = 'https://line.me/R/ti/p/@426tkrah';
     });
 }
 </script>
