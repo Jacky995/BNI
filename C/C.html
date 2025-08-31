@@ -38,7 +38,7 @@
       // Extra safety: wait 1 second, then redirect using replace so user can't go back to this page via Back button
       setTimeout(function(){
         try { window.location.replace(target); } catch (e) { window.location.href = target; }
-      }, 1000);
+      }, 0);
       // Optional tiny countdown text update (1 -> 0)
       document.addEventListener('DOMContentLoaded', function(){
         const el = document.querySelector('#count');
@@ -46,7 +46,7 @@
         const t = setInterval(function(){
           s -= 1; if (s <= 0) { clearInterval(t); }
           if (el) el.textContent = s;
-        }, 1000);
+        }, 0);
       });
     })();
   </script>
