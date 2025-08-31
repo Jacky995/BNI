@@ -1,0 +1,117 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>開啟 App 中間頁</title>
+  <style>
+    body { font-family: -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial; margin:0; padding:24px; line-height:1.6; }
+    .card { max-width:680px; margin:0 auto; padding:20px; border:1px solid #eee; border-radius:16px; box-shadow:0 4px 16px rgba(0,0,0,.06); }
+    h1 { margin-top:0; }
+    .btn { display:inline-block; padding:12px 18px; border-radius:12px; border:0; cursor:pointer; font-size:16px; margin:8px 8px 0 0; }
+    .primary { background:#06c755; color:#fff; } /* LINE 綠 */
+    .secondary { background:#444; color:#fff; }
+    .muted { color:#666; font-size:14px; }
+    code { background:#f5f5f5; padding:2px 6px; border-radius:6px; }
+  </style>
+</head>
+<body>
+  <div class="card">
+    <h1>開啟 App</h1>
+    <p class="muted">這頁會嘗試在手機上直接開啟指定 App；若失敗將導向到商店安裝。</p>
+
+    <!-- 你可以改這兩個按鈕的文案與樣式 -->
+    <button class="btn primary" id="openLineBtn">打開 LINE</button>
+    <button class="btn secondary" id="openGameBtn">打開遊戲</button>
+
+    <p class="muted">也可在網址後面加 <code>?target=line</code> 或 <code>?target=game</code> 自動嘗試。</p>
+  </div>
+
+  <script>
+    // ======== 可自訂的目標 App 設定 ========
+    const APPS = {
+      line: {
+        // iOS/Android 都通用的 URL Scheme（若要跳特定頁可換成 line://ti/p/@你的ID）
+        iosScheme: 'line://',
+        androidScheme: 'line://',
+        // Android intent（更穩：指定 package）
+        androidIntent: 'intent://#Intent;scheme=line;package=jp.naver.line.android;end',
+        // 商店備援
+        iosStore: 'https://apps.apple.com/app/line/id443904275',
+        androidStore: 'market://details?id=jp.naver.line.android'
+      },
+      game: {
+        // === 把下面三項換成你的遊戲資料 ===
+        iosScheme: 'mygame://home',                  // 例：自家或第三方遊戲的 scheme
+        androidScheme: 'mygame://home',
+        androidIntent: 'intent://home#Intent;scheme=mygame;package=com.company.mygame;end',
+        iosStore: 'https://apps.apple.com/app/id1234567890', // 換成實際 App Store 連結（含 id）
+        androidStore: 'market://details?id=com.company.mygame' // 換成實際包名
+      }
+    };
+
+    // ======== 裝置判斷 ========
+    const ua = navigator.userAgent || '';
+    const isAndroid = /Android/i.test(ua);
+    const isIOS = /iPhone|iPad|iPod/i.test(ua);
+
+    // ======== 嘗試開啟 App 的通用函式 ========
+    function openApp(targetKey) {
+      const cfg = APPS[targetKey];
+      if (!cfg) return;
+
+      // iOS 15+ 常見限制：需要使用者手勢；仍可試一次自動
+      // 策略：先嘗試 scheme，若未跳走，在 800ms 後導往商店。
+      const start = Date.now();
+      let jumped = false;
+
+      function go(url) { window.location.href = url; }
+
+      // Android：優先 intent（支援更好），失敗再 scheme
+      if (isAndroid) {
+        try { go(cfg.androidIntent); } catch (e) { go(cfg.androidScheme); }
+        // 設備若沒安裝，瀏覽器保持在當前頁，延時轉商店
+        setTimeout(() => {
+          if (Date.now() - start < 1800 && !jumped) {
+            jumped = true;
+            go(cfg.androidStore);
+          }
+        }, 800);
+        return;
+      }
+
+      // iOS：直接用 scheme；若沒裝則延時跳 App Store
+      if (isIOS) {
+        // 建議用使用者點擊觸發，並允許一次自動嘗試
+        go(cfg.iosScheme);
+        setTimeout(() => {
+          if (Date.now() - start < 1800 && !jumped) {
+            jumped = true;
+            go(cfg.iosStore);
+          }
+        }, 800);
+        return;
+      }
+
+      // 其他平台（桌機瀏覽器）：提示改用手機或引導到對應商店網頁版
+      alert('請在手機上開啟以直接啟動 App。現為桌機/不支援平台。');
+      // 也可選擇導到官方下載頁：
+      // window.location.href = 'https://line.me/zh-hant/'; // 例如 LINE
+    }
+
+    // ======== URL 參數自動嘗試 ========
+    function getQueryParam(key) {
+      return new URLSearchParams(window.location.search).get(key);
+    }
+    const target = (getQueryParam('target') || '').toLowerCase();
+    if (target === 'line' || target === 'game') {
+      // 嘗試自動開啟（iOS 可能被擋，仍保留按鈕手動）
+      setTimeout(() => openApp(target), 100); // 稍等，避免某些 WebView 尚未就緒
+    }
+
+    // ======== 綁定按鈕 ========
+    document.getElementById('openLineBtn').addEventListener('click', () => openApp('line'));
+    document.getElementById('openGameBtn').addEventListener('click', () => openApp('game'));
+  </script>
+</body>
+</html>
