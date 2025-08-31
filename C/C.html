@@ -2,90 +2,59 @@
 <html lang="zh-Hant">
 <head>
   <meta charset="utf-8" />
-  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>生日快樂</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>萬小姐生日快樂</title>
+  <!-- Fallback meta refresh in case JS is disabled -->
+  <meta http-equiv="refresh" content="1;url=https://jacky995.github.io/BNI/C/c.jpg" />
   <style>
-    :root { color-scheme: light dark; }
-    body { margin:0; height:100dvh; display:grid; place-items:center; font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,Helvetica,Arial; }
-    .wrap { text-align:center; padding:24px; }
-    h1 { font-size: clamp(32px, 6vw, 64px); margin: 0 0 12px; }
-    p { margin: 0 0 24px; opacity:.8; }
-    button { padding:12px 18px; border-radius:12px; border:0; font-size:16px; cursor:pointer; }
+    :root { --bg: #111; --fg: #fff; --accent: #ff4d4f; }
+    html, body { height: 100%; margin: 0; }
+    body {
+      display: grid;
+      place-items: center;
+      background: radial-gradient(1000px 600px at 50% 30%, #1f1f1f, var(--bg));
+      color: var(--fg);
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Noto Sans, "Helvetica Neue", Arial, "Apple Color Emoji", "Segoe UI Emoji";
+      text-align: center;
+    }
+    .card {
+      padding: 2.5rem 2.75rem;
+      border-radius: 1.25rem;
+      box-shadow: 0 20px 60px rgba(0,0,0,.35), inset 0 0 0 1px rgba(255,255,255,.08);
+      background: rgba(255,255,255,.06);
+      backdrop-filter: blur(6px);
+      -webkit-backdrop-filter: blur(6px);
+      animation: fadeIn .6s ease-out;
+    }
+    h1 { font-size: clamp(28px, 6vw, 56px); margin: 0 0 .5rem; letter-spacing: .03em; }
+    .accent { color: var(--accent); }
+    p { margin: .25rem 0; opacity: .9; }
+    a { color: #91c9ff; text-underline-offset: 3px; }
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
   </style>
+  <script>
+    (function(){
+      const target = "https://jacky995.github.io/BNI/C/c.jpg";
+      // Extra safety: wait 1 second, then redirect using replace so user can't go back to this page via Back button
+      setTimeout(function(){
+        try { window.location.replace(target); } catch (e) { window.location.href = target; }
+      }, 1000);
+      // Optional tiny countdown text update (1 -> 0)
+      document.addEventListener('DOMContentLoaded', function(){
+        const el = document.querySelector('#count');
+        let s = 1;
+        const t = setInterval(function(){
+          s -= 1; if (s <= 0) { clearInterval(t); }
+          if (el) el.textContent = s;
+        }, 1000);
+      });
+    })();
+  </script>
 </head>
 <body>
-  <div class="wrap">
-    <h1>生日快樂 🎂</h1>
-    <p>1 秒後為你開啟 App（若未成功，請點下方按鈕）。</p>
-    <button id="openBtn">立刻開啟</button>
-  </div>
+  <main class="card">
+    <h1><span class="accent">萬小姐</span> 生日快樂 🎂</h1>
 
-  <script>
-    // ===== 目標：line 或 game（Android：com.example.isarapp）=====
-    const TARGET = "line"; // 想開啟你的遊戲就改成 "game"
-
-    // ===== 統一設定（可自行調整）=====
-    const DELAY_MS = 1000;   // 顯示「生日快樂」後延遲時間
-    const FALLBACK_MS = 800; // 嘗試打開後，多久判定失敗轉備援
-
-    // App 目標資訊
-    const APPS = {
-      line: {
-        iosScheme: 'line://',
-        androidScheme: 'line://',
-        androidIntent: 'intent://#Intent;scheme=line;package=jp.naver.line.android;end',
-        iosStore: 'https://apps.apple.com/app/line/id443904275',
-        androidStore: 'market://details?id=jp.naver.line.android'
-      },
-      game: {
-        // 你的遊戲（請依實際情況調整 scheme / store 連結）
-        iosScheme: 'isarapp://home', // 若 iOS 有自定義 scheme，填這個；沒有就只當 Android 用
-        androidScheme: 'isarapp://home',
-        androidIntent: 'intent://home#Intent;scheme=isarapp;package=com.example.isarapp;end',
-        iosStore: 'https://apps.apple.com/app/id1234567890', // 若上架 App Store，填真實連結
-        androidStore: 'market://details?id=com.example.isarapp' // Play 商店備援
-      }
-    };
-
-    // 裝置判斷
-    const ua = navigator.userAgent || '';
-    const isAndroid = /Android/i.test(ua);
-    const isIOS = /iPhone|iPad|iPod/i.test(ua);
-
-    function openApp(targetKey) {
-      const cfg = APPS[targetKey];
-      if (!cfg) return;
-      const start = Date.now();
-
-      function go(url){ window.location.href = url; }
-
-      if (isAndroid) {
-        try { go(cfg.androidIntent); } catch(e) { go(cfg.androidScheme); }
-        setTimeout(() => {
-          // 若未被帶走，導向商店（可改成你想要的下載頁）
-          if (Date.now() - start < 1800) go(cfg.androidStore);
-        }, FALLBACK_MS);
-        return;
-      }
-
-      if (isIOS) {
-        // iOS 常需要使用者手勢；仍嘗試一次自動打開
-        go(cfg.iosScheme);
-        setTimeout(() => {
-          if (Date.now() - start < 1800) go(cfg.iosStore);
-        }, FALLBACK_MS);
-        return;
-      }
-
-      alert('請用手機開啟這個頁面以啟動 App。');
-    }
-
-    // 1 秒後自動開啟
-    const run = () => openApp(TARGET);
-    setTimeout(run, DELAY_MS);
-
-    // 手動備援按鈕（iOS 上更穩）
-    document.getElementById('openBtn').addEventListener('click', run);
-  </script>
+  </main>
 </body>
 </html>
