@@ -1,0 +1,158 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>時間鎖定驚喜頁</title>
+  <!--
+    用法：
+    1. 把 RELEASE_AT 改成你的解鎖時間（ISO 8601，建議加上時區，例：2025-12-31T23:59:59+08:00）。
+    2. 把 PAYLOAD_B64 換成你的「被藏起來的 HTML」→ 先把 HTML 轉成 Base64（UTF-8），再貼過來。
+    3. 這是前端（純 HTML/JS）的小把戲，只能「防君子不防小人」。真的要保密，請用後端或雲端簽章。
+  -->
+  <style>
+    :root {
+      --brand1: #b80000;
+      --brand2: #8c0000;
+      --bg: #0f0f11;
+      --fg: #f5f7fb;
+      --muted: #aab0bb;
+      --card: rgba(255,255,255,.08);
+    }
+    * { box-sizing: border-box; }
+    html, body { height: 100%; }
+    body {
+      margin: 0;
+      font-family: ui-sans-serif, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans TC","Helvetica Neue", Arial, "Apple Color Emoji","Segoe UI Emoji", "Segoe UI Symbol";
+      background: radial-gradient(1200px 800px at 20% 10%, rgba(255,255,255,.08), transparent 60%),
+                  radial-gradient(1000px 600px at 80% 90%, rgba(255,255,255,.05), transparent 60%),
+                  linear-gradient(135deg, var(--brand1), var(--brand2));
+      color: var(--fg);
+      min-height: 100%;
+    }
+    .gate {
+      position: fixed; inset: 0;
+      display: grid; place-items: center;
+      backdrop-filter: blur(6px) saturate(120%);
+      -webkit-backdrop-filter: blur(6px) saturate(120%);
+      background: rgba(0,0,0,.25);
+      transition: opacity .6s ease;
+    }
+    .gate.hidden { opacity: 0; pointer-events: none; }
+    .card {
+      width: min(680px, 92vw);
+      padding: 28px 28px 22px;
+      border-radius: 26px;
+      background: var(--card);
+      box-shadow: 0 18px 44px rgba(0,0,0,.35), inset 0 1px 0 rgba(255,255,255,.06);
+      border: 1px solid rgba(255,255,255,.14);
+      text-align: center;
+      backdrop-filter: blur(8px);
+    }
+    h1 { margin: 0 0 .5rem; font-size: clamp(20px, 3.2vw, 32px); font-weight: 800; }
+    .subtitle { margin: 0 0 .5rem; color: var(--muted); font-size: 14px; letter-spacing: .3px; }
+    .countdown { font-variant-numeric: tabular-nums; font-size: clamp(28px, 6vw, 56px); font-weight: 900; line-height: 1; margin:.35rem 0 .6rem; }
+    .hint { font-size: 13px; opacity: .8; margin-top: .25rem }
+    .emoji { display:inline-block; transform: translateY(1px) }
+    .content-shell { opacity: 0; transform: translateY(6px); transition: opacity .5s ease .2s, transform .5s ease .2s; }
+    .content-shell.visible { opacity: 1; transform: translateY(0); }
+    .footer-note { position: fixed; bottom: 12px; right: 12px; font-size: 12px; opacity:.65 }
+    @media (prefers-reduced-motion: reduce) {
+      .gate, .content-shell { transition: none; }
+    }
+    noscript {
+      display:block; max-width:720px; margin:2rem auto; padding:1rem 1.25rem; background:#fff3cd; color:#533f03; border:1px solid #ffecb5; border-radius:12px;
+    }
+  </style>
+</head>
+<body>
+  <div id="gate" class="gate" aria-live="polite">
+    <div class="card">
+      <h1>想偷看？時間還沒到～略略略 <span class="emoji">😜</span></h1>
+      <p class="subtitle">解鎖時間：<time id="unlockTime"></time></p>
+      <div id="countdown" class="countdown">--:--:--</div>
+      <div class="hint">先等等，倒數結束後自動解鎖；或是把檔案留著，到時候再打開。</div>
+    </div>
+  </div>
+
+  <main id="content" class="content-shell" hidden></main>
+  <div class="footer-note">J·KEY | Time‑Lock Demo</div>
+
+  <noscript>此頁需要 JavaScript 才能解鎖內容。</noscript>
+
+  <script>
+    // 1) 設定解鎖時間（請改成你的時間；建議加時區偏移）
+    const RELEASE_AT = "2025-09-08T15:22:59+08:00";
+
+    // 2) 你的秘密內容（Base64, UTF‑8 編碼的 HTML 字串）
+    const PAYLOAD_B64 = "CjxzZWN0aW9uIGNsYXNzPSJyZXZlYWwiPgogIDxoMT7wn46BIOe1puS9oOeahOmpmuWWnOWFp+WuuTwvaDE+CiAgPHA+5Y+v5Lul5pys5pWw5Lq655SfIDxzdHJvbmc+SFRNTDwvc3Ryb25nPu+8jOaLqeaIkeW3peWQj+S6uuaJgOivt+Wkh+WwseS4re+8jTwvcD4KICA8dWw+CiAgICA8bGk+5qyh5Zmo6aOf5omC77yMPGVtPu+8iOaEn+eahOinhOaWue+8iTwvZW0+PC9saT4KICAgIDxsaT7pg6jnmoTmlrDvvIzPgq48Y29kZT4mbHQ7aW1nIHNyYz0ieHh4LmpwZyIgYWx0PSJwaG90byImZ3Q7PC9jb2RlPjwvbGk+CiAgICA8bGk+6aOf5omC77yMPGNvZGU+Jmx0O2lmcmFtZSBzcmM9Ii4uLiIgYWxsb3dmdWxsc2NyZWVuJmd0OyZsdDsvaWZyYW1lJmd0OzwvY29kZT48L2xpPgogIDwvdWw+CiAgPHAgc3R5bGU9Im1hcmdpbi10b3A6MXJlbSI+4oiSIOaEm+WtpumAgemAgeWbvueJh+WumuenkeaKgOWcqOaKpeWNs++8jTwvcD4KPC9zZWN0aW9uPgo8c3R5bGU+CiAgLnJldmVhbHttYXgtd2lkdGg6ODgwcHg7bWFyZ2luOjZyZW0gYXV0byA0cmVtO3BhZGRpbmc6MnJlbSAyLjI1cmVtO2JvcmRlci1yYWRpdXM6MjBweDtib3gtc2hhZG93OjAgMTBweCAzMHB4IHJnYmEoMCwwLDAsLjEyKTtiYWNrZ3JvdW5kOiNmZmZ9CiAgLnJldmVhbGggaDF7Zm9udC1zaXplOjJyZW07bWFyZ2luOjAgMCAxcmVtO2xpbmUtaGVpZ2h0OjEuMn0KICAucmV2ZWFsIHAge2xpbmUtaGVpZ2h0OjEuOH0KICAucmV2ZWFsIHVse21hcmdpbjouNzVyZW0gMCAwIDEuMjVyZW19Cjwvc3R5bGU+";
+
+    // ＝＝＝＝＝ 以下程式通常不需要改 ＝＝＝＝＝
+    const $ = (sel) => document.querySelector(sel);
+    const gate = $("#gate");
+    const content = $("#content");
+    const unlockTimeEl = $("#unlockTime");
+    const countdownEl = $("#countdown");
+
+    // 顯示人性化的解鎖時間
+    const release = new Date(RELEASE_AT);
+    const tz = Intl.DateTimeFormat().resolvedOptions().timeZone || "Local";
+    const fmt = new Intl.DateTimeFormat('zh-Hant', {
+      dateStyle: 'full', timeStyle: 'medium'
+    }).format(release);
+    unlockTimeEl.textContent = fmt + `（${tz}）`;
+
+    // 簡單的 Base64 → UTF‑8 字串解碼
+    function b64ToUtf8(b64) {
+      const bin = atob(b64);
+      const bytes = Uint8Array.from(bin, c => c.charCodeAt(0));
+      return new TextDecoder().decode(bytes);
+    }
+
+    // 插入秘密內容並顯示
+    function reveal() {
+      try {
+        const html = b64ToUtf8(PAYLOAD_B64);
+        content.innerHTML = html;
+      } catch (e) {
+        content.innerHTML = '<p style="padding:1rem;background:#fff;border-radius:12px;color:#111">解碼失敗：' + e + '</p>';
+      }
+      content.hidden = false;
+      content.classList.add("visible");
+      gate.classList.add("hidden");
+      // 記錄已解鎖
+      try { localStorage.setItem("time_lock_unlocked_" + RELEASE_AT, "1"); } catch { }
+    }
+
+    // 如果之前就解鎖過，直接顯示
+    try {
+      if (localStorage.getItem("time_lock_unlocked_" + RELEASE_AT) === "1") {
+        reveal();
+      }
+    } catch { }
+
+    // 倒數邏輯
+    function tick() {
+      const now = new Date();
+      const diff = release - now;
+      if (diff <= 0) {
+        countdownEl.textContent = "00:00:00";
+        reveal();
+        clearInterval(t);
+        return;
+      }
+      const totalSec = Math.floor(diff / 1000);
+      const d = Math.floor(totalSec / 86400);
+      const h = Math.floor((totalSec % 86400) / 3600);
+      const m = Math.floor((totalSec % 3600) / 60);
+      const s = totalSec % 60;
+      const hh = String(h).padStart(2, '0');
+      const mm = String(m).padStart(2, '0');
+      const ss = String(s).padStart(2, '0');
+      countdownEl.textContent = d > 0 ? `${d}天 ${hh}:${mm}:${ss}` : `${hh}:${mm}:${ss}`;
+    }
+    const t = setInterval(tick, 1000);
+    tick();
+  </script>
+</body>
+</html>
