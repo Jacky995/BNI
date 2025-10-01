@@ -89,7 +89,7 @@
       background: repeating-linear-gradient( to bottom, rgba(255,255,255,.08) 0 1px, transparent 1px 3px ); }
     .noise::after{ content:""; position:fixed; inset:-100px; pointer-events:none; mix-blend-mode: overlay; opacity:.06;
       background-image: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="120" height="120" viewBox="0 0 120 120"><filter id="n"><feTurbulence type="fractalNoise" baseFrequency="0.8" numOctaves="2" stitchTiles="stitch"/></filter><rect width="120" height="120" filter="url(%23n)" opacity="0.5"/></svg>');
-      animation: drift 30s linear infinite; }
+      animation: drift 45s linear infinite; }
     @keyframes drift{to{transform:translate3d(100px,60px,0)}}
 
     /* Top nav */
@@ -106,9 +106,10 @@
 
     /* Hero */
     .hero{ position:relative; z-index:1; display:grid; place-items:center; min-height:100svh; padding:120px 24px 80px; }
-    .title{ font-size: clamp(38px, 7.6vw, 84px); line-height: .95; text-align:center; margin:0 0 16px; font-weight:900;
-      text-shadow: 0 0 40px color-mix(in oklab, var(--neon-1) 60%, transparent), 0 0 24px color-mix(in oklab, var(--neon-2) 45%, transparent);
-      letter-spacing:-.02em; }
+    .title{ font-size: clamp(44px, 7vw, 92px); line-height:1.06; text-align:center; margin:0 0 16px; font-weight:900;
+  letter-spacing:-.01em; text-wrap:balance; /* 更佳換行排版 */
+  text-shadow: 0 0 8px color-mix(in oklab, var(--neon-1) 25%, transparent), 0 0 18px color-mix(in oklab, var(--neon-2) 20%, transparent);
+}
     .subtitle{ text-align:center; color:var(--text-2); max-width:920px; margin:0 auto 28px; font-size: clamp(15px, 2.2vw, 19px) }
 
     /* Glitch underline */
@@ -118,8 +119,15 @@
     .glitch::before{ color:var(--neon-1); transform: translate(1px,0) }
     .glitch::after{ color:var(--neon-2); transform: translate(-1px,0) }
 
-    /* Canvas network */
-    #fx{ position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.75; }
+    /* Canvas network + Floaters */
+.floaters{ position:absolute; inset:0; pointer-events:none; z-index:0 }
+.floater{ position:absolute; width: clamp(120px, 13vw, 180px); padding:10px 12px; border-radius:14px; border:1px solid var(--card-stroke);
+  background: linear-gradient(180deg, rgba(255,255,255,.10), rgba(255,255,255,.02)); box-shadow: var(--shadow); display:grid; place-items:center;
+  font-weight:800; letter-spacing:.06em; text-transform:uppercase; font-size: clamp(10px,1.2vw,12px); color:var(--text-1); opacity:.75;
+  backdrop-filter: blur(6px) saturate(140%);
+}
+.floater::after{ content:""; position:absolute; inset:-1px; border-radius:inherit; box-shadow:0 0 30px 8px color-mix(in oklab, var(--neon-1) 22%, transparent) inset }
+#fx{ position:fixed; inset:0; z-index:0; pointer-events:none; opacity:.7; }
 
     /* Content Containers */
     .content{ width:min(1100px, 94vw); margin: 0 auto 28px; }
@@ -272,10 +280,10 @@
     window.addEventListener('mousemove', (e)=>{
       const x = (e.clientX / innerWidth - .5) * 2; // -1..1
       const y = (e.clientY / innerHeight - .5) * 2;
-      px += (x - px) * .06; py += (y - py) * .06;
+      px += (x - px) * .03; py += (y - py) * .03;
     });
     (function tick(){
-      const depth = [12, -18, 20, -10];
+      const depth = [6, -8, 8, -6];
       floaters.forEach((el, i)=>{
         const d = depth[i % depth.length];
         el.style.transform = `translate3d(${px * d}px, ${py * d}px, 0)`;
@@ -283,73 +291,108 @@
       requestAnimationFrame(tick);
     })();
 
-    // Particle network
-    const c = document.getElementById('fx');
-    const ctx = c.getContext('2d');
-    let W = c.width = innerWidth;
-    let H = c.height = innerHeight;
+    // Particle network — premium, slower, softer glow
+const c = document.getElementById('fx');
+const ctx = c.getContext('2d');
+let W = c.width = innerWidth;
+let H = c.height = innerHeight;
 
-    const DPR = Math.min(2, window.devicePixelRatio || 1);
-    c.width = W * DPR; c.height = H * DPR; ctx.scale(DPR, DPR);
+const DPR = Math.min(2, window.devicePixelRatio || 1);
+c.width = W * DPR; c.height = H * DPR; ctx.scale(DPR, DPR);
 
-    const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const BASE = prefersReduced ? 40 : 90;
-    let COUNT = Math.round((W * H) / (16000) * (BASE / 90));
-    COUNT = Math.max(40, Math.min(COUNT, 240));
+const prefersReduced = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+const BASE = prefersReduced ? 36 : 80; // 基準粒子數（略降，質感更乾淨）
+let COUNT = Math.round((W * H) / (18000) * (BASE / 80));
+COUNT = Math.max(38, Math.min(COUNT, 200));
 
-    const particles = [];
-    const mouse = {x: -9999, y:-9999};
-    const dist = (a,b,x,y)=>{ const dx=a-x, dy=b-y; return Math.hypot(dx,dy); };
+const particles = [];
+const mouse = {x:-9999, y:-9999};
+const LINK_R = 160; // 連線半徑（更完整）
+const LINK_R2 = LINK_R*LINK_R;
+const FRICTION = 0.985; // 阻尼讓移動更穩重
 
-    function spawn(){
-      particles.length = 0;
-      for(let i=0;i<COUNT;i++){
-        particles.push({ x: Math.random()*W, y: Math.random()*H, vx: (Math.random()-.5)*0.6, vy:(Math.random()-.5)*0.6, r: Math.random()*1.6 + 0.8 });
+function spawn(){
+  particles.length = 0;
+  for(let i=0;i<COUNT;i++){
+    particles.push({
+      x: Math.random()*W, y: Math.random()*H,
+      vx: (Math.random()-.5)*0.22, vy:(Math.random()-.5)*0.22, // 更慢
+      r: Math.random()*1.4 + 0.9
+    });
+  }
+}
+
+function resize(){
+  W = innerWidth; H = innerHeight;
+  c.width = W * DPR; c.height = H * DPR; ctx.setTransform(DPR,0,0,DPR,0,0);
+  COUNT = Math.round((W * H) / (18000) * (BASE / 80));
+  COUNT = Math.max(38, Math.min(COUNT, 200));
+  spawn();
+}
+window.addEventListener('resize', resize);
+
+window.addEventListener('mousemove', e=>{mouse.x=e.clientX; mouse.y=e.clientY});
+window.addEventListener('mouseleave', ()=>{mouse.x=mouse.y=-9999});
+
+function step(){
+  ctx.clearRect(0,0,W,H);
+
+  // 更新粒子
+  for(let i=0;i<particles.length;i++){
+    const p = particles[i];
+    p.vx *= FRICTION; p.vy *= FRICTION;
+    p.x += p.vx; p.y += p.vy;
+    if(p.x<0||p.x>W) p.vx*=-1; if(p.y<0||p.y>H) p.vy*=-1;
+
+    // 滑鼠吸引（更柔和）
+    const dx = mouse.x - p.x, dy = mouse.y - p.y;
+    const m = Math.hypot(dx,dy);
+    if(m < 180){
+      const ax = dx / Math.max(m, 1) * 0.06;
+      const ay = dy / Math.max(m, 1) * 0.06;
+      p.vx += ax; p.vy += ay;
+    }
+  }
+
+  // 畫點
+  for(const p of particles){
+    ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2);
+    ctx.fillStyle = 'rgba(255,255,255,0.9)';
+    ctx.fill();
+  }
+
+  // 畫連線（圓角、發光、較完整）
+  ctx.save();
+  ctx.lineCap = 'round';
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.shadowColor = 'rgba(160,200,255,0.35)';
+  ctx.shadowBlur = 8;
+
+  for(let i=0;i<particles.length;i++){
+    const a = particles[i];
+
+    // 計算鄰近點（簡單 KNN：掃描全部但限制最多 3 條）
+    let connected = 0;
+    for(let j=i+1;j<particles.length && connected<3;j++){
+      const b = particles[j];
+      const d2 = (a.x-b.x)**2 + (a.y-b.y)**2;
+      if(d2 < LINK_R2){
+        const op = 1 - (d2 / LINK_R2);
+        ctx.strokeStyle = `rgba(180, 210, 255, ${op*0.55})`;
+        ctx.lineWidth = 0.8 + op * 1.4;
+        ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
+        connected++;
       }
     }
+  }
+  ctx.restore();
 
-    function resize(){
-      W = innerWidth; H = innerHeight;
-      c.width = W * DPR; c.height = H * DPR; ctx.setTransform(DPR,0,0,DPR,0,0);
-      COUNT = Math.round((W * H) / (16000) * (BASE / 90));
-      COUNT = Math.max(40, Math.min(COUNT, 240));
-      spawn();
-    }
-    window.addEventListener('resize', resize);
+  requestAnimationFrame(step);
+}
 
-    window.addEventListener('mousemove', e=>{mouse.x=e.clientX; mouse.y=e.clientY});
-    window.addEventListener('mouseleave', ()=>{mouse.x=mouse.y=-9999});
+function mix(a,b,t){ return Math.round(a + (b-a)*t) }
 
-    function step(){
-      ctx.clearRect(0,0,W,H);
-      // draw nodes
-      for(let i=0;i<particles.length;i++){
-        const p = particles[i];
-        p.x += p.vx; p.y += p.vy;
-        if(p.x<0||p.x>W) p.vx*=-1; if(p.y<0||p.y>H) p.vy*=-1;
-        const m = dist(p.x,p.y,mouse.x,mouse.y);
-        if(m < 140){ const ax = (mouse.x - p.x)/m * 0.15; const ay = (mouse.y - p.y)/m * 0.15; p.vx += ax; p.vy += ay; }
-        ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fillStyle = 'rgba(255,255,255,0.9)'; ctx.fill();
-      }
-      // draw links
-      for(let i=0;i<particles.length;i++){
-        const a = particles[i];
-        for(let j=i+1;j<particles.length;j++){
-          const b = particles[j];
-          const d = (a.x-b.x)**2 + (a.y-b.y)**2;
-          if(d < 120*120){
-            const op = 1 - (d / (120*120));
-            ctx.strokeStyle = `rgba( ${mix(0, 155, op*1.2)}, ${mix(229, 92, op)}, ${mix(255, 255, op)}, ${op*0.6} )`;
-            ctx.lineWidth = op * 1.2;
-            ctx.beginPath(); ctx.moveTo(a.x,a.y); ctx.lineTo(b.x,b.y); ctx.stroke();
-          }
-        }
-      }
-      requestAnimationFrame(step);
-    }
-    function mix(a,b,t){ return Math.round(a + (b-a)*t) }
-
-    spawn(); step();
+spawn(); step();
 
     // Teams loader (Google Apps Script)
     const API_URL = "https://script.google.com/macros/s/AKfycbyaAuDp3N10E3Wujk0L86P-U-9394pwLQ9u0StlXuD64GiTPoHGhSm5V_EP-eXb2w2jeA/exec";
