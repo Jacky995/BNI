@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>BNI 震億分會｜官方介紹頁</title>
+  <meta name="description" content="這是 BNI 震億分會的官方名片展示頁，包含產業鏈、成員介紹、與加入資訊。由 J.KEY 維護。">
+
+  <link rel="canonical" href="https://jacky995.github.io/BNI/">
+  <link rel="icon" href="https://cdn.bniconnectglobal.com/new_template/assets/appicon/favicon.ico">
+  <link rel="canonical" href="https://jacky995.github.io/BNI/BNI/震億.html">
+
+  <!-- ✅ SEO -->
+  <meta name="description" content="這是 BNI 震億分會的官方名片展示頁，包含產業鏈、成員介紹、與加入資訊。由 J.KEY 維護。">
+  <meta name="keywords" content="BNI, 震億分會, BNI震億分會,震億, 商務引薦, 人脈拓展, 跨領域合作, 產業鏈, 分會網站, BNI Taiwan">
+  <meta name="author" content="J.KEY">
+  <meta name="robots" content="index, follow">
+
+  <!-- ✅ Open Graph 社群 -->
+  <meta property="og:title" content="BNI 震億分會｜連結人脈・共創價值">
+  <meta property="og:description" content="加入BNI震億分會，拓展人脈、串聯產業、跨域合作，實現你的商務目標。">
+  <meta property="og:image" content="https://jacky995.github.io/NFC/banner.jpg">
+  <meta property="og:url" content="https://jacky995.github.io/BNI">
+  <meta property="og:type" content="website">
+  <meta property="og:locale" content="zh_TW">
+
+  <!-- ✅ Twitter Card -->
+  <meta name="twitter:card" content="summary_large_image">
+  <meta name="twitter:title" content="BNI 震億分會｜連結人脈・共創價值">
+  <meta name="twitter:description" content="加入BNI震億分會，拓展人脈、串聯產業、跨域合作，實現你的商務目標。">
+  <meta name="twitter:image" content="https://jacky995.github.io/NFC/banner.jpg">
+
+  <!-- ✅ 結構化資料 -->
+  <script type="application/ld+json">
+  {
+    "@context": "https://schema.org",
+    "@type": "Organization",
+    "name": "BNI 震億分會",
+    "url": "https://jacky995.github.io/BNI",
+    "logo": "https://cdn.bniconnectglobal.com/new_template/assets/appicon/favicon.ico",
+    "description": "BNI 震億分會，集結各產業菁英的專業人脈平台，促進跨領域商務引薦與合作。",
+    "sameAs": [
+      "https://www.facebook.com/你的FB網址",
+      "https://www.instagram.com/你的IG網址"
+    ],
+    "contactPoint": {
+      "@type": "ContactPoint",
+      "telephone": "+886-912-345-678",
+      "contactType": "customer service",
+      "areaServed": "TW",
+      "availableLanguage": ["Chinese", "English"]
+    }
+  }
+  </script>
+
+  <!-- ✅ 網站圖示 -->
+  <link rel="icon" href="https://cdn.bniconnectglobal.com/new_template/assets/appicon/favicon.ico">
+
+  <!-- ✅ 預留 CSS 區 -->
+  <style>
+    a.team-card {
+  text-decoration: none; /* 去掉底線 */
+  color: inherit; /* 繼承文字顏色 */
+  display: block; /* 讓整個卡片可點 */
+}
+
+    .carousel {
+  display: flex;
+  overflow-x: auto;
+  scroll-snap-type: x mandatory;
+  gap: 20px;
+  padding: 20px 0;
+  scroll-behavior: smooth;
+}
+.carousel::-webkit-scrollbar {
+  display: none;
+}
+.carousel-card {
+  flex: 0 0 300px;
+  scroll-snap-align: start;
+  background: #fff;
+  border-radius: 12px;
+  box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  padding: 20px;
+  text-align: center;
+}
+.carousel-card img {
+  width: 100px;
+  height: 100px;
+  object-fit: cover;
+  border-radius: 50%;
+  margin-bottom: 15px;
+}
+.carousel-card h3 {
+  margin: 10px 0 5px;
+  color: #b80000;
+}
+.carousel-card p {
+  font-size: 0.90em;
+  color: #444;
+}
+
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Microsoft JhengHei', sans-serif;
+      background-color: #ffffff;
+      color: #222;
+      line-height: 1.6;
+    }
+    header {
+      background: linear-gradient(to right, #8c0000, #b80000);
+      color: white;
+      padding: 60px 20px 30px 20px;
+      text-align: center;
+    }
+    header h1 {
+      font-size: 2.4em;
+      margin-bottom: 10px;
+    }
+    nav {
+      background: #2b2b2b;
+      display: flex;
+      justify-content: center;
+      flex-wrap: wrap;
+      padding: 10px;
+    }
+    nav a {
+      color: white;
+      margin: 0 15px;
+      text-decoration: none;
+      font-weight: bold;
+      padding: 8px 12px;
+      border-radius: 4px;
+    }
+    nav a:hover {
+      background-color: #b80000;
+    }
+    .banner {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: center;
+      gap: 20px;
+      padding: 30px 20px;
+      background-color: #f8f8f8;
+    }
+    .banner img {
+      max-width: 500px;
+      width: 100%;
+      border-radius: 8px;
+      box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
+    }
+    section {
+      max-width: 1000px;
+      margin: 0 auto;
+      padding: 40px 20px;
+    }
+    section h2 {
+      font-size: 1.8em;
+      border-left: 6px solid #b80000;
+      padding-left: 12px;
+      margin-bottom: 20px;
+      color: #b80000;
+    }
+    ul {
+      list-style: none;
+      padding-left: 0;
+    }
+    li {
+      padding: 12px 16px;
+      margin-bottom: 10px;
+      background-color: #f1f1f1;
+      border-left: 4px solid #8c0000;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    }
+    .missing {
+      color: #b80000;
+      font-weight: bold;
+      font-style: italic;
+      border-left-color: #ffa500;
+    }
+    footer {
+      background-color: #2b2b2b;
+      color: white;
+      text-align: center;
+      padding: 30px 10px;
+      font-size: 0.9em;
+    }
+    
+    .contact-btn {
+      display: inline-block;
+      margin-top: 20px;
+      padding: 10px 20px;
+      background: #b80000;
+      color: #fff;
+      border-radius: 6px;
+      text-decoration: none;
+      font-weight: bold;
+    }
+    .contact-btn:hover {
+      background-color: #8c0000;
+    }
+  </style>
+</head>
+
+<body>
+
+  <header>
+    <h1>BNI 震億分會</h1>
+    <p>連結人脈・共創價值・打造產業鏈</p>
+  </header>
+
+  <nav>
+    <a href="#intro">關於我們</a>
+    <a href="#chain">產業鏈</a>
+    <a href="#advisors">四大董顧</a>
+    <a href="#events">活動課程</a>
+    <a href="#join">加入我們</a>
+  </nav>
+
+
+
+  <section id="intro">
+    <h2><a href="https://chatgpt.com/share/6835031c-0af4-8002-9114-240c57c04987" style="color: #b80000; text-decoration: none;">大AI時代，連AI都選擇BNI，你呢?</a></h2>
+
+    <p>震億分會是BNI體系下的活躍分支，匯聚多元產業的菁英夥伴，致力於以『Givers Gain®』精神打造互信、互利的商務合作平台。</p>
+  </section>
+  <section id="advisors">
+    <h2>董事顧問與大使</h2>
+    <div class="carousel">
+
+
+
+
+
+        <div class="carousel-card">
+            <img src="https://jacky995.github.io/NFC/籃原達.jpg" alt="籃原達">
+            <h3>籃原達</h3>
+            <p>我是籃原達，代表科技廚具<br>五大家居品牌VIP經銷商</p>
+          </div>    
+
+
+
+
+
+  
+          <div class="carousel-card">
+            <img src="https://jacky995.github.io/NFC/羅絲佳.jpg" alt="羅絲佳">
+            <h3>羅絲佳</h3>
+            <p>
+              牙科活動公關<br>震玖健康生物科技有限公司 行銷總監
+              <br>
+              國際蘭馨交流協會 2022-2023 理事長
+            </p>
+          </div>
+          
+
+
+          <div class="carousel-card">
+            <img src="https://jacky995.github.io/NFC/王培堂2.jpg" alt="王培堂">
+            <h3>王培堂</h3>
+            <p>考試院高考冷凍空調技師<br>冷凍空調甲級技術士<br>國立勤益科大冷凍空調與能源系兼任講師<br>臺中市直轄市工程技術顧問公會 理事長</p>
+          </div>    
+
+
+
+        <div class="carousel-card">
+            <img src="https://jacky995.github.io/NFC/蔡佳玲.jpg" alt="蔡佳玲">
+            <h3>蔡佳玲</h3>
+            <p>
+              國際同濟會第2526分會秘書長<br>
+              蘇拉蜜婚紗設計總監<br>台灣小姐初賽會長
+              
+            </p>
+          </div>
+*
+    </div>
+  </section>
+
+<section id="teams">
+  <h2>想找更多商業夥伴嗎</h2>
+  <div id="groupGrid" class="team-grid"></div>
+</section>
+
+<script>
+  const API_URL = "https://script.google.com/macros/s/AKfycbyaAuDp3N10E3Wujk0L86P-U-9394pwLQ9u0StlXuD64GiTPoHGhSm5V_EP-eXb2w2jeA/exec"; // 改成你的 Apps Script 網址
+
+  fetch(API_URL)
+    .then(res => res.json())
+    .then(data => {
+      const groupGrid = document.getElementById("groupGrid");
+      const groups = {};
+
+      data.forEach(item => {
+        if (!groups[item.group]) groups[item.group] = [];
+        groups[item.group].push(item);
+      });
+
+      Object.keys(groups).forEach(groupName => {
+        const div = document.createElement("div");
+        div.className = "team-card";
+        div.innerHTML = `<span>⭐</span><p>${groupName}</p>`;
+        div.onclick = () => {
+          const groupData = encodeURIComponent(groupName);
+          window.location.href = `https://jacky995.github.io/BNI/BNI/group.html?group=${groupData}`;
+        };
+        groupGrid.appendChild(div);
+      });
+    });
+</script>
+
+
+  
+
+  <section id="events">
+    <h2>活動與課程</h2>
+    <ul>
+      <li>每週二｜BNI 正式早會｜人脈交流</li>
+      <li>每月一次｜產業鏈交流日｜跨業深度對談</li>
+      <li>不定期｜專題講座｜邀請業界領袖分享</li>
+    </ul>
+  </section>
+
+  <section id="join">
+    <h2>加入我們</h2>
+    <p>如果你渴望拓展人脈、尋找合作夥伴並獲得真誠推薦，歡迎聯絡我們或參與一場分會早會！</p>
+  </section>
+  <footer>
+    <p>© 2025 BNI 震億分會｜設計與維護：J.KEY｜感謝每位共築價值的夥伴</p>
+  </footer>
+
+
+<style>
+  #teams {
+    padding: 40px 20px;
+    background-color: #fafafa;
+    text-align: center;
+  }
+  #teams h2 {
+    font-size: 1.8em;
+    margin-bottom: 30px;
+    color: #b80000;
+  }
+  .team-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+    gap: 20px;
+    max-width: 1000px;
+    margin: 0 auto;
+  }
+  .team-card {
+    background-color: #fff;
+    border: 1px solid #eee;
+    border-radius: 12px;
+    padding: 30px 10px;
+    box-shadow: 0 2px 8px rgba(0,0,0,0.05);
+    transition: transform 0.2s ease;
+    cursor: pointer;
+  }
+  .team-card:hover {
+    transform: translateY(-5px);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+  }
+  .team-card span {
+    font-size: 2rem;
+    color: #b80000;
+  }
+  .team-card p {
+    margin-top: 10px;
+    font-weight: bold;
+    font-size: 1rem;
+    color: #222;
+  }
+</style>
+
+
+</body>
+</html>
