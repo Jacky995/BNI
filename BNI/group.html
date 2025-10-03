@@ -1,156 +1,336 @@
 <!DOCTYPE html>
 <html lang="zh-Hant">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
   <title id="pageTitle">BNI 震億分會｜服務組詳情</title>
+  <meta name="color-scheme" content="dark light" />
   <style>
-    body {
-      font-family: 'Microsoft JhengHei', sans-serif;
-      margin: 0;
-      padding: 0;
-      background-color: #fff;
-      color: #222;
+    :root{
+      --bg-start:#0a0f1a;
+      --bg-end:#0b1222;
+      --neon:#8ee8ff;          /* 霓虹藍光 */
+      --neon-soft:#4cc0ff88;   /* 霓虹藍半透明 */
+      --txt:#e8f0ff;
+      --muted:#9fb2c7;
+      --card:#0f172a80;        /* 玻璃卡片底 */
+      --stroke:#2b3855cc;
+      --brand-1:#8c0000;       /* 你的品牌紅 */
+      --brand-2:#b80000;
     }
-    header {
-      background: linear-gradient(to right, #8c0000, #b80000);
-      color: white;
-      padding: 40px 20px;
-      text-align: center;
+
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{
+      margin:0;
+      font-family: "Microsoft JhengHei", system-ui, -apple-system, Segoe UI, Roboto, "Noto Sans TC", sans-serif;
+      color:var(--txt);
+      background: radial-gradient(1200px 600px at 20% -10%, #103a54aa 0%, transparent 60%),
+                  radial-gradient(1000px 500px at 120% 20%, #2b1958aa 0%, transparent 60%),
+                  linear-gradient(180deg, var(--bg-start), var(--bg-end));
+      overflow-x:hidden;
     }
-    header h1 {
-      font-size: 2em;
+
+    /* 頂部膠囊導覽（參考你的首頁風格） */
+    .topbar{
+      position:sticky; top:0; z-index:20;
+      backdrop-filter: blur(8px);
+      background: linear-gradient(90deg, #0b1222cc, #0b1222aa);
+      border-bottom:1px solid #1c2742;
     }
-    .container {
-      max-width: 1000px;
-      margin: 0 auto;
-      padding: 40px 20px;
+    .nav{
+      max-width:1200px; margin:0 auto; padding:12px 20px;
+      display:flex; align-items:center; gap:10px; justify-content:flex-end;
     }
-    h2 {
-      text-align: center;
-      color: #b80000;
-      margin-bottom: 30px;
+    .pill{
+      appearance:none; border:none; cursor:pointer;
+      padding:10px 16px; border-radius:999px; font-weight:600; letter-spacing:.5px;
+      color:var(--txt);
+      background: linear-gradient(180deg, #13223b, #0f1b31);
+      border:1px solid #233357;
+      box-shadow: inset 0 0 0 1px #1e3055, 0 0 16px #0e253f66;
+      transition: transform .15s ease, box-shadow .2s ease, border-color .2s ease;
+      text-decoration:none; display:inline-flex; align-items:center; gap:8px;
     }
-    .member-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-      gap: 20px;
+    .pill:hover{ transform: translateY(-1px); box-shadow: 0 8px 24px #0e253faa; border-color:#2e4f88 }
+    .pill.brand{
+      background: linear-gradient(180deg, var(--brand-2), var(--brand-1));
+      border-color:#ffb4b4aa; color:#fff; box-shadow: 0 0 18px #b8000044, inset 0 0 0 1px #ffffff22;
     }
-    .member-card {
-      background: #fff;
-      border: 1px solid #eee;
-      border-radius: 12px;
-      padding: 20px;
-      text-align: center;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.05);
-      transition: transform 0.2s ease-in-out, box-shadow 0.2s ease-in-out;
+
+    /* Hero 區（霓虹大標 & 粒子背景覆蓋） */
+    header.hero{
+      position:relative; isolation:isolate;
+      padding:76px 20px 24px;
     }
-    .member-card:hover {
-      transform: translateY(-4px);
-      box-shadow: 0 4px 16px rgba(0,0,0,0.1);
+    .hero-inner{
+      max-width:1200px; margin:0 auto; text-align:center;
     }
-    .member-card img {
-      width: 120px;
-      height: 120px;
-      border-radius: 50%;
-      object-fit: cover;
-      margin-bottom: 15px;
+    .hero h1{
+      margin:0 0 10px;
+      font-size: clamp(2rem, 4vw + 1rem, 4rem);
+      line-height:1.1;
+      letter-spacing:.02em;
+      text-shadow:
+        0 0 10px var(--neon),
+        0 0 30px var(--neon),
+        0 0 60px #1e90ff66;
+      color:#e9fbff;
     }
-    .member-card h3 {
-      margin: 10px 0 5px;
-      color: #b80000;
+    .hero .subtitle{
+      margin:8px 0 0;
+      color:var(--muted);
+      font-size:clamp(.95rem, 1.2vw + .7rem, 1.15rem);
     }
-    .member-card p {
-      font-size: 0.9em;
-      color: #444;
-      margin: 4px 0;
+
+    /* 內容容器 */
+    .container{ max-width:1200px; margin:0 auto; padding:32px 20px 56px; }
+
+    /* 小標題膠囊 */
+    h2.section{
+      text-align:center; margin:18px auto 26px; font-weight:800;
+      color:#dff7ff;
+      filter:drop-shadow(0 0 12px var(--neon-soft));
     }
-    .member-card a {
-      display: inline-block;
-      margin-top: 10px;
-      color: #b80000;
-      font-weight: bold;
-      text-decoration: none;
+
+    /* 會員卡片區：玻璃 + 霓虹邊框 */
+    .member-grid{
+      display:grid; gap:18px;
+      grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
     }
-    .member-card a:hover {
-      text-decoration: underline;
+    .member-card{
+      position:relative; overflow:hidden;
+      border-radius:18px;
+      padding:18px;
+      background: linear-gradient(180deg, #0c153080, #0c162e66);
+      border:1px solid var(--stroke);
+      box-shadow:
+        0 6px 26px #00000066,
+        inset 0 0 0 1px #ffffff11;
+      backdrop-filter: blur(10px);
+      transition: transform .2s ease, box-shadow .25s ease, border-color .25s ease;
     }
-    .back-link {
-      display: inline-block;
-      margin-top: 30px;
-      text-align: center;
-      width: 100%;
-      font-weight: bold;
-      text-decoration: none;
-      color: #b80000;
+    .member-card:before{
+      content:""; position:absolute; inset:-1px; border-radius:20px;
+      pointer-events:none;
+      background:
+        radial-gradient(60% 60% at 10% 0%, #38bdf866 0%, transparent 60%),
+        radial-gradient(60% 60% at 110% 20%, #a78bfa55 0%, transparent 60%);
+      opacity:.55;
+      mask: linear-gradient(#000, transparent 70%);
+    }
+    .member-card:hover{ transform: translateY(-4px); border-color:#4aa8ffcc; box-shadow: 0 10px 30px #11274fbb }
+
+    .avatar{
+      width:112px; height:112px; border-radius:50%; object-fit:cover;
+      display:block; margin:6px auto 10px; border:2px solid #3a5a8e;
+      box-shadow: 0 0 18px #45c5ff55;
+      background:#0b1326;
+    }
+    .member-name{ margin:8px 0 2px; text-align:center; font-size:1.1rem; font-weight:800; color:#e6f7ff }
+    .member-meta{ margin:0; text-align:center; color:#b9c9dd; font-size:.92rem }
+    .meta-dim{ color:#90a4bf; font-size:.88rem; margin-top:2px }
+
+    .card-link{
+      margin-top:12px; display:inline-flex; align-items:center; gap:8px;
+      padding:10px 14px; border-radius:999px; font-weight:700; text-decoration:none;
+      background:linear-gradient(180deg,#13223b,#0f1b31); color:#eaf6ff; border:1px solid #27426b;
+      box-shadow: inset 0 0 0 1px #1e3055, 0 0 16px #0e253f66;
+      transition: transform .15s ease, box-shadow .2s ease, border-color .2s ease;
+    }
+    .card-link:hover{ transform: translateY(-1px); border-color:#2e4f88; box-shadow:0 8px 24px #0e253faa }
+
+    /* 返回首頁 */
+    .back{
+      margin:28px auto 0; text-align:center;
+    }
+    .back a{ text-decoration:none }
+    .back .pill{ padding:12px 18px }
+
+    /* 骨架載入 */
+    .skeleton{
+      position:relative; overflow:hidden; border-radius:18px; height:230px;
+      background:#0f1a2e; border:1px solid #223355;
+    }
+    .skeleton::after{
+      content:""; position:absolute; inset:0;
+      background: linear-gradient(90deg, transparent, #ffffff10, transparent);
+      animation: shimmer 1.3s infinite;
+    }
+    @keyframes shimmer{
+      0%{ transform:translateX(-100%) }
+      100%{ transform:translateX(100%) }
+    }
+
+    /* 粒子連線背景 Canvas 疊層 */
+    #net{
+      position:absolute; inset:0; z-index:-1; opacity:.55;
+      filter: drop-shadow(0 0 4px var(--neon-soft));
+    }
+
+    /* 小螢幕調整 */
+    @media (max-width: 520px){
+      .nav{justify-content:center; flex-wrap:wrap}
+      .hero{padding-top:56px}
     }
   </style>
 </head>
 <body>
 
-  <header>
-    <h1 id="groupTitle">服務組詳情</h1>
-  </header>
+  <!-- 粒子連線背景 -->
+  <canvas id="net"></canvas>
 
-  <div class="container">
-    <h2 id="groupName">載入中...</h2>
-    <div id="memberList" class="member-grid"></div>
-    <a href="https://jacky995.github.io/NFC/%E9%9C%87%E5%84%842.html" class="back-link">← 回首頁</a>
+  <!-- 頂部導覽（可替換為你的實際連結） -->
+  <div class="topbar">
+    <div class="nav">
+      <a class="pill" href="#" onclick="scrollToMembers()">成員</a>
+      <a class="pill" href="https://jacky995.github.io/BNI/BNI/%E9%9C%87%E5%84%84.html">首頁</a>
+      <a class="pill brand" href="https://jacky995.github.io/BNI/BNI/%E9%9C%87%E5%84%84.html" target="_blank">產業鏈</a>
+    </div>
   </div>
 
-<script>
-  const API_URL = "https://script.google.com/macros/s/AKfycbzUOIZ2PNKECao-gLC1Mzdsf6uZ7o2ptVGcjTnqLxHxr9or67LmiYgMU0lmKJJWgOIpnQ/exec";
+  <!-- Hero 區 -->
+  <header class="hero">
+    <div class="hero-inner">
+      <h1 id="groupTitle">BNI 震億分會｜服務組詳情</h1>
+      <p class="subtitle">連結人脈・共創價值｜以 Givers Gain® 為核心，串聯產業、跨域合作。</p>
+    </div>
+  </header>
 
-  const urlParams = new URLSearchParams(window.location.search);
-  const groupParam = urlParams.get("group");
-  const groupTitle = document.getElementById("groupTitle");
-  const groupName = document.getElementById("groupName");
-  const pageTitle = document.getElementById("pageTitle");
-  const memberList = document.getElementById("memberList");
+  <!-- 內容 -->
+  <main class="container" id="members">
+    <h2 id="groupName" class="section">載入中…</h2>
 
-  if (groupParam) {
-    const decodedGroup = decodeURIComponent(groupParam);
-    groupName.textContent = decodedGroup;
-    groupTitle.textContent = `BNI 震億分會｜${decodedGroup} 成員列表`;
-    pageTitle.textContent = `BNI 震億分會｜${decodedGroup} 成員列表`;
+    <!-- 骨架先放 8 張 -->
+    <div id="memberList" class="member-grid" aria-live="polite" aria-busy="true">
+      <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+      <div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div><div class="skeleton"></div>
+    </div>
 
-    fetch(API_URL)
-      .then(res => res.json())
-      .then(data => {
-        const sameGroup = data.filter(item => item.group === decodedGroup);
-        const defaultMember = data.find(item => item.id === "0");
+    <div class="back">
+      <a class="pill" href="https://jacky995.github.io/NFC/%E9%9C%87%E5%84%842.html">← 回首頁</a>
+    </div>
+  </main>
 
-        // 如果整個 group 都是空，且沒有 default，也不顯示
-        if (sameGroup.length === 0 && !defaultMember) {
-          memberList.innerHTML = `<p>找不到這個組別的資料，也沒有預設成員。</p>`;
-          return;
-        }
+  <script>
+    /* ====== 基本參數 ====== */
+    const API_URL = "https://script.google.com/macros/s/AKfycbzUOIZ2PNKECao-gLC1Mzdsf6uZ7o2ptVGcjTnqLxHxr9or67LmiYgMU0lmKJJWgOIpnQ/exec";
+    const params = new URLSearchParams(location.search);
+    const groupParam = params.get("group");
 
-        sameGroup.forEach(member => {
-          const isEmpty = !member.name || member.name.trim() === "";
-          const displayData = isEmpty && defaultMember ? { ...defaultMember, group: member.group } : member;
+    const groupTitleEl = document.getElementById("groupTitle");
+    const groupNameEl  = document.getElementById("groupName");
+    const pageTitleEl  = document.getElementById("pageTitle");
+    const memberListEl = document.getElementById("memberList");
 
-          const card = document.createElement("div");
-          card.className = "member-card";
-          card.innerHTML = `
-            <img src="${displayData.photoUrl || 'https://via.placeholder.com/120'}" alt="${displayData.name || ''}">
-            <h3>${displayData.name || ''}</h3>
-            <p>${displayData.title || ''}</p>
-            <p>${displayData.company || ''}</p>
-            <p>${displayData.job || ''}</p>
-            ${displayData.cardUrl ? `<a href="${displayData.cardUrl}" target="_blank">查看名片</a>` : ''}
-          `;
-          memberList.appendChild(card);
+    function scrollToMembers(){
+      document.getElementById('members').scrollIntoView({behavior:'smooth', block:'start'});
+    }
+
+    /* ====== 載入資料 ====== */
+    (function init(){
+      if(!groupParam){
+        groupNameEl.textContent = "無效的組別參數";
+        memberListEl.innerHTML = "";
+        memberListEl.setAttribute('aria-busy', 'false');
+        return;
+      }
+      const decoded = decodeURIComponent(groupParam);
+      groupNameEl.textContent = decoded;
+      groupTitleEl.textContent = `BNI 震億分會｜${decoded} 成員列表`;
+      pageTitleEl.textContent  = `BNI 震億分會｜${decoded} 成員列表`;
+
+      fetch(API_URL)
+        .then(r=>r.json())
+        .then(data=>{
+          const sameGroup = data.filter(x=>x.group === decoded);
+          const fallback  = data.find(x=>x.id === "0");
+
+          if(sameGroup.length === 0 && !fallback){
+            memberListEl.innerHTML = `<div class="member-grid"><div class="member-card"><p>找不到這個組別的資料，也沒有預設成員。</p></div></div>`;
+            return;
+          }
+          memberListEl.innerHTML = ""; // 清空骨架
+          memberListEl.setAttribute('aria-busy', 'false');
+
+          sameGroup.forEach(m=>{
+            const isEmpty = !m.name || m.name.trim()==="";
+            const d = (isEmpty && fallback) ? {...fallback, group:m.group} : m;
+            const card = document.createElement('div');
+            card.className = 'member-card';
+            card.innerHTML = `
+              <img class="avatar" src="${d.photoUrl || 'https://via.placeholder.com/120'}" alt="${(d.name||'').trim()}">
+              <h3 class="member-name">${d.name || ''}</h3>
+              <p class="member-meta">${d.title || ''}</p>
+              <p class="meta-dim">${d.company || ''}</p>
+              <p class="meta-dim">${d.job || ''}</p>
+              ${d.cardUrl ? `<a class="card-link" href="${d.cardUrl}" target="_blank" rel="noopener">查看名片</a>` : ``}
+            `;
+            memberListEl.appendChild(card);
+          });
+        })
+        .catch(err=>{
+          console.error(err);
+          memberListEl.innerHTML = `<div class="member-card"><p>資料載入失敗，請稍後再試。</p></div>`;
+          memberListEl.setAttribute('aria-busy', 'false');
         });
-      })
-      .catch(err => {
-        memberList.innerHTML = `<p>資料載入失敗，請稍後再試。</p>`;
-        console.error(err);
-      });
-  } else {
-    groupName.textContent = "無效的組別參數";
-  }
-</script>
+    })();
 
+    /* ====== 背景粒子連線（輕量版） ====== */
+    (function net(){
+      const c = document.getElementById('net');
+      const ctx = c.getContext('2d');
+      let W, H, points;
+
+      function resize(){
+        W = c.width = innerWidth;
+        H = c.height = Math.max(document.body.scrollHeight, innerHeight);
+        // 點數量依螢幕寬高調整
+        const count = Math.min(160, Math.floor((W*H)/22000));
+        points = Array.from({length:count}, ()=>({
+          x: Math.random()*W,
+          y: Math.random()*H,
+          vx:(Math.random()-.5)*0.6,
+          vy:(Math.random()-.5)*0.6
+        }));
+      }
+      addEventListener('resize', resize, {passive:true});
+      resize();
+
+      function step(){
+        ctx.clearRect(0,0,W,H);
+        // 先畫點
+        for(const p of points){
+          p.x+=p.vx; p.y+=p.vy;
+          if(p.x<0||p.x>W) p.vx*=-1;
+          if(p.y<0||p.y>H) p.vy*=-1;
+
+          ctx.beginPath();
+          ctx.arc(p.x,p.y,1.2,0,Math.PI*2);
+          ctx.fillStyle = "rgba(142,232,255,.75)";
+          ctx.fill();
+        }
+        // 再畫線
+        for(let i=0;i<points.length;i++){
+          for(let j=i+1;j<points.length;j++){
+            const a=points[i], b=points[j];
+            const dx=a.x-b.x, dy=a.y-b.y;
+            const dist = Math.hypot(dx,dy);
+            if(dist<140){
+              const alpha = 1 - dist/140;
+              ctx.strokeStyle = `rgba(142,232,255,${alpha*.35})`;
+              ctx.lineWidth = 1;
+              ctx.beginPath();
+              ctx.moveTo(a.x,a.y);
+              ctx.lineTo(b.x,b.y);
+              ctx.stroke();
+            }
+          }
+        }
+        requestAnimationFrame(step);
+      }
+      step();
+    })();
+  </script>
 </body>
 </html>
