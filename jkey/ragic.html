@@ -1,0 +1,84 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Ragic Minimal Test</title>
+<body style="margin:20px;font-family:system-ui">
+<h2>Ragic Minimal Test</h2>
+<div id="status" style="padding:8px 12px;border:1px solid #444;border-radius:8px;display:inline-block;">Loading…</div>
+<div id="link" style="float:right"></div>
+<div id="images" style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px"></div>
+<pre id="json" style="background:#111;color:#eee;padding:12px;border-radius:8px;overflow:auto"></pre>
+
+<script>
+const BASE = "https://ap12.ragic.com/89793238/test/2?api&v=3&naming=EID&subtables=0&limit=50";
+const EID = "1000135";                 // 用這欄位做 where
+const ACCOUNT = "89793238";            // 給 sims/file.jsp 用
+const API_KEY = "UGQ4cGFmNjg2R0J2TXNSMXpZdVVvSlhIUVRLZHo2SmpISXUyMFQrRCtySXFDTUk2T2NCeUY4b0FDcXJ6OENqRA==";                    // ← 如要用 Basic 暫測就填；不想外洩就留空
+
+function qs(name){
+  const sp = new URLSearchParams(location.search);
+  return sp.get(name) || sp.get(name.toUpperCase()) || "";
+}
+function fileTokenToUrl(token){
+  return `https://www.ragic.com/sims/file.jsp?a=${encodeURIComponent(ACCOUNT)}&f=${encodeURIComponent(token)}`;
+}
+function looksLikeToken(s){ return typeof s==="string" && s.includes("@") && !/^https?:\/\//i.test(s); }
+function toArray(v){ return Array.isArray(v) ? v : (v==null ? [] : [v]); }
+
+(async function main(){
+  const id = (qs("id") || qs("ID") || "").trim();
+  const $s = document.getElementById("status");
+  const $j = document.getElementById("json");
+  const $imgs = document.getElementById("images");
+  const $link = document.getElementById("link");
+
+  if(!id){ $s.style.background="#401";$s.style.color="#fbb";$s.textContent="缺少網址參數 ?id=（例：?id=1）"; return; }
+
+  const u = new URL(BASE);
+  u.searchParams.append("where", `${EID},eq,${id}`);
+  $link.innerHTML = `<a target="_blank" href="${u.toString()}">查看實際請求 URL</a>`;
+
+  const headers = {};
+  if (API_KEY) headers["Authorization"] = "Basic " + API_KEY;
+
+  try{
+    const r = await fetch(u.toString(), {
+      method: "GET",
+      headers,
+      credentials: API_KEY ? "omit" : "include",  // 有 API_KEY 就不用 cookie；否則帶 cookie
+      cache: "no-store"
+    });
+    const text = await r.text();
+    if(!r.ok) throw new Error(text);
+
+    let data;
+    try { data = JSON.parse(text); }
+    catch { throw new Error("回傳不是 JSON：\n" + text.slice(0,400)); }
+
+    // 把檔案欄位 token → 圖片
+    $imgs.innerHTML = "";
+    Object.values(data || {}).forEach(rec=>{
+      if (!rec || typeof rec!=="object") return;
+      Object.values(rec).forEach(v=>{
+        toArray(v).forEach(one=>{
+          if (typeof one==="string" && looksLikeToken(one)) {
+            const img = new Image();
+            img.loading = "lazy";
+            img.style.width="160px"; img.style.height="160px"; img.style.objectFit="cover"; img.style.borderRadius="8px";
+            img.src = fileTokenToUrl(one);
+            $imgs.appendChild(img);
+          }
+        });
+      });
+    });
+
+    $j.textContent = JSON.stringify(data, null, 2);
+    $s.textContent = "OK";
+    $s.style.background = "#143"; $s.style.color="#cfe";
+  }catch(err){
+    $s.style.background="#401"; $s.style.color="#fbb"; $s.textContent="載入失敗";
+    $j.textContent = String(err && err.stack || err);
+  }
+})();
+</script>
+</body>
