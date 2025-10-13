@@ -1,84 +1,206 @@
 <!doctype html>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width,initial-scale=1">
-<title>Ragic Minimal Test</title>
-<body style="margin:20px;font-family:system-ui">
-<h2>Ragic Minimal Test</h2>
-<div id="status" style="padding:8px 12px;border:1px solid #444;border-radius:8px;display:inline-block;">Loading…</div>
-<div id="link" style="float:right"></div>
-<div id="images" style="margin-top:12px;display:flex;flex-wrap:wrap;gap:8px"></div>
-<pre id="json" style="background:#111;color:#eee;padding:12px;border-radius:8px;overflow:auto"></pre>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>J·KEY Blessing</title>
+<meta name="theme-color" content="#b80000" />
+<style>
+  :root{
+    --brand:#b80000; --brand-dark:#8c0000;
+    --bg:#0b0b0b; --fg:#f4f4f4; --muted:#bfbfbf; --card:#141414;
+    --radius:18px; --shadow:0 12px 30px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:linear-gradient(180deg,#0c0c0c,#111);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+  .wrap{max-width:760px;margin:0 auto;padding:18px 16px 60px}
+  header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+  .dot{inline-size:18px;block-size:18px;border-radius:6px;background:linear-gradient(135deg,var(--brand),var(--brand-dark))}
+  h1{margin:0;font-size:1.6rem}
+  .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden}
+  .hero{position:relative;aspect-ratio:16/10;background:#1a1a1a}
+  .hero img{width:100%;height:100%;object-fit:cover;display:block}
+  .meta{display:flex;gap:8px;flex-wrap:wrap;padding:10px 14px;border-top:1px solid #222}
+  .pill{font-size:.9rem;color:var(--muted);padding:.25em .65em;border:1px solid #2a2a2a;border-radius:999px}
+  .section{padding:16px 14px}
+  .title{font-size:1.35rem;font-weight:700;line-height:1.2;margin:0 0 6px}
+  .subtitle{font-size:1rem;color:var(--muted);margin:0 0 10px}
+  .msg{white-space:pre-wrap;line-height:1.85;font-size:1.05rem}
+  .gallery{display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:10px}
+  .gallery img{width:100%;height:170px;object-fit:cover;border-radius:14px;background:#111}
+  .bar{display:flex;justify-content:space-between;align-items:center;margin:12px 2px}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;background:linear-gradient(135deg,var(--brand),var(--brand-dark));color:#fff;text-decoration:none;font-weight:600}
+  .ghost{background:#1a1a1a;color:#ddd;border:1px solid #2a2a2a}
+  .status{padding:10px 12px;border-radius:12px;border:1px dashed #2a2a2a;background:#101010;color:#d6d6d6;margin:10px 2px}
+  .err{border-color:#4a1818;background:#2a0f0f;color:#ffbdbd}
+  .hidden{display:none}
+  footer{color:var(--muted);text-align:center;margin-top:22px;font-size:.9rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><div class="dot"></div><h1 id="pageTitle">J·KEY Blessing</h1></header>
+
+  <div id="status" class="status">載入中…</div>
+  <div id="error" class="status err hidden">載入失敗</div>
+
+  <article id="view" class="hidden">
+    <div class="card">
+      <div class="hero" id="hero"></div>
+      <div class="section">
+        <h2 class="title" id="title">—</h2>
+        <p class="subtitle" id="subtitle"></p>
+
+        <div class="bar">
+          <div id="meta" class="meta" style="padding:0;border:0"></div>
+          <a class="btn ghost" id="shareBtn" href="javascript:;">分享</a>
+        </div>
+
+        <div class="msg" id="message"></div>
+        <div class="gallery" id="gallery"></div>
+      </div>
+      <div class="meta" id="metaBottom"></div>
+    </div>
+
+    <footer>Powered by J·KEY · 情感科技</footer>
+  </article>
+</div>
 
 <script>
-const BASE = "https://ap12.ragic.com/89793238/test/2?api&v=3&naming=EID&subtables=0&limit=50";
-const EID = "1000135";                 // 用這欄位做 where
-const ACCOUNT = "89793238";            // 給 sims/file.jsp 用
-const API_KEY = "UGQ4cGFmNjg2R0J2TXNSMXpZdVVvSlhIUVRLZHo2SmpISXUyMFQrRCtySXFDTUk2T2NCeUY4b0FDcXJ6OENqRA==";                    // ← 如要用 Basic 暫測就填；不想外洩就留空
+/** ======= 參數：請按你的實際環境修改 ======= **/
+const BASE = "https://ap12.ragic.com/89793238/test/2?api&v=3&naming=EID&subtables=0&limit=50"; // 你的 Ragic API URL
+const ACCOUNT = "89793238";          // sims/file.jsp 的 a 參數
+const EID_QUERY = "1000135";         // 依這個欄位做 where（例：編號）
+const API_KEY = "UGQ4cGFmNjg2R0J2TXNSMXpZdVVvSlhIUVRLZHo2SmpISXUyMFQrRCtySXFDTUk2T2NCeUY4b0FDcXJ6OENqRA==";                  // 測試時可填；正式請留空改走 cookie 或代理
 
-function qs(name){
-  const sp = new URLSearchParams(location.search);
-  return sp.get(name) || sp.get(name.toUpperCase()) || "";
-}
-function fileTokenToUrl(token){
-  return `https://www.ragic.com/sims/file.jsp?a=${encodeURIComponent(ACCOUNT)}&f=${encodeURIComponent(token)}`;
-}
-function looksLikeToken(s){ return typeof s==="string" && s.includes("@") && !/^https?:\/\//i.test(s); }
-function toArray(v){ return Array.isArray(v) ? v : (v==null ? [] : [v]); }
+// Ragic 欄位 EID 對應
+const FIELD_MAP = {
+  seq:       "1000135", // 編號 / 外部 ID
+  name:      "1000128", // 主標題（人名1）
+  subtitle:  "1000129", // 副標題
+  photo1:    "1000130", // 圖片1（檔案欄位）
+  date:      "1000131", // 日期1（yyyy/MM/dd）
+  tag:       "1000132", // 標籤/主題
+  message:   "1000133", // 祝福文字
+};
+/** ========================================== **/
+
+const qs = (k, s=location.search)=>new URLSearchParams(s).get(k);
+const $ = id => document.getElementById(id);
+const looksLikeToken = s => typeof s==="string" && s.includes("@") && !/^https?:\/\//i.test(s);
+const fileUrl = token => `https://www.ragic.com/sims/file.jsp?a=${encodeURIComponent(ACCOUNT)}&f=${encodeURIComponent(token)}`;
+const toArr = v => Array.isArray(v) ? v : (v==null ? [] : [v]);
+const fmtDate = s => {
+  if(!s) return "";
+  const m = s.match(/^(\d{4})\/(\d{1,2})\/(\d{1,2})/);
+  return m ? `${m[1]}年${Number(m[2])}月${Number(m[3])}日` : s;
+};
 
 (async function main(){
-  const id = (qs("id") || qs("ID") || "").trim();
-  const $s = document.getElementById("status");
-  const $j = document.getElementById("json");
-  const $imgs = document.getElementById("images");
-  const $link = document.getElementById("link");
+  const id = (qs("id")||qs("ID")||"").trim();
+  if(!id){ return fail("缺少網址參數 ?id=（例：?id=1）"); }
 
-  if(!id){ $s.style.background="#401";$s.style.color="#fbb";$s.textContent="缺少網址參數 ?id=（例：?id=1）"; return; }
-
-  const u = new URL(BASE);
-  u.searchParams.append("where", `${EID},eq,${id}`);
-  $link.innerHTML = `<a target="_blank" href="${u.toString()}">查看實際請求 URL</a>`;
-
-  const headers = {};
-  if (API_KEY) headers["Authorization"] = "Basic " + API_KEY;
+  $('status').classList.remove('hidden');
+  const u = new URL(BASE); u.searchParams.append('where', `${EID_QUERY},eq,${id}`);
 
   try{
-    const r = await fetch(u.toString(), {
-      method: "GET",
+    const headers = {};
+    if(API_KEY) headers["Authorization"] = "Basic " + API_KEY;
+
+    const resp = await fetch(u.toString(), {
+      method: 'GET',
       headers,
-      credentials: API_KEY ? "omit" : "include",  // 有 API_KEY 就不用 cookie；否則帶 cookie
-      cache: "no-store"
+      credentials: API_KEY ? 'omit' : 'include', // 已登入 Ragic 則帶 cookie
+      cache: 'no-store'
     });
-    const text = await r.text();
-    if(!r.ok) throw new Error(text);
+    const text = await resp.text();
+    if(!resp.ok) throw new Error(text);
 
-    let data;
-    try { data = JSON.parse(text); }
-    catch { throw new Error("回傳不是 JSON：\n" + text.slice(0,400)); }
+    let json; try{ json = JSON.parse(text); }catch{ throw new Error("回傳不是 JSON"); }
+    const rec = pickFirstRecord(json);
+    if(!rec) throw new Error("查無資料");
 
-    // 把檔案欄位 token → 圖片
-    $imgs.innerHTML = "";
-    Object.values(data || {}).forEach(rec=>{
-      if (!rec || typeof rec!=="object") return;
-      Object.values(rec).forEach(v=>{
-        toArray(v).forEach(one=>{
-          if (typeof one==="string" && looksLikeToken(one)) {
-            const img = new Image();
-            img.loading = "lazy";
-            img.style.width="160px"; img.style.height="160px"; img.style.objectFit="cover"; img.style.borderRadius="8px";
-            img.src = fileTokenToUrl(one);
-            $imgs.appendChild(img);
-          }
-        });
-      });
-    });
-
-    $j.textContent = JSON.stringify(data, null, 2);
-    $s.textContent = "OK";
-    $s.style.background = "#143"; $s.style.color="#cfe";
-  }catch(err){
-    $s.style.background="#401"; $s.style.color="#fbb"; $s.textContent="載入失敗";
-    $j.textContent = String(err && err.stack || err);
+    render(rec, id);
+    $('status').classList.add('hidden');
+    $('view').classList.remove('hidden');
+  }catch(e){
+    fail(e.message || String(e));
   }
 })();
+
+function pickFirstRecord(obj){
+  if(!obj || typeof obj!=='object') return null;
+  const keys = Object.keys(obj).map(Number).filter(n=>!Number.isNaN(n)).sort((a,b)=>a-b);
+  return keys.length ? obj[String(keys[0])] : null;
+}
+
+function render(rec, id){
+  const g = eid => rec?.[eid] ?? "";
+  const title = g(FIELD_MAP.name) || `#${id}`;
+  const subtitle = g(FIELD_MAP.subtitle) || "";
+  const date = g(FIELD_MAP.date);
+  const tag = g(FIELD_MAP.tag);
+  const msg = g(FIELD_MAP.message) || "";
+  const hero = g(FIELD_MAP.photo1);
+
+  // header
+  $('pageTitle').textContent = "J·KEY Blessing";
+  $('title').textContent = title;
+  $('subtitle').textContent = subtitle || `ID：${g(FIELD_MAP.seq) || id}`;
+
+  // hero
+  const heroBox = $('hero'); heroBox.innerHTML = "";
+  const heroSrc = Array.isArray(hero) ? hero[0] : hero;
+  if(heroSrc){
+    const img = new Image(); img.loading="lazy"; img.decoding="async";
+    img.src = looksLikeToken(heroSrc) ? fileUrl(heroSrc) : heroSrc;
+    heroBox.appendChild(img);
+  }
+
+  // meta
+  const metaTop = $('meta'); metaTop.innerHTML="";
+  const metaBot = $('metaBottom'); metaBot.innerHTML="";
+  const addPill = (node, text)=>{ const s=document.createElement('span'); s.className='pill'; s.textContent=text; node.appendChild(s); };
+  if(date) addPill(metaTop, fmtDate(String(date)));
+  if(tag)  addPill(metaTop, String(tag));
+  addPill(metaBot, `J·KEY · 情感科技`);
+
+  // message
+  $('message').textContent = msg;
+
+  // gallery：掃一遍把所有 URL/檔案欄位轉圖片
+  const gal = $('gallery'); gal.innerHTML="";
+  Object.values(rec).forEach(v=>{
+    toArr(v).forEach(one=>{
+      let src = "";
+      if(typeof one==="string" && /^https?:\/\//i.test(one)) src = one;
+      else if(typeof one==="string" && looksLikeToken(one)) src = fileUrl(one);
+      if(src){
+        const img = new Image(); img.loading="lazy"; img.decoding="async";
+        img.src = src; img.alt = title;
+        gal.appendChild(img);
+      }
+    });
+  });
+
+  // share
+  $('shareBtn').onclick = async ()=>{
+    const shareData = { title: document.title, text: `${title}`, url: location.href };
+    try{
+      if(navigator.share){ await navigator.share(shareData); }
+      else{
+        await navigator.clipboard.writeText(location.href);
+        alert("已複製連結");
+      }
+    }catch{}
+  };
+}
+
+function fail(msg){
+  $('status').classList.add('hidden');
+  $('error').classList.remove('hidden');
+  $('error').textContent = msg;
+}
 </script>
 </body>
+</html>
