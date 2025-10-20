@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>在基督裡的愛｜Covenant</title>
+  <meta name="description" content="極簡、安靜、以基督為中心的愛情頁面。支援手機與電腦。"/>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@400;600;700&family=Inter:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root{
+      /* 和平、乾淨的淺色系 */
+      --bg: #ffffff;
+      --card: #f7f7f9;
+      --ink: #1f2937;          /* 主文字深灰 */
+      --muted: #6b7280;        /* 次要文字灰 */
+      --line: #e5e7eb;         /* 細分隔線 */
+      --accent: #7aa2c2;       /* 柔和藍（和平、澄明）*/
+      --accent-2:#c2d7e9;      /* 更淡的藍，用於漸層/邊框 */
+      --radius: 14px;
+      --shadow: 0 6px 22px rgba(17, 24, 39, .06);
+      --maxw: 980px;           /* 收斂版寬，留白更多 */
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;padding:0;background:var(--bg);color:var(--ink);font-family:Inter, "Noto Serif TC", system-ui, -apple-system, Segoe UI, Roboto, "PingFang TC", "Microsoft JhengHei", sans-serif;}
+    img{max-width:100%;display:block;border-radius:var(--radius)}
+    a{color:inherit;text-decoration:none}
+    .wrap{max-width:var(--maxw);margin-inline:auto;padding:20px}
+
+    /* --- 背景：極淡格紋 + 角落光暈 --- */
+    body::before{
+      content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;
+      background:
+        radial-gradient(800px 600px at 85% -10%, rgba(122,162,194,.18), transparent 60%),
+        linear-gradient(180deg, #fff, #fff);
+      mask: none;
+    }
+    body::after{
+      /* 非侵入式的 8px 細點格，僅 4% 透明度 */
+      content:"";position:fixed;inset:0;pointer-events:none;z-index:-1;opacity:.04;
+      background-image:
+        radial-gradient(circle at 1px 1px, #1f2937 1px, transparent 1.5px);
+      background-size:8px 8px;
+    }
+
+    /* --- NAV --- */
+    header{position:sticky;top:0;background:#ffffffd9;backdrop-filter:saturate(1.2) blur(6px);border-bottom:1px solid var(--line);z-index:20}
+    .nav{display:flex;align-items:center;justify-content:space-between;gap:12px;padding:12px 8px}
+    .brand{display:flex;align-items:center;gap:10px;font-weight:700;letter-spacing:.4px}
+    .cross{width:18px;height:18px;position:relative}
+    .cross::before,.cross::after{content:"";position:absolute;background:var(--accent);border-radius:2px}
+    .cross::before{width:100%;height:3px;top:7.5px;left:0}
+    .cross::after{height:100%;width:3px;left:7.5px;top:0}
+    .nav a{color:var(--muted);position:relative;padding:4px 2px}
+    .nav a::after{content:"";position:absolute;left:50%;right:50%;bottom:0;height:2px;background:linear-gradient(90deg, transparent, var(--accent), transparent);transition:all .25s ease}
+    .nav a:hover{color:var(--ink)}
+    .nav a:hover::after{left:10%;right:10%}
+
+    /* --- HERO --- */
+    .hero{display:grid;gap:18px;align-items:center;padding:40px 0}
+    .headline{font-size:clamp(28px,3.5vw,40px);line-height:1.2;margin:0}
+    .subtitle{color:var(--muted);margin:6px 0 0}
+    .verse{margin-top:16px;padding:16px;border:1px solid var(--line);border-radius:var(--radius);background:#fff;box-shadow:var(--shadow);position:relative}
+    .verse::before{content:"C";position:absolute;left:12px;top:6px;color:var(--accent);font-size:20px;opacity:.6}
+    .badge{display:inline-flex;align-items:center;gap:8px;padding:6px 10px;border-radius:999px;border:1px solid var(--line);background:linear-gradient(180deg,#fff, #fcfdff);color:var(--accent);font-weight:600;font-size:13px}
+    .cover{position:relative}
+    .cover::after{content:"";position:absolute;inset:-6px;z-index:-1;border-radius:calc(var(--radius) + 8px);background:conic-gradient(from 180deg, var(--accent-2), transparent 60%);filter:blur(14px);opacity:.35}
+
+    /* --- SECTIONS --- */
+    section{padding:28px 0;border-top:1px solid var(--line)}
+    h2{font-size:20px;margin:0 0 12px;position:relative;display:inline-block;padding-right:26px}
+    h2::after{content:"";position:absolute;right:0;top:50%;transform:translateY(-50%);width:16px;height:16px}
+    h2::after{background:
+      linear-gradient(var(--accent), var(--accent)) center/2px 100% no-repeat,
+      linear-gradient(var(--accent), var(--accent)) center/100% 2px no-repeat;opacity:.5}
+    p.lead{color:var(--muted);margin:0 0 14px}
+
+    .card{background:#fff;border:1px solid var(--line);border-radius:var(--radius);box-shadow:var(--shadow);padding:18px}
+    .list{display:grid;gap:10px}
+    .item{display:flex;gap:10px;align-items:flex-start}
+    .dot{width:8px;height:8px;border-radius:50%;background:var(--accent);margin-top:9px;flex:0 0 8px;box-shadow:0 0 0 3px rgba(122,162,194,.15)}
+
+    /* --- VERSE SLIDES (簡化) --- */
+    .slides{position:relative}
+    .slide{display:none}
+    .slide.active{display:block;animation:fade .6s ease}
+    .dots{display:flex;gap:6px;justify-content:center;margin-top:10px}
+    .dots button{width:8px;height:8px;border-radius:50%;border:1px solid var(--line);background:#fff;transition:transform .2s ease}
+    .dots button[aria-current="true"]{background:var(--accent);border-color:var(--accent);transform:scale(1.15)}
+
+    /* --- FOOTER --- */
+    footer{padding:30px 0;color:var(--muted);text-align:center;border-top:1px solid var(--line);background:linear-gradient(180deg, #fff, #fafcff)}
+
+    /* --- 動畫（尊重易用性） --- */
+    @keyframes fade{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:none}}
+    .reveal{opacity:0;transform:translateY(8px);transition:opacity .5s ease, transform .5s ease}
+    .reveal.show{opacity:1;transform:none}
+    @media (prefers-reduced-motion: reduce){
+      *{animation:none!important;transition:none!important}
+    }
+
+    /* --- RWD --- */
+    @media (min-width: 860px){
+      .hero{grid-template-columns:1.1fr .9fr}
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <div class="wrap nav">
+      <div class="brand"><span class="cross" aria-hidden="true"></span>在基督裡的愛</div>
+      <nav style="display:flex;gap:16px;flex-wrap:wrap">
+        <a href="#covenant">盟約</a>
+        <a href="#story">故事</a>
+        <a href="#scripture">經文</a>
+        <a href="#contact">聯絡</a>
+      </nav>
+    </div>
+  </header>
+
+  <main class="wrap">
+    <!-- HERO（更留白、少裝飾） -->
+    <section class="hero" style="border-top:none">
+      <div>
+        <span class="badge">Christ at the Center</span>
+        <h1 class="headline">以和平與真理彼此成全</h1>
+        <p class="subtitle">「你們要彼此相愛；我怎樣愛你們，你們也要怎樣相愛。」— 約 13:34</p>
+        <div class="verse">
+          <strong>三股合成的繩子，不容易折斷。</strong>
+          <div class="subtitle">傳道書 4:12</div>
+        </div>
+      </div>
+      <div class="card cover" aria-label="cover">
+        <img alt="寧靜湖面與遠山，象徵和平" src="https://images.unsplash.com/photo-1500530855697-b586d89ba3ee?q=80&w=1600&auto=format&fit=crop"/>
+      </div>
+    </section>
+
+    <!-- 盟約：收斂為三大點 -->
+    <section id="covenant" class="reveal">
+      <h2>我們的盟約</h2>
+      <p class="lead">在主面前立約，讓基督作首：</p>
+      <div class="card">
+        <div class="list">
+          <div class="item"><span class="dot"></span><div><strong>同行靈修</strong>：每日個別靈修；每週一次共同禱告與反思。</div></div>
+          <div class="item"><span class="dot"></span><div><strong>溫柔真理</strong>：衝突先暫停與禱告，再誠實對話，追求和好。</div></div>
+          <div class="item"><span class="dot"></span><div><strong>聖潔界線</strong>：時間、金錢與身體界線透明並互相交帳。</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 故事：簡化時間線為三階段 -->
+    <section id="story" class="reveal">
+      <h2>我們的故事</h2>
+      <div class="card">
+        <div class="list">
+          <div class="item"><span class="dot"></span><div><strong>相遇</strong>：主所安排的相識與引導。</div></div>
+          <div class="item"><span class="dot"></span><div><strong>確定</strong>：在牧者與夥伴陪伴中辨明呼召。</div></div>
+          <div class="item"><span class="dot"></span><div><strong>同奔</strong>：一同服事、彼此成全，預備婚約。</div></div>
+        </div>
+      </div>
+    </section>
+
+    <!-- 經文（極簡滑點切換） -->
+    <section id="scripture" class="reveal">
+      <h2>經文</h2>
+      <div class="card slides" aria-live="polite">
+        <div class="slide active" data-ref="林前 13:4-7">愛是恆久忍耐，又有恩慈；不嫉妒，不自誇，不張狂⋯凡事盼望，凡事忍耐。</div>
+        <div class="slide" data-ref="弗 5:25">你們作丈夫的，要愛你們的妻子，正如基督愛教會，為教會捨己。</div>
+        <div class="slide" data-ref="傳 4:12">有人攻勝孤身一人，二人便能敵擋他；三股合成的繩子，不容易折斷。</div>
+        <div class="dots" role="tablist" aria-label="verse dots">
+          <button aria-label="1" aria-current="true"></button>
+          <button aria-label="2"></button>
+          <button aria-label="3"></button>
+        </div>
+        <div class="subtitle" id="ref">林前 13:4-7</div>
+      </div>
+    </section>
+
+    <!-- 聯絡（保留最小可用單元） -->
+    <section id="contact" class="reveal">
+      <h2>聯絡</h2>
+      <div class="card">
+        <form onsubmit="event.preventDefault(); alert('感謝你的祝福！此表單為靜態示範。')" style="display:grid;gap:10px">
+          <input required placeholder="你的名字" style="padding:12px;border-radius:10px;border:1px solid var(--line)">
+          <textarea required placeholder="祝福或代禱事項" style="min-height:96px;padding:12px;border-radius:10px;border:1px solid var(--line)"></textarea>
+          <button style="padding:10px 14px;border-radius:10px;border:1px solid var(--line);background:var(--bg);">送出</button>
+        </form>
+      </div>
+    </section>
+
+    <footer>
+      <div>© <span id="year"></span> 在基督裡的愛 · Peace in Christ</div>
+    </footer>
+  </main>
+
+  <script>
+    document.getElementById('year').textContent = new Date().getFullYear();
+
+    // 極簡經文切換（點擊圓點）
+    const slides = Array.from(document.querySelectorAll('.slide'));
+    const dots = Array.from(document.querySelectorAll('.dots button'));
+    const ref = document.getElementById('ref');
+    let i = 0;
+    function show(n){ i = (n + slides.length) % slides.length; slides.forEach((s,idx)=>s.classList.toggle('active', idx===i)); dots.forEach((d,idx)=>d.setAttribute('aria-current', idx===i ? 'true':'false')); ref.textContent = slides[i].dataset.ref; }
+    dots.forEach((d,idx)=> d.addEventListener('click', ()=> show(idx)) );
+    // 自動輪播（保留柔和節奏）
+    setInterval(()=> show(i+1), 9000);
+    </script>
+  <script>
+    // 輕量捲動顯示
+    const io = new IntersectionObserver((entries)=>{
+      entries.forEach(e=>{ if(e.isIntersecting) e.target.classList.add('show'); });
+    }, {threshold: .12});
+    document.querySelectorAll('.reveal').forEach(el=> io.observe(el));
+  </script>
+</body>
+</html>
