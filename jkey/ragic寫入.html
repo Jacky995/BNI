@@ -1,0 +1,231 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+<title>J·KEY Blessing · Write</title>
+<meta name="theme-color" content="#b80000" />
+<style>
+  :root{
+    --brand:#b80000; --brand-dark:#8c0000;
+    --bg:#0b0b0b; --fg:#f4f4f4; --muted:#bfbfbf; --card:#141414;
+    --radius:18px; --shadow:0 12px 30px rgba(0,0,0,.35);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;background:linear-gradient(180deg,#0c0c0c,#111);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+  .wrap{max-width:760px;margin:0 auto;padding:18px 16px 80px}
+  header{display:flex;align-items:center;gap:12px;margin-bottom:12px}
+  .dot{inline-size:18px;block-size:18px;border-radius:6px;background:linear-gradient(135deg,var(--brand),var(--brand-dark))}
+  h1{margin:0;font-size:1.6rem}
+  .card{background:var(--card);border-radius:var(--radius);box-shadow:var(--shadow);overflow:hidden;padding:16px 14px}
+  label{display:block;font-weight:600;margin:12px 2px 6px}
+  input,textarea,select{width:100%;padding:10px 12px;border-radius:12px;border:1px solid #2a2a2a;background:#101010;color:#eee}
+  textarea{min-height:120px;resize:vertical;line-height:1.7}
+  .row{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .help{color:var(--muted);font-size:.9rem;margin-top:6px}
+  .bar{display:flex;gap:10px;margin-top:16px}
+  .btn{display:inline-flex;align-items:center;gap:8px;padding:10px 14px;border-radius:12px;background:linear-gradient(135deg,var(--brand),var(--brand-dark));color:#fff;text-decoration:none;font-weight:700;border:0;cursor:pointer}
+  .ghost{background:#1a1a1a;color:#ddd;border:1px solid #2a2a2a}
+  .status{padding:10px 12px;border-radius:12px;border:1px dashed #2a2a2a;background:#101010;color:#d6d6d6;margin:12px 2px;white-space:pre-wrap}
+  .ok{border-color:#1e402b;background:#0f2a18;color:#c8ffd9}
+  .err{border-color:#4a1818;background:#2a0f0f;color:#ffbdbd}
+  footer{color:var(--muted);text-align:center;margin-top:22px;font-size:.9rem}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header><div class="dot"></div><h1>J·KEY Blessing · Write</h1></header>
+
+  <div id="status" class="status">模式偵測中…</div>
+
+  <form id="form" class="card">
+    <div class="row">
+      <div>
+        <label for="seq">外部ID（1000135）</label>
+        <input id="seq" name="seq" placeholder="例如 3（對應 ?id=3）">
+        <div class="help">查找/更新時用；若留空且無 ?id → 走「建立」</div>
+      </div>
+      <div>
+        <label for="date">日期（1000131，yyyy/MM/dd）</label>
+        <input id="date" name="date" placeholder="2025/10/17">
+      </div>
+    </div>
+
+    <label for="name">主標題/姓名（1000128）</label>
+    <input id="name" name="name" placeholder="例如：你好">
+
+    <label for="subtitle">副標（1000129）</label>
+    <input id="subtitle" name="subtitle" placeholder="例如：J2">
+
+    <label for="tag">標籤（1000132）</label>
+    <input id="tag" name="tag" placeholder="例如：SLEEP">
+
+    <label for="message">祝福文字（1000133）</label>
+    <textarea id="message" name="message" placeholder="輸入祝福訊息…"></textarea>
+
+    <label for="photos">圖片（1000130，多檔）</label>
+    <input id="photos" name="photos" type="file" accept="image/*" multiple>
+    <div class="help">會上傳到檔案欄位 1000130（支援多張）</div>
+
+    <div class="bar">
+      <button type="button" id="saveCreate" class="btn">建立新紀錄</button>
+      <button type="button" id="saveUpdate" class="btn ghost">更新既有紀錄</button>
+    </div>
+  </form>
+
+  <div id="result" class="status"></div>
+  <footer>Powered by J·KEY · 情感科技</footer>
+</div>
+
+<script>
+/** ======= 參數：請按你的實際環境修改 ======= **/
+const BASE_READ  = "https://ap12.ragic.com/89793238/test/2?api&v=3&naming=EID&subtables=0&limit=50";
+const BASE_WRITE = "https://ap12.ragic.com/89793238/test/2";     // 寫入同一張表（末尾不要加 ?api）
+const ACCOUNT    = "89793238";                                   // sims/file.jsp 的 a
+const EID_QUERY  = "1000135";                                    // 依這欄位 where
+const API_KEY    = ""; // 正式建議留空，改用 cookies 或後端代理；測試可暫放 Basic 值
+const FIELD_MAP = {
+  seq:      "1000135",
+  name:     "1000128",
+  subtitle: "1000129",
+  photo1:   "1000130", // 檔案欄位（可多檔）
+  date:     "1000131",
+  tag:      "1000132",
+  message:  "1000133",
+};
+/** ============================================ **/
+
+const $ = id => document.getElementById(id);
+const qs = (k, s=location.search)=>new URLSearchParams(s).get(k);
+const withAuth = headers => {
+  if(API_KEY) headers["Authorization"] = "Basic " + API_KEY;
+  return headers;
+};
+
+let MODE = "create";     // 'create' | 'update'
+let RAGIC_ID = null;     // 真正的 _ragicId（更新時用）
+
+(async function detectMode(){
+  const id = (qs("id")||"").trim();
+  if(id){
+    $("seq").value = id;
+    $("status").textContent = `偵測到 ?id=${id}，嘗試查詢 _ragicId…`;
+    const { rec, ragicId } = await findByEid(id);
+    if(ragicId!=null){
+      MODE = "update"; RAGIC_ID = ragicId;
+      $("status").classList.add("ok");
+      $("status").textContent = `更新模式：_ragicId=${RAGIC_ID}`;
+      // 預填欄位
+      if(rec){
+        $("#name").value     = get(rec, FIELD_MAP.name)     || "";
+        $("#subtitle").value = get(rec, FIELD_MAP.subtitle) || "";
+        $("#date").value     = get(rec, FIELD_MAP.date)     || "";
+        $("#tag").value      = get(rec, FIELD_MAP.tag)      || "";
+        $("#message").value  = get(rec, FIELD_MAP.message)  || "";
+      }
+    }else{
+      $("status").classList.add("err");
+      $("status").textContent = `找不到 id=${id} 的紀錄，切回建立模式。`;
+      MODE = "create"; RAGIC_ID = null;
+    }
+  }else{
+    $("status").textContent = "建立模式：無 ?id，將建立新紀錄。";
+  }
+})();
+
+$("saveCreate").onclick = () => submitForm("create");
+$("saveUpdate").onclick = () => submitForm("update");
+
+async function submitForm(forceMode){
+  const mode = forceMode || MODE;
+  const seq = $("#seq").value.trim();
+  const fd = new FormData();
+
+  // 文字欄位
+  if(seq)          fd.set(FIELD_MAP.seq,      seq);
+  if($("#name").value)     fd.set(FIELD_MAP.name,     $("#name").value);
+  if($("#subtitle").value) fd.set(FIELD_MAP.subtitle, $("#subtitle").value);
+  if($("#date").value)     fd.set(FIELD_MAP.date,     $("#date").value);
+  if($("#tag").value)      fd.set(FIELD_MAP.tag,      $("#tag").value);
+  if($("#message").value)  fd.set(FIELD_MAP.message,  $("#message").value);
+
+  // 檔案欄位（多檔：append 多次相同鍵）
+  const files = $("#photos").files;
+  for(const f of files){
+    fd.append(FIELD_MAP.photo1, f, f.name);
+  }
+
+  // Ragic 需要 ?api&v=3（POST 時可以在 querystring 帶）
+  let url = BASE_WRITE + "?api&v=3&naming=EID";
+  if(mode === "update"){
+    const id = RAGIC_ID || (await safeGetRagicIdBySeq(seq));
+    if(id==null) return showErr("無法取得 _ragicId，請確認 ?id 或 外部ID 是否存在。");
+    url = `${BASE_WRITE}/${id}?api&v=3&naming=EID`;
+  }
+
+  const opt = {
+    method: "POST",
+    body: fd,
+    headers: withAuth({}),
+    // 若用 cookie（已登入 Ragic），就帶上 credentials
+    credentials: API_KEY ? "omit" : "include",
+  };
+
+  $("result").className = "status";
+  $("result").textContent = "上傳中…";
+
+  try{
+    const resp = await fetch(url, opt);
+    const text = await resp.text();
+    if(!resp.ok) throw new Error(text || `HTTP ${resp.status}`);
+    // 解析 Ragic 回應（可能是 JSON 或純文字）
+    let data = null;
+    try{ data = JSON.parse(text); }catch{}
+    $("result").classList.add("ok");
+    $("result").textContent =
+      "完成 ✅\n\n" +
+      `模式：${mode}\n` +
+      (mode==="update" ? `更新 _ragicId=${RAGIC_ID}\n` : "") +
+      `原始回應：\n${text}\n`;
+  }catch(err){
+    showErr(err.message || String(err));
+  }
+}
+
+function showErr(msg){
+  $("result").className = "status err";
+  $("result").textContent = "失敗 ❌\n" + msg;
+}
+
+// === 查詢工具 ===
+function get(rec, eid){ return rec && rec[eid] != null ? rec[eid] : ""; }
+
+async function findByEid(id){
+  const u = new URL(BASE_READ);
+  u.searchParams.set("where", `${EID_QUERY},eq,${id}`);
+  const resp = await fetch(u.toString(), {
+    method: "GET",
+    headers: withAuth({}),
+    credentials: API_KEY ? "omit" : "include",
+    cache: "no-store",
+  });
+  const text = await resp.text();
+  if(!resp.ok) return { rec: null, ragicId: null, raw: text };
+  let json; try{ json = JSON.parse(text); }catch{ return { rec:null, ragicId:null, raw:text }; }
+  const keys = Object.keys(json).map(Number).filter(n=>!Number.isNaN(n)).sort((a,b)=>a-b);
+  if(!keys.length) return { rec:null, ragicId:null, raw:text };
+  const rec = json[String(keys[0])];
+  const ragicId = rec?._ragicId ?? null;
+  return { rec, ragicId, raw: text };
+}
+
+async function safeGetRagicIdBySeq(seq){
+  if(RAGIC_ID!=null) return RAGIC_ID;
+  if(!seq) return null;
+  const { ragicId } = await findByEid(seq);
+  if(ragicId!=null) RAGIC_ID = ragicId;
+  return RAGIC_ID;
+}
+</script>
+</body>
+</html>

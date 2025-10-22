@@ -1,0 +1,305 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>企業成本與進貨決策計算器</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+  <style>
+    :root{
+      --bg:#0b0b10; --card:#12121a; --muted:#9aa3b2; --text:#f5f7fb; --accent:#8c0000; --accent-2:#b80000; --ok:#18b26b; --warn:#f5a524;
+      --ring: 0 0 0 2px rgba(184,0,0,.35), 0 10px 30px rgba(0,0,0,.35);
+    }
+    .light{--bg:#f6f7fb; --card:#ffffff; --muted:#6b7280; --text:#0f172a; --accent:#b80000; --accent-2:#8c0000; --ok:#059669; --warn:#d97706; --ring:0 0 0 2px rgba(184,0,0,.15), 0 10px 18px rgba(2,6,23,.1)}
+    html,body{height:100%}
+    body{margin:0; background:var(--bg); color:var(--text); font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif;}
+    .wrap{max-width:1200px; margin:32px auto; padding:0 16px}
+    h1{font-size:28px; letter-spacing:.2px; margin:0 0 8px;}
+    .sub{color:var(--muted); margin-bottom:20px}
+    .toolbar{display:flex; gap:12px; align-items:center; justify-content:space-between; margin-bottom:16px}
+    .btn{background:linear-gradient(135deg,var(--accent),var(--accent-2)); color:#fff; border:none; padding:10px 14px; border-radius:12px; cursor:pointer; font-weight:600; box-shadow:var(--ring);}
+    .btn.ghost{background:transparent; color:var(--text); border:1px solid rgba(255,255,255,.12)}
+    .grid{display:grid; grid-template-columns:repeat(12,1fr); gap:16px}
+    .card{background:var(--card); border-radius:16px; padding:16px; box-shadow:0 2px 10px rgba(0,0,0,.25)}
+    .col-4{grid-column:span 4}
+    .col-8{grid-column:span 8}
+    .col-6{grid-column:span 6}
+    .row{display:grid; grid-template-columns: 1fr 1fr; gap:10px}
+    label{font-size:12px; color:var(--muted)}
+    input, select{width:100%; background:#0f1117; color:#e5e7eb; border:1px solid rgba(255,255,255,.08); border-radius:12px; padding:10px 12px; outline:none}
+    .light input,.light select{background:#f9fafb; color:#0f172a; border:1px solid #e5e7eb}
+    table{width:100%; border-collapse:separate; border-spacing:0 8px}
+    th,td{padding:10px 12px; text-align:right}
+    th:first-child,td:first-child{text-align:left}
+    tr{background:rgba(255,255,255,.02)}
+    tr:hover{background:rgba(255,255,255,.05)}
+    .pill{display:inline-flex; align-items:center; gap:6px; padding:6px 10px; border-radius:999px; font-size:12px; background:rgba(24,178,107,.12); color:var(--ok)}
+    .muted{color:var(--muted)}
+    .kpi{display:flex; gap:12px; flex-wrap:wrap}
+    .k{flex:1 1 160px; background:var(--card); border-radius:14px; padding:12px 14px; border:1px solid rgba(255,255,255,.06)}
+    .k .t{font-size:12px; color:var(--muted)}
+    .k .v{font-size:22px; font-weight:700}
+    .table-actions{display:flex; gap:8px}
+    .small{font-size:12px}
+    .hint{font-size:12px; color:var(--muted); margin-top:6px}
+    @media (max-width:960px){.col-4,.col-8,.col-6{grid-column:span 12}}
+  </style>
+</head>
+<body>
+  <div class="wrap" id="app">
+    <div class="toolbar">
+      <div>
+        <h1>企業成本與進貨決策計算器</h1>
+        <div class="sub">輸入單價、成本與折扣門檻，快速看到 <b>單位成本、總利潤、ROI 與損益兩平</b>。下方圖表可視化不同進貨量對利潤的影響。</div>
+      </div>
+      <div class="table-actions">
+        <button class="btn ghost" id="toggleMode">切換：深色 / 淺色</button>
+        <button class="btn" id="addTierBtn">新增門檻</button>
+      </div>
+    </div>
+
+    <div class="grid">
+      <div class="card col-4">
+        <h3 style="margin-top:0">基本參數</h3>
+        <div class="row">
+          <div>
+            <label>售價（每台）</label>
+            <input type="number" id="price" value="9" step="0.01" />
+          </div>
+          <div>
+            <label>成本（每台）</label>
+            <input type="number" id="cost" value="6" step="0.01" />
+          </div>
+          <div>
+            <label>預估進貨量（當次下單）</label>
+            <input type="number" id="orderQty" value="200" />
+          </div>
+          <div>
+            <label>模擬最大進貨量（圖表右界）</label>
+            <input type="number" id="maxQty" value="300" />
+          </div>
+          <div>
+            <label>計算模式</label>
+            <select id="mode">
+              <option value="sellAll">全數售完（收到含贈品皆售出）</option>
+              <option value="sellOrderOnly">僅賣下單數量（贈品作備品）</option>
+            </select>
+          </div>
+          <div>
+            <label>評估期間</label>
+            <select id="period">
+              <option value="month">月度</option>
+              <option value="year">年度</option>
+            </select>
+          </div>
+        </div>
+        <div class="hint">預設帶入你給的例子：月度超過 200 打 9 折；超過 150 送 2 台；現金折讓 2.5 / 檻。年度區塊也可填。</div>
+      </div>
+
+      <div class="card col-8">
+        <h3 style="margin-top:0">折扣門檻（依目前選擇的評估期間套用）</h3>
+        <table id="tiersTable">
+          <thead>
+            <tr>
+              <th>超過數量</th>
+              <th>折扣（%）</th>
+              <th>贈品（台）</th>
+              <th>現金折讓（每達一檻）</th>
+              <th></th>
+            </tr>
+          </thead>
+          <tbody id="tiersBody"></tbody>
+        </table>
+        <div class="hint">規則：多個條件可同時生效（例：達 200 既有折%也有贈品與現金折讓）；若達到多個門檻，贈品與折讓按「可達檻數×數量」累計。</div>
+      </div>
+
+      <div class="card col-8">
+        <h3 style="margin-top:0">利潤對進貨量曲線</h3>
+        <canvas id="chart" height="110"></canvas>
+      </div>
+
+      <div class="card col-4">
+        <h3 style="margin-top:0">結果摘要</h3>
+        <div class="kpi" id="kpis"></div>
+        <div class="hint">損益兩平以「全數售完」為假設。若模式切為「僅賣下單數」會影響利潤，但損益兩平仍以賣出全部來估。</div>
+      </div>
+
+      <div class="card col-12">
+        <h3 style="margin-top:0">試算明細</h3>
+        <table>
+          <tbody id="detail"></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+
+<script>
+const $ = (sel) => document.querySelector(sel);
+const app = document.body;
+
+const defaultTiers = {
+  month: [
+    { threshold: 200, percent: 9, freebies: 0, cash: 0 },
+    { threshold: 150, percent: 0, freebies: 2, cash: 0 },
+    { threshold: 100, percent: 0, freebies: 0, cash: 2.5 },
+  ],
+  year: [
+    { threshold: 216, percent: 9, freebies: 0, cash: 0 },
+    { threshold: 200, percent: 0, freebies: 1, cash: 0 },
+    { threshold: 180, percent: 0, freebies: 0, cash: 1.5 },
+  ]
+};
+
+let tiers = JSON.parse(JSON.stringify(defaultTiers));
+
+function renderTiers(){
+  const period = $('#period').value;
+  const body = $('#tiersBody');
+  body.innerHTML = '';
+  tiers[period]
+    .sort((a,b)=>a.threshold-b.threshold)
+    .forEach((t,idx)=>{
+      const tr = document.createElement('tr');
+      tr.innerHTML = `
+        <td><input type="number" min="0" value="${t.threshold}" data-idx="${idx}" data-key="threshold"></td>
+        <td><input type="number" min="0" value="${t.percent}" step="0.1" data-idx="${idx}" data-key="percent"></td>
+        <td><input type="number" min="0" value="${t.freebies}" step="1" data-idx="${idx}" data-key="freebies"></td>
+        <td><input type="number" min="0" value="${t.cash}" step="0.1" data-idx="${idx}" data-key="cash"></td>
+        <td><button class="btn ghost small" data-del="${idx}">刪除</button></td>`;
+      body.appendChild(tr);
+    });
+}
+
+$('#tiersTable').addEventListener('input', (e)=>{
+  const target = e.target;
+  if(target.tagName !== 'INPUT') return;
+  const period = $('#period').value;
+  const idx = Number(target.dataset.idx);
+  const key = target.dataset.key;
+  const val = Number(target.value);
+  tiers[period][idx][key] = isNaN(val)?0:val;
+  update();
+});
+$('#tiersTable').addEventListener('click', (e)=>{
+  const del = e.target.getAttribute('data-del');
+  if(del!=null){
+    const period = $('#period').value;
+    tiers[period].splice(Number(del),1);
+    renderTiers();
+    update();
+  }
+});
+
+$('#period').addEventListener('change', ()=>{ renderTiers(); update(); });
+
+$('#addTierBtn').addEventListener('click', ()=>{
+  const period = $('#period').value;
+  tiers[period].push({threshold: 100, percent: 0, freebies: 0, cash: 0});
+  renderTiers(); update();
+});
+
+$('#toggleMode').addEventListener('click', ()=>{ app.classList.toggle('light'); });
+['price','cost','orderQty','maxQty','mode'].forEach(id=>{
+  document.getElementById(id).addEventListener('input', update);
+});
+
+function calc(orderQty, price, cost, activeTiers, mode){
+  // 1) 折扣％：最深折數（%）
+  const maxPercent = activeTiers.filter(t=>orderQty>=t.threshold).reduce((m,t)=>Math.max(m, t.percent||0), 0);
+  const discountMultiplier = maxPercent>0 ? (100-maxPercent)/100 : 1;
+
+  // 2) 贈品：可達檻數×freebies 累積
+  let freebies = 0, cashOff = 0;
+  activeTiers.forEach(t=>{
+    if(orderQty>=t.threshold){
+      const times = Math.floor(orderQty / t.threshold); // 每達一檻都給
+      freebies += (t.freebies||0) * times;
+      cashOff  += (t.cash||0) * times;
+    }
+  });
+
+  // 3) 實付成本（含折扣％與現金折讓）
+  const payPerUnit = cost * discountMultiplier; // 折扣％作用在單價
+  const totalPay   = payPerUnit * orderQty - cashOff; // 現金折讓直接扣總額
+
+  // 4) 總到貨數（含贈品）
+  const totalUnits = orderQty + freebies;
+
+  // 5) 有效單位成本（平均到每一台）
+  const effectiveUnitCost = totalUnits>0 ? totalPay / totalUnits : 0;
+
+  // 6) 銷售假設
+  const sellUnits = (mode==='sellOrderOnly') ? orderQty : totalUnits;
+  const revenue = price * sellUnits;
+  const profit  = revenue - totalPay; // 注意：贈品不增加成本，但增加可賣數（sellAll 模式）
+  const roi = totalPay>0 ? profit/totalPay : 0;
+
+  // 7) 損益兩平（假設全數售完）：price * x = totalPay，x = totalPay/price
+  const breakEvenUnits = price>0 ? Math.ceil(totalPay/price) : 0;
+
+  return {maxPercent, freebies, cashOff, payPerUnit, totalPay, totalUnits, effectiveUnitCost, sellUnits, revenue, profit, roi, breakEvenUnits};
+}
+
+let chart;
+function drawChart(price,cost,activeTiers,maxQty,mode){
+  const xs=[], ys=[];
+  for(let q=0;q<=maxQty;q++){
+    xs.push(q);
+    ys.push(calc(q,price,cost,activeTiers,mode).profit);
+  }
+  const ctx = document.getElementById('chart').getContext('2d');
+  if(chart) chart.destroy();
+  chart = new Chart(ctx, {
+    type:'line',
+    data:{labels:xs, datasets:[{label:'利潤（$）', data:ys, tension:.25}]},
+    options:{
+      responsive:true,
+      plugins:{legend:{display:true}, tooltip:{mode:'index', intersect:false}},
+      scales:{x:{title:{display:true, text:'進貨量（台）'}}, y:{title:{display:true, text:'利潤'}}}
+    }
+  });
+}
+
+function fmt(n){ return n.toLocaleString(undefined,{maximumFractionDigits:2}); }
+
+function update(){
+  const price   = Number($('#price').value)||0;
+  const cost    = Number($('#cost').value)||0;
+  const orderQty= Number($('#orderQty').value)||0;
+  const maxQty  = Math.max(orderQty, Number($('#maxQty').value)||0);
+  const mode    = $('#mode').value;
+  const period  = $('#period').value;
+  const activeTiers = tiers[period];
+
+  const r = calc(orderQty, price, cost, activeTiers, mode);
+
+  // KPIs
+  $('#kpis').innerHTML = `
+    <div class="k"><div class="t">有效單位成本</div><div class="v">$ ${fmt(r.effectiveUnitCost)}</div></div>
+    <div class="k"><div class="t">總到貨（含贈品）</div><div class="v">${fmt(r.totalUnits)} 台 <span class="pill">+${fmt(r.freebies)} 贈</span></div></div>
+    <div class="k"><div class="t">總付款（含折扣%/折讓）</div><div class="v">$ ${fmt(r.totalPay)}</div></div>
+    <div class="k"><div class="t">預估利潤</div><div class="v">$ ${fmt(r.profit)}</div></div>
+    <div class="k"><div class="t">ROI</div><div class="v">${(r.roi*100).toFixed(1)}%</div></div>
+    <div class="k"><div class="t">損益兩平（需售出）</div><div class="v">${fmt(r.breakEvenUnits)} 台</div></div>
+  `;
+
+  // 明細
+  $('#detail').innerHTML = `
+    <tr><td>折扣％（最深）</td><td>${r.maxPercent ? r.maxPercent + ' %' : '—'}</td></tr>
+    <tr><td>現金折讓累計</td><td>$ ${fmt(r.cashOff)}</td></tr>
+    <tr><td>折扣後單位成本（未平均贈品）</td><td>$ ${fmt(r.payPerUnit)}</td></tr>
+    <tr><td>銷售假設</td><td>${(mode==='sellOrderOnly')?'只賣下單數':'賣到貨總數'}（${fmt(r.sellUnits)} 台）</td></tr>
+    <tr><td>營收</td><td>$ ${fmt(r.revenue)}</td></tr>
+  `;
+
+  drawChart(price,cost,activeTiers,maxQty,mode);
+}
+
+renderTiers();
+update();
+</script>
+</body>
+</html>
