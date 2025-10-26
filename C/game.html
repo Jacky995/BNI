@@ -1,0 +1,718 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+  <head>
+    <meta charset="utf-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1, viewport-fit=cover"
+    />
+    <title>小團康互動遊戲｜Mission Roulette</title>
+    <meta name="theme-color" content="#0b0b0b" />
+    <style>
+      :root {
+        --bg: #0b0b0b;
+        --card: #121315;
+        --elev: #17191c;
+        --fg: #f5f7fb;
+        --muted: #a6adbb;
+        --line: #23262b;
+        --brand: #10b981;
+        --brand-2: #059669;
+        --warn: #f59e0b;
+        --danger: #ef4444;
+        --ok: #16a34a;
+        --radius: 18px;
+        --shadow: 0 18px 44px rgba(0, 0, 0, 0.35);
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html,
+      body {
+        margin: 0;
+        background: #0b0b0b;
+        color: var(--fg);
+        font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica,
+          Arial;
+      }
+      .wrap {
+        max-width: 1000px;
+        margin: 0 auto;
+        padding: 18px 16px 64px;
+      }
+      header {
+        display: flex;
+        gap: 12px;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 14px;
+      }
+      .brand {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+      .brand h1 {
+        font-size: 18px;
+        margin: 0;
+        letter-spacing: 0.5px;
+      }
+      .muted {
+        color: var(--muted);
+      }
+      .row {
+        display: grid;
+        gap: 12px;
+      }
+      @media (min-width: 900px) {
+        .row {
+          grid-template-columns: 1.1fr 0.9fr;
+        }
+      }
+      .card {
+        background: linear-gradient(180deg, var(--card), #0f1012);
+        border: 1px solid var(--line);
+        border-radius: var(--radius);
+        box-shadow: var(--shadow);
+      }
+      .pad {
+        padding: 14px;
+      }
+      .card h2 {
+        margin: 0 0 10px;
+        font-size: 16px;
+      }
+      .card h3 {
+        margin: 0 0 8px;
+        font-size: 15px;
+      }
+      .flex {
+        display: flex;
+        gap: 10px;
+        align-items: center;
+      }
+      .between {
+        justify-content: space-between;
+      }
+      .stack {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      .grid {
+        display: grid;
+        gap: 10px;
+      }
+      .grid-2 {
+        grid-template-columns: 1fr 1fr;
+      }
+      .grid-3 {
+        grid-template-columns: repeat(3, 1fr);
+      }
+      .chip {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1px solid var(--line);
+        background: #0e1012;
+        font-size: 12px;
+      }
+      input,
+      select {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 12px;
+        border: 1px solid var(--line);
+        background: #0e1114;
+        color: var(--fg);
+      }
+      input::placeholder {
+        color: #7b838f;
+      }
+      button {
+        appearance: none;
+        border: none;
+        border-radius: 12px;
+        padding: 10px 14px;
+        background: var(--brand);
+        color: #071109;
+        font-weight: 600;
+        cursor: pointer;
+      }
+      button.ghost {
+        background: #0f1113;
+        color: var(--fg);
+        border: 1px solid var(--line);
+      }
+      button.warn {
+        background: var(--warn);
+        color: #1a1205;
+      }
+      button.danger {
+        background: var(--danger);
+      }
+      button:disabled {
+        opacity: 0.55;
+        cursor: not-allowed;
+      }
+      .list {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .pill {
+        padding: 8px 12px;
+        border: 1px dashed #2a2e34;
+        border-radius: 999px;
+      }
+      .score {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+      .score .item {
+        background: #0d0f11;
+        border: 1px solid var(--line);
+        border-radius: 14px;
+        padding: 10px 12px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .score .pts {
+        font-weight: 700;
+        color: #aee7ce;
+      }
+      .task {
+        min-height: 120px;
+        border: 1px dashed #2b3139;
+        border-radius: 14px;
+        padding: 14px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        text-align: center;
+        font-size: 18px;
+        line-height: 1.5;
+        background: radial-gradient(
+          80% 80% at 50% 0%,
+          rgba(16, 185, 129, 0.08),
+          rgba(16, 185, 129, 0) 60%
+        );
+      }
+      .task .cat {
+        display: inline-block;
+        margin-bottom: 8px;
+        font-size: 12px;
+        color: #9bd7bf;
+      }
+      .wheel {
+        height: 42px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+      .dot {
+        width: 6px;
+        height: 6px;
+        border-radius: 50%;
+        background: #2a2f36;
+      }
+      .dot.on {
+        background: var(--brand);
+      }
+      .turn {
+        font-weight: 700;
+      }
+      .footer {
+        margin-top: 18px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .divider {
+        height: 1px;
+        background: linear-gradient(90deg, transparent, #23262b, transparent);
+        margin: 10px 0;
+      }
+      .timer {
+        font-feature-settings: "tnum" 1, "lnum" 1;
+        letter-spacing: 0.5px;
+        font-weight: 800;
+        font-size: 32px;
+      }
+      .blink {
+        animation: blink 1s step-start infinite;
+      }
+      @keyframes blink {
+        50% {
+          opacity: 0.2;
+        }
+      }
+      .hidden {
+        display: none;
+      }
+    </style>
+  </head>
+  <body>
+    <div class="wrap">
+      <header>
+        <div class="brand">
+          <svg
+            width="26"
+            height="26"
+            viewBox="0 0 24 24"
+            fill="none"
+            xmlns="http://www.w3.org/2000/svg"
+          >
+            <path
+              d="M12 3l2.5 5.1L20 9l-4 3.9.9 5.6L12 16.9 7.1 18.5 8 12.9 4 9l5.5-.9L12 3z"
+              stroke="#a6adbb"
+            />
+          </svg>
+          <div>
+            <h1>Mission Roulette｜小團康互動遊戲</h1>
+            <div class="muted">
+              4–20人｜行動/破冰/知識題，支援計分＋倒數計時
+            </div>
+          </div>
+        </div>
+        <div class="wheel" id="turnWheel" aria-label="回合指示">
+          <!-- dots injected by JS -->
+        </div>
+      </header>
+
+      <div class="row">
+        <!-- 左：遊戲區域 -->
+        <section class="card pad stack">
+          <div class="flex between">
+            <h2>回合區</h2>
+            <div class="chip">
+              <span>目前輪到：</span><span class="turn" id="turnWho">—</span>
+            </div>
+          </div>
+
+          <div class="grid grid-3">
+            <div class="stack">
+              <h3>題型</h3>
+              <div class="list" id="catList"></div>
+            </div>
+            <div class="stack">
+              <h3>時長</h3>
+              <select id="sec">
+                <option value="30">30 秒</option>
+                <option value="45">45 秒</option>
+                <option value="60" selected>60 秒</option>
+                <option value="90">90 秒</option>
+              </select>
+            </div>
+            <div class="stack">
+              <h3>回合模式</h3>
+              <select id="mode">
+                <option value="individual" selected>個人輪流</option>
+                <option value="team">隊伍輪流（平均分配）</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="divider"></div>
+
+          <div class="task" id="taskBox" aria-live="polite">
+            <div class="inner">
+              <div class="cat" id="taskCat">選一個題型，按「抽題」開始！</div>
+              <div id="taskText">—</div>
+            </div>
+          </div>
+
+          <div class="flex between">
+            <div class="flex" style="gap: 8px">
+              <button id="btnDraw">抽題 🎲</button>
+              <button class="ghost" id="btnPass" disabled>跳過</button>
+            </div>
+            <div class="flex" style="gap: 8px">
+              <div class="chip">
+                <span class="muted">倒數</span>
+                <span class="timer" id="timer">00:00</span>
+              </div>
+              <button class="warn" id="btnStart" disabled>開始倒數</button>
+              <button class="ghost" id="btnStop" disabled>停止</button>
+              <button class="ok" id="btnDone" disabled>成功 +1 分</button>
+            </div>
+          </div>
+        </section>
+
+        <!-- 右：名單 / 設定 / 計分 -->
+        <aside class="card pad stack">
+          <h2>玩家 / 隊伍</h2>
+          <div class="grid grid-2">
+            <input id="name" placeholder="輸入名稱，按加入…" />
+            <div class="flex" style="gap: 8px">
+              <button id="btnAdd">加入</button>
+              <button class="ghost" id="btnClear">清空</button>
+            </div>
+          </div>
+          <div class="list" id="names"></div>
+          <div class="divider"></div>
+          <div class="flex between">
+            <h3>計分板</h3>
+            <button class="ghost" id="btnResetScore">分數歸零</button>
+          </div>
+          <div class="score" id="score"></div>
+        </aside>
+      </div>
+
+      <div class="footer">
+        提示：題庫可在程式最上方
+        <code>QUESTIONS</code> 物件自行編輯；可用手機與電腦播放。
+      </div>
+    </div>
+
+    <script>
+      /**********************
+       * 題庫（可自行增刪改）
+       **********************/
+      const QUESTIONS = {
+        ICE: [
+          "分享你手機相簿裡最近的一張照片故事（不用展示畫面）。",
+          "用 10 秒介紹自己現在最想學的技能。",
+          "說出你名字的由來或你希望被怎麼稱呼。",
+          "今天來這裡你最期待的 1 件事是？",
+          "抽 1 人互相誇讚對方 1 句（具體一點）。",
+          "用 3 個形容詞描述此刻的心情。",
+          "若有超能力，你想要在團隊扮演什麼角色？",
+          "說出你最近一次『啊哈！』的學習瞬間。",
+          "分享一個你最常用但別人可能不知道的小技巧。",
+          "今天你可以為他人做的一件小事是什麼？",
+        ],
+        ACTION: [
+          "不發出聲音，表演『坐捷運被睡著的人壓到』讓大家猜。",
+          "把現場物品疊成至少 3 層塔， 30 秒內完成。",
+          "右手畫圈左手畫方形，維持 15 秒。",
+          "和旁邊的人完成一個同步擊掌的節奏（至少 8 拍）。",
+          "繞場走一圈並跟 2 個人眼神打招呼＋點頭。",
+          "用身體比出『OK』、『愛心』、『閃電』三個圖樣。",
+          "找一名夥伴一起完成 3 種不同的擊掌姿勢。",
+          "把自己的生日用『手勢』演出，讓大家猜月份與日期。",
+          "隨機選物當麥克風，來一段 10 秒主持串場。",
+          "在座位上做 5 下伸展動作（頸、肩、背、手腕、腰）。",
+        ],
+        QUIZ: [
+          "快問快答：台灣的首都是？（台北）",
+          "請說出 1 個常見的再生能源種類。",
+          "選擇題：RGB 三原色的『B』代表？ A. Black B. Blue C. Bright",
+          "數學心算：15×4−18＝？（42）",
+          "團體合作題：說出 3 個雲端協作工具（不限品牌）。",
+          "常識：成人標準一雙筷子長度約 23–24 公分（對/錯？）",
+          "英文字母第 20 個字母是？（T）",
+          "科技：NFC 的完整英文是？（Near Field Communication）",
+          "腦筋急轉彎：什麼東西越洗越髒？（水）",
+          "地理：日月潭位於台灣哪個縣市？（南投）",
+        ],
+        CREATIVE: [
+          "把『今天的活動』用 1 句廣告標語重新命名。",
+          "把你左手邊的物品改造成一個全新產品，說明用途。",
+          "即興：把『早起』和『夜貓』融合成一種新生活方式。",
+          "擲骰子式發想：用『食物』『交通』『學習』任選兩詞構想服務。",
+          "把你最熟悉的一件事教給 5 歲小孩，10 秒教學。",
+          "聯想：『鑰匙』×『回憶』→ 想一個服務名稱與一句話說明。",
+          "把『等待排隊』變成有趣的 1 分鐘活動。",
+          "畫面描述：閉眼 5 秒，說出你剛想到的第一個畫面。",
+          "把『失敗』換成一個更中性的詞，並給出定義。",
+          "把今天學到的 1 件事變成一個社群挑戰 hashtag。",
+        ],
+      };
+
+      const CATS = [
+        { id: "ICE", name: "破冰 ICE" },
+        { id: "ACTION", name: "行動 ACTION" },
+        { id: "QUIZ", name: "知識 QUIZ" },
+        { id: "CREATIVE", name: "創意 CREATIVE" },
+      ];
+
+      /**********************
+       * 狀態
+       **********************/
+      let players = []; // [{name, score}]
+      let turnIndex = 0; // 指向目前輪到的人/隊伍
+      let teams = []; // [[idx, idx], ...] 若 team 模式啟用
+      let currentCat = null;
+      let timerId = null,
+        left = 0;
+
+      /**********************
+       * DOM 參照
+       **********************/
+      const el = (id) => document.getElementById(id);
+      const $names = el("names");
+      const $score = el("score");
+      const $turnWho = el("turnWho");
+      const $taskBox = el("taskBox");
+      const $taskCat = el("taskCat");
+      const $taskText = el("taskText");
+      const $timer = el("timer");
+      const $turnWheel = el("turnWheel");
+
+      /**********************
+       * 工具
+       **********************/
+      const fmt = (s) => (s < 10 ? "0" + s : s);
+      function setTimer(sec) {
+        left = sec;
+        drawTimer();
+      }
+      function drawTimer() {
+        const m = Math.floor(left / 60),
+          s = left % 60;
+        $timer.textContent = `${fmt(m)}:${fmt(s)}`;
+      }
+      function pick(arr) {
+        return arr[Math.floor(Math.random() * arr.length)];
+      }
+      function shuffle(a) {
+        for (let i = a.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [a[i], a[j]] = [a[j], a[i]];
+        }
+        return a;
+      }
+
+      /**********************
+       * 題型 UI
+       **********************/
+      function drawCats() {
+        const box = document.getElementById("catList");
+        box.innerHTML = "";
+        CATS.forEach((c) => {
+          const b = document.createElement("button");
+          b.className = "ghost";
+          b.textContent = c.name;
+          b.style.padding = "8px 12px";
+          b.onclick = () => {
+            currentCat = c.id;
+            [...box.children].forEach((x) => (x.style.outline = "none"));
+            b.style.outline = "2px solid var(--brand)";
+          };
+          box.appendChild(b);
+        });
+      }
+
+      /**********************
+       * 玩家名單與計分
+       **********************/
+      function drawPlayers() {
+        $names.innerHTML = "";
+        players.forEach((p, i) => {
+          const chip = document.createElement("div");
+          chip.className = "chip";
+          chip.innerHTML = `<strong>${p.name}</strong>`;
+          const rm = document.createElement("button");
+          rm.textContent = "×";
+          rm.className = "ghost";
+          rm.style.padding = "4px 8px";
+          rm.onclick = () => {
+            players.splice(i, 1);
+            if (turnIndex >= players.length) turnIndex = 0;
+            drawAll();
+          };
+          chip.appendChild(rm);
+          $names.appendChild(chip);
+        });
+        drawScore();
+        drawTurnWheel();
+        drawTurnWho();
+      }
+      function drawScore() {
+        $score.innerHTML = "";
+        players.forEach((p, i) => {
+          const it = document.createElement("div");
+          it.className = "item";
+          it.innerHTML = `<span>${p.name}</span> <span class="pill">分數 <b class="pts">${p.score}</b></span>`;
+          const plus = document.createElement("button");
+          plus.textContent = "+1";
+          plus.onclick = () => {
+            p.score++;
+            drawScore();
+          };
+          const minus = document.createElement("button");
+          minus.textContent = "-1";
+          minus.className = "ghost";
+          minus.onclick = () => {
+            p.score = Math.max(0, p.score - 1);
+            drawScore();
+          };
+          it.appendChild(plus);
+          it.appendChild(minus);
+          $score.appendChild(it);
+        });
+      }
+
+      function drawTurnWheel() {
+        $turnWheel.innerHTML = "";
+        for (let i = 0; i < Math.min(players.length, 12); i++) {
+          const d = document.createElement("div");
+          d.className = "dot" + (i === turnIndex ? " on" : "");
+          $turnWheel.appendChild(d);
+        }
+      }
+      function drawTurnWho() {
+        if (players.length === 0) {
+          $turnWho.textContent = "—";
+          return;
+        }
+        const who = getCurrentEntity();
+        $turnWho.textContent = Array.isArray(who)
+          ? who.map((i) => players[i].name).join(" ＆ ")
+          : players[who].name;
+      }
+
+      /**********************
+       * 隊伍模式
+       **********************/
+      function buildTeams() {
+        const N = players.length;
+        if (N < 2) {
+          teams = [];
+          return;
+        }
+        const idx = shuffle([...Array(N).keys()]);
+        const size = Math.max(2, Math.min(4, Math.round(N / Math.ceil(N / 3))));
+        teams = [];
+        for (let i = 0; i < N; i += size) {
+          teams.push(idx.slice(i, i + size));
+        }
+      }
+      function getCurrentEntity() {
+        const m = document.getElementById("mode").value;
+        if (m === "team") {
+          if (teams.length === 0) buildTeams();
+          return teams[turnIndex % teams.length];
+        }
+        return turnIndex % players.length;
+      }
+      function nextTurn() {
+        if (players.length === 0) return;
+        const m = document.getElementById("mode").value;
+        if (m === "team")
+          turnIndex = (turnIndex + 1) % Math.max(1, teams.length);
+        else turnIndex = (turnIndex + 1) % players.length;
+        drawTurnWheel();
+        drawTurnWho();
+      }
+
+      /**********************
+       * 抽題 + 倒數
+       **********************/
+      function drawTask() {
+        const cat = currentCat || pick(CATS).id;
+        const q = pick(QUESTIONS[cat]);
+        $taskCat.textContent = CATS.find((c) => c.id === cat).name;
+        $taskText.textContent = q;
+        document.getElementById("btnPass").disabled = false;
+        document.getElementById("btnStart").disabled = false;
+        document.getElementById("btnDone").disabled = true;
+      }
+      function startTimer() {
+        if (timerId) return;
+        const sec = parseInt(document.getElementById("sec").value, 10);
+        setTimer(sec);
+        toggleTimerButtons(true);
+        timerId = setInterval(() => {
+          left--;
+          drawTimer();
+          if (left <= 0) {
+            stopTimer();
+            flash();
+          }
+        }, 1000);
+      }
+      function stopTimer() {
+        if (timerId) {
+          clearInterval(timerId);
+          timerId = null;
+        }
+        toggleTimerButtons(false);
+      }
+      function toggleTimerButtons(running) {
+        document.getElementById("btnStart").disabled = running;
+        document.getElementById("btnStop").disabled = !running;
+        document.getElementById("btnDone").disabled = running;
+      }
+      function flash() {
+        $timer.classList.add("blink");
+        setTimeout(() => {
+          $timer.classList.remove("blink");
+        }, 4000);
+      }
+
+      /**********************
+       * 初始化與事件
+       **********************/
+      function drawAll() {
+        drawPlayers();
+        drawTurnWho();
+      }
+
+      function init() {
+        drawCats();
+        drawAll();
+        setTimer(60);
+
+        document.getElementById("btnAdd").onclick = () => {
+          const v = document.getElementById("name").value.trim();
+          if (!v) return;
+          players.push({ name: v, score: 0 });
+          document.getElementById("name").value = "";
+          drawAll();
+        };
+        document.getElementById("btnClear").onclick = () => {
+          players = [];
+          turnIndex = 0;
+          teams = [];
+          drawAll();
+        };
+        document.getElementById("btnResetScore").onclick = () => {
+          players.forEach((p) => (p.score = 0));
+          drawScore();
+        };
+
+        document.getElementById("mode").onchange = (e) => {
+          if (e.target.value === "team") buildTeams();
+          else teams = [];
+          drawTurnWho();
+        };
+
+        document.getElementById("btnDraw").onclick = () => {
+          drawTask();
+        };
+        document.getElementById("btnPass").onclick = () => {
+          drawTask();
+        };
+        document.getElementById("btnStart").onclick = () => {
+          startTimer();
+        };
+        document.getElementById("btnStop").onclick = () => {
+          stopTimer();
+        };
+        document.getElementById("btnDone").onclick = () => {
+          // 當前人/隊伍 +1 分
+          if (players.length === 0) return;
+          const who = getCurrentEntity();
+          if (Array.isArray(who)) who.forEach((i) => players[i].score++);
+          else players[who].score++;
+          drawScore();
+          nextTurn();
+          // 自動下一題
+          drawTask();
+        };
+
+        // Enter 快捷加入
+        document.getElementById("name").addEventListener("keydown", (e) => {
+          if (e.key === "Enter") document.getElementById("btnAdd").click();
+        });
+      }
+
+      init();
+    </script>
+  </body>
+</html>
