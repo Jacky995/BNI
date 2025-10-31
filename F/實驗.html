@@ -1,0 +1,408 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1.0" />
+  <title>廚具展示</title>
+  <style>
+    *, *::before, *::after {
+      box-sizing: border-box;
+      -webkit-font-smoothing: antialiased;
+    }
+    body {
+      margin: 0;
+      background-color: #0f172a;
+      color: #f8fafc;
+      font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+        "Noto Sans TC", "PingFang TC", "Microsoft JhengHei", sans-serif;
+      line-height: 1.5;
+    }
+
+    .page {
+      max-width: 1280px;
+      padding: 2rem 1rem 4rem;
+      margin: 0 auto;
+    }
+
+    header.page-head {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .title {
+      font-size: clamp(1.25rem, 1vw + 1rem, 1.5rem);
+      font-weight: 600;
+      color: #f8fafc;
+      letter-spacing: 0.03em;
+    }
+
+    .subtitle {
+      font-size: 0.9rem;
+      color: #94a3b8;
+      margin-top: 0.5rem;
+      line-height: 1.4;
+    }
+
+    /* grid layout */
+    .grid {
+      display: grid;
+      grid-template-columns: 1fr;
+      gap: 1.5rem;
+    }
+    @media (min-width: 640px) {
+      .grid {
+        grid-template-columns: repeat(2, 1fr);
+      }
+    }
+    @media (min-width: 1024px) {
+      .grid {
+        grid-template-columns: repeat(3, 1fr);
+      }
+    }
+
+    /* card */
+    .card {
+      background: radial-gradient(circle at 20% 20%, rgba(255,255,255,0.06) 0%, rgba(15,23,42,0) 70%), rgba(30,41,59,0.6);
+      border: 1px solid rgba(255,255,255,0.07);
+      border-radius: 1rem;
+      box-shadow:
+        0 20px 40px rgba(0,0,0,0.8),
+        0 2px 4px rgba(0,0,0,0.4) inset;
+      padding: 1rem 1rem 1.25rem;
+      display: flex;
+      flex-direction: column;
+      position: relative;
+      overflow: hidden;
+    }
+    .card::after {
+      content: "";
+      position: absolute;
+      inset: 0;
+      border-radius: 1rem;
+      padding: 1px;
+      background: radial-gradient(circle at 10% 0%, rgba(255,255,255,0.4) 0%, rgba(255,255,255,0) 60%);
+      -webkit-mask: linear-gradient(#fff 0 0) content-box, linear-gradient(#fff 0 0);
+      -webkit-mask-composite: xor;
+              mask-composite: exclude;
+      pointer-events: none;
+      opacity: 0.3;
+    }
+
+    /* image */
+    .img-wrap {
+      background-color: #1e293b;
+      border-radius: 0.75rem;
+      border: 1px solid rgba(255,255,255,0.08);
+      aspect-ratio: 4 / 3;
+      width: 100%;
+      overflow: hidden;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+    .img-wrap img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      display: block;
+    }
+
+    /* header row in card */
+    .row-top {
+      display: flex;
+      flex-wrap: wrap;
+      align-items: flex-start;
+      justify-content: space-between;
+      margin-top: 1rem;
+      gap: .5rem;
+    }
+    .name-block {
+      min-width: 0;
+    }
+    .model {
+      font-size: 0.8rem;
+      font-weight: 500;
+      color: #38bdf8;
+      background-color: rgba(56,189,248,0.1);
+      border: 1px solid rgba(56,189,248,0.4);
+      padding: 0.15rem .5rem;
+      border-radius: .4rem;
+      line-height: 1.2;
+      width: fit-content;
+      margin-bottom: .4rem;
+    }
+    .prod-name {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #f8fafc;
+      line-height: 1.4;
+      word-break: break-word;
+    }
+    .brand-cat {
+      font-size: 0.8rem;
+      color: #94a3b8;
+      line-height: 1.4;
+    }
+    .price-block {
+      text-align: right;
+      margin-left: auto;
+    }
+    .price {
+      font-size: 1rem;
+      font-weight: 600;
+      color: #facc15;
+      line-height: 1.2;
+    }
+    .grade {
+      font-size: 0.7rem;
+      font-weight: 600;
+      color: #10b981;
+      background-color: rgba(16,185,129,0.1);
+      border: 1px solid rgba(16,185,129,0.4);
+      padding: 0.15rem .4rem;
+      border-radius: .4rem;
+      line-height: 1.2;
+      display: inline-block;
+      margin-top: .4rem;
+    }
+
+    /* spec list */
+    .spec-list {
+      margin-top: 1rem;
+      font-size: 0.8rem;
+      color: #cbd5e1;
+      display: grid;
+      row-gap: .4rem;
+    }
+    .spec-item {
+      display: flex;
+      align-items: flex-start;
+      column-gap: .5rem;
+    }
+    .spec-label {
+      min-width: 3.5em;
+      color: #64748b;
+      flex-shrink: 0;
+    }
+
+    .tag-row {
+      margin-top: .75rem;
+      display: flex;
+      flex-wrap: wrap;
+      gap: .5rem;
+    }
+    .chip {
+      font-size: 0.7rem;
+      line-height: 1.2;
+      padding: .3rem .5rem;
+      border-radius: .4rem;
+      font-weight: 500;
+      border: 1px solid rgba(255,255,255,0.2);
+      background: rgba(148,163,184,0.08);
+      color: #e2e8f0;
+    }
+
+    footer.page-foot {
+      text-align: center;
+      margin-top: 3rem;
+      font-size: .7rem;
+      color: #475569;
+    }
+
+    /* 簡單的 loading / error */
+    .status-msg {
+      text-align: center;
+      color: #94a3b8;
+      font-size: .9rem;
+      padding: 2rem 0;
+    }
+    .error {
+      color: #f87171;
+    }
+  </style>
+</head>
+<body>
+  <main class="page">
+    <header class="page-head">
+      <div class="title">廚具展示</div>
+      <div class="subtitle">
+        由資料庫即時載入。僅顯示有圖片的型號。<br/>
+        售價為參考價。
+      </div>
+    </header>
+
+    <!-- 狀態訊息 (載入中 / 失敗) -->
+    <div id="status" class="status-msg">資料載入中...</div>
+
+    <!-- 卡片容器 -->
+    <section id="productGrid" class="grid"></section>
+
+    <footer class="page-foot">
+      價格與規格僅供參考，實際以現場報價為準。
+    </footer>
+  </main>
+
+  <script>
+    /****************************************************************
+     * 你需要手動確認/修改這三個東西：
+     *
+     * 1. RAGIC_API_URL:
+     *    - 這是 Ragic 讀取端點 (GET)。
+     *    - 你之前有用過類似：
+     *      https://ap12.ragic.com/89793238/fami/2?api&v=3&naming=EID&subtables=0&limit=100
+     *    - 你要改成「廚具那張表」的 endpoint。
+     *
+     * 2. RAGIC_API_KEY:
+     *    - 如果 Ragic 有設定 API Key，要放在 header。
+     *    - 如果你已經設好公開讀取 (只讀)，你可以拿掉授權那段。
+     *
+     * 3. IMAGE_BASE_URL:
+     *    - Ragic 目前存圖欄位看起來像 "QMLWwB3D5q@1761812226721.jpg"
+     *    - 你要決定實際圖片網址怎麼組。
+     *    - 先假設圖都放在 ./img/ 下面。
+     ****************************************************************/
+
+    const RAGIC_API_URL = "https://YOUR-RAGIC-DOMAIN/path/to/your/kitchenSheet?api&v=3&naming=EID&subtables=0&limit=100";
+    const RAGIC_API_KEY = "YOUR_RAGIC_API_KEY"; // 如果不需要授權，可留空字串 ""
+    const IMAGE_BASE_URL = "./img/"; // 例如 ./img/ 或 https://xxx/attachments/
+
+    /****************************************************************
+     * 欄位對應 (依你提供的資料)
+     * 1000258: 型號 (ex: "TG-8503BGB")
+     * 1000259: 照片檔名 (ex: "QMLWwB3D5q@1761812226721.jpg")
+     * 1000261: 類別 (ex: "瓦斯爐")
+     * 1000262: 品牌 (ex: "莊頭北")
+     * 1000264: 產品名稱 (ex: "保潔二口玻璃檯面爐")
+     * 1000266: 售價 (ex: "9000")
+     * 1000273: 特色標籤 Array (ex: ["定時"])
+     * 1000274: 級別 (ex: "A")
+     *
+     * 假設未來白玻璃款、白色面板、材質等其他屬性你也會加欄位，就再擴充這裡
+     ****************************************************************/
+
+    function buildCardHTML(rec) {
+      const model = rec["1000258"] || "";       // 型號
+      const imgFile = rec["1000259"] || "";     // 照片檔名
+      const cat = rec["1000261"] || "";         // 類別
+      const brand = rec["1000262"] || "";       // 品牌
+      const name = rec["1000264"] || "";        // 名稱
+      const price = rec["1000266"] || "";       // 售價
+      const tags = rec["1000273"] || [];        // ["定時", ...]
+      const grade = rec["1000274"] || "";       // A / B ...
+      // 這邊你也可以塞別的，例如黑玻璃/白玻璃/不鏽鋼，之後可從額外欄位抓
+
+      // 沒圖片就直接跳過，不顯示
+      if (!imgFile) return "";
+
+      const imgUrl = IMAGE_BASE_URL + imgFile;
+
+      // 產生標籤 chip
+      const tagHTML = Array.isArray(tags)
+        ? tags.map(t => `<span class="chip">${t}</span>`).join("")
+        : `<span class="chip">${tags}</span>`;
+
+      return `
+        <article class="card">
+          <div class="img-wrap">
+            <img src="${imgUrl}" alt="${brand} ${name} ${model}" />
+          </div>
+
+          <div class="row-top">
+            <div class="name-block">
+              <div class="model">型號｜${escapeHTML(model)}</div>
+              <div class="prod-name">${escapeHTML(name)}</div>
+              <div class="brand-cat">品牌：${escapeHTML(brand)}｜類別：${escapeHTML(cat)}</div>
+            </div>
+
+            <div class="price-block">
+              <div class="price">$${escapeHTML(price)}</div>
+              <div class="grade">${escapeHTML(grade)} 級</div>
+            </div>
+          </div>
+
+          <div class="spec-list">
+            <div class="spec-item">
+              <div class="spec-label">特色</div>
+              <div class="spec-value">${Array.isArray(tags) ? escapeHTML(tags.join("、")) : escapeHTML(tags)}</div>
+            </div>
+            <div class="spec-item">
+              <div class="spec-label">爐頭</div>
+              <div class="spec-value">雙口設計</div>
+            </div>
+            <div class="spec-item">
+              <div class="spec-label">面板</div>
+              <div class="spec-value">玻璃 / 不鏽鋼 (示意，可綁新欄位)</div>
+            </div>
+          </div>
+
+          <div class="tag-row">
+            ${tagHTML}
+          </div>
+        </article>
+      `;
+    }
+
+    // 簡單 escape，避免資料庫裡有奇怪符號爆 HTML
+    function escapeHTML(str) {
+      return String(str || "")
+        .replace(/&/g, "&amp;")
+        .replace(/</g, "&lt;")
+        .replace(/>/g, "&gt;")
+        .replace(/"/g, "&quot;");
+    }
+
+    async function loadProducts() {
+      const statusEl = document.getElementById("status");
+      const gridEl = document.getElementById("productGrid");
+
+      try {
+        // 組 fetch 設定
+        const fetchOpts = {
+          method: "GET",
+          headers: {}
+        };
+        // 如果你的 Ragic API 需要 key (常見: Authorization 或 api key param)
+        // 你可以視你的後端設定調整這段
+        if (RAGIC_API_KEY) {
+          fetchOpts.headers["Authorization"] = "Basic " + btoa(RAGIC_API_KEY + ":"); 
+          // 或 fetchOpts.headers["X-Ragic-API-Key"] = RAGIC_API_KEY;
+        }
+
+        const resp = await fetch(RAGIC_API_URL, fetchOpts);
+        if (!resp.ok) {
+          throw new Error("HTTP " + resp.status);
+        }
+
+        const data = await resp.json();
+        // Ragic v=3 通常是一個物件: { "1": {...}, "2": {...}, ... }
+        // 我們轉成陣列
+        const records = Object.values(data);
+
+        // 過濾掉沒有圖片的，然後做卡片
+        const cards = records
+          .filter(r => r["1000259"]) // 有圖
+          .map(r => buildCardHTML(r))
+          .filter(html => html !== "");
+
+        if (cards.length === 0) {
+          statusEl.textContent = "目前沒有可展示的商品（無圖片）";
+          return;
+        }
+
+        // 清掉狀態訊息
+        statusEl.style.display = "none";
+
+        // 塞進網格
+        gridEl.innerHTML = cards.join("");
+
+      } catch (err) {
+        console.error(err);
+        statusEl.classList.add("error");
+        statusEl.textContent = "資料讀取失敗，請稍後再試";
+      }
+    }
+
+    loadProducts();
+  </script>
+</body>
+</html>
