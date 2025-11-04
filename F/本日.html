@@ -1,0 +1,177 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>本日結報｜日看板</title>
+  <style>
+    :root{ --brand:#b80000; --bg:#0b0b0b; --fg:#f3f3f3; --muted:#bfbfbf; --card:#141414; --border:rgba(255,255,255,.12); --radius:16px; }
+    *{box-sizing:border-box}
+    html,body{margin:0;background:linear-gradient(180deg,var(--bg),#111);color:var(--fg);font-family:system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+    .wrap{max-width:1100px;margin:0 auto;padding:18px}
+    .panel{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);padding:14px;margin:10px 0}
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    input{width:100%;padding:10px;border-radius:12px;border:1px solid var(--border);background:#161616;color:var(--fg)}
+    button{padding:10px 14px;border-radius:12px;border:1px solid var(--border);background:#1e1e1e;color:var(--fg);cursor:pointer}
+    button.primary{background:linear-gradient(135deg,var(--brand),#8c0000);color:#fff;border:0}
+    h1{display:flex;align-items:center;gap:12px;margin:0 0 8px}
+    .badge{font-size:12px;border:1px solid var(--border);padding:4px 8px;border-radius:999px;background:#121212}
+    .meta{font-size:12px;color:var(--muted)}
+    .cards{display:grid;grid-template-columns:repeat(12,1fr);gap:10px}
+    .col-3{grid-column:span 3}
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:10px;border-bottom:1px solid var(--border);vertical-align:top}
+    th{position:sticky;top:0;background:#121212;text-align:left}
+    .totals{display:flex;gap:10px;flex-wrap:wrap}
+    .chip{border:1px solid var(--border);background:#121212;border-radius:999px;padding:6px 10px;font-size:12px}
+    .right{margin-left:auto}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="panel">
+    <h1>本日結報<span class="badge">預約時間∈今天 ∪ 單據含 MMDD</span></h1>
+    <div class="row">
+      <input id="base" placeholder="https://www.ragic.com/{account}/{db}" style="flex:2"/>
+      <input id="sheet" placeholder="Sheet ID 例如 2" style="flex:1"/>
+      <input id="apikey" placeholder="API Key（僅內網使用）" style="flex:1"/>
+      <button id="go" class="primary">查詢</button>
+      <button id="print">列印</button>
+      <button id="csv">匯出 CSV</button>
+    </div>
+    <div class="meta" id="hint">提示：此頁僅做顯示，不寫回。建議內網使用以避免 API Key 外洩。</div>
+  </div>
+
+  <div class="panel">
+    <div class="totals">
+      <div class="chip" id="range">—</div>
+      <div class="chip" id="count">— 筆</div>
+      <div class="chip" id="sum">金額合計：—</div>
+      <div class="chip right" id="byStatus">—</div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <table id="tbl"><thead></thead><tbody></tbody></table>
+  </div>
+</div>
+
+<script>
+const $=s=>document.querySelector(s);
+
+// ====== UI ======
+$('#go').addEventListener('click', run);
+$('#print').addEventListener('click', ()=>window.print());
+$('#csv').addEventListener('click', downloadCSV);
+
+// auto-restore params
+(function(){
+  const q=new URLSearchParams(location.search);
+  if(q.get('base')) $('#base').value=q.get('base');
+  if(q.get('sheet')) $('#sheet').value=q.get('sheet');
+  if(q.get('key')) $('#apikey').value=q.get('key');
+})();
+
+// ====== Core ======
+async function run(){
+  const base=$('#base').value.trim().replace(/\/$/,'');
+  const sheet=$('#sheet').value.trim();
+  const key=$('#apikey').value.trim();
+  if(!base||!sheet||!key){ alert('請填 Base / Sheet / API Key'); return; }
+
+  const {start,end,mmdd,label} = todayRange('+08:00');
+  $('#range').textContent = `區間：${start} ~ ${end}`;
+
+  // a) 預約時間今日
+  const whereAppt = betweenWhere('1000122', start, end); // FID.APPT=1000122（可依需求改）
+  // b) 單據編號包含 MMDD
+  const whereNo   = likeWhere('1000115', mmdd);          // FID.NO=1000115（可依需求改）
+
+  const a = await fetchRagic(base, sheet, key, whereAppt);
+  const b = await fetchRagic(base, sheet, key, whereNo);
+  const rows = dedup([...a, ...b]);
+
+  render(rows);
+  $('#count').textContent = `${rows.length} 筆`;
+  $('#sum').textContent   = `金額合計：${formatMoney(sumFee(rows))}`;
+  $('#byStatus').textContent = groupStatus(rows);
+}
+
+function betweenWhere(fid, start, end){
+  return `${fid},ge,${encodeURIComponent(start)};${fid},lt,${encodeURIComponent(end)}`;
+}
+function likeWhere(fid, kw){
+  return `${fid},like,${encodeURIComponent('%'+kw+'%')}`;
+}
+
+async function fetchRagic(base, sheet, key, where){
+  const url = `${base}/${sheet}?api&v=3&naming=EID&subtables=0&limit=100&where=${where}&APIKey=${encodeURIComponent(key)}`;
+  const all=[]; let start=0; const limit=100;
+  while(true){
+    const u = url + `&start=${start}`;
+    const r = await fetch(u);
+    if(!r.ok){ const t=await r.text(); throw new Error(`Ragic ${r.status}: ${t}`); }
+    let data = await r.json();
+    let rows = Array.isArray(data)?data:Object.values(data||{});
+    rows = rows.filter(x=>x && typeof x==='object' && x._ragicId);
+    all.push(...rows);
+    if(rows.length<limit) break; start+=rows.length;
+  }
+  return all;
+}
+
+function dedup(arr){
+  const seen=new Set(); const out=[];
+  for(const r of arr){ const id=r._ragicId; if(!seen.has(id)){seen.add(id); out.push(r);} }
+  return out;
+}
+
+function render(rows){
+  const head = ['狀態','預約時間','服務人員','收費金額','單據編號','客戶名稱','電話','手機','地址','服務內容','處理結果','安裝/維修/送貨/其他','現場型號'];
+  const thead=$('#tbl thead'), tbody=$('#tbl tbody');
+  thead.innerHTML=''; tbody.innerHTML='';
+  const trh=document.createElement('tr'); head.forEach(h=>{const th=document.createElement('th'); th.textContent=h; trh.appendChild(th);}); thead.appendChild(trh);
+  for(const r of rows){
+    const tr=document.createElement('tr');
+    const pick=k=>String(r[k]??'');
+    const map={
+      '狀態':'1000111','預約時間':'1000122','服務人員':'1000113','收費金額':'1000114','單據編號':'1000115','客戶名稱':'1000116','電話':'1000117','手機':'1000118','地址':'1000119','服務內容':'1000120','處理結果':'1000121','安裝/維修/送貨/其他':'1000124','現場型號':'1000145'
+    };
+    for(const h of head){ const td=document.createElement('td'); td.textContent = pick(map[h]); tr.appendChild(td); }
+    tbody.appendChild(tr);
+  }
+}
+
+function sumFee(rows){
+  let s=0; for(const r of rows){ const v=String(r['1000114']||'').match(/\d+/g); if(v) s+=Number(v.join('')); } return s;
+}
+function formatMoney(n){ return n.toLocaleString('zh-TW'); }
+function groupStatus(rows){
+  const m=new Map(); for(const r of rows){ const k=String(r['1000111']||'未填'); m.set(k,(m.get(k)||0)+1);} // STATUS=1000111
+  return Array.from(m.entries()).map(([k,v])=>`${k}:${v}`).join('｜')||'—';
+}
+
+function todayRange(tz='+08:00'){
+  const now=new Date();
+  const off=tzToMin(tz); const local=new Date(now.getTime()+off*60000);
+  const y=local.getFullYear(), m=local.getMonth(), d=local.getDate();
+  const pad=n=>String(n).padStart(2,'0');
+  const start=`${y}-${pad(m+1)}-${pad(d)} 00:00`;
+  const end=`${y}-${pad(m+1)}-${pad(d+1)} 00:00`;
+  const mmdd=`${pad(m+1)}${pad(d)}`;
+  return {start,end,mmdd,label:`${pad(m+1)}/${pad(d)}`};
+}
+function tzToMin(z){ const m=/^([+-])(\d{2}):(\d{2})$/.exec(z); if(!m) return 0; const s=m[1]=='-'?-1:1; return s*(+m[2]*60+ +m[3]); }
+
+// ===== CSV =====
+function downloadCSV(){
+  const rows=[...document.querySelectorAll('#tbl tbody tr')].map(tr=>[...tr.children].map(td=>td.textContent));
+  if(!rows.length){ alert('尚無資料'); return; }
+  const heads=[...document.querySelectorAll('#tbl thead th')].map(th=>th.textContent);
+  const esc=s=>`"${String(s).replace(/"/g,'""')}"`;
+  const csv=[heads.map(esc).join(',')].concat(rows.map(r=>r.map(esc).join(','))).join('\n');
+  const a=document.createElement('a'); a.href=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'})); a.download=`daily-${Date.now()}.csv`; a.click(); URL.revokeObjectURL(a.href);
+}
+</script>
+</body>
+</html>
