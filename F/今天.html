@@ -106,30 +106,13 @@
 
     <div class="foot">提示：目前以 <code>ragic_feature='query'</code> 顯示 Ragic 內建查詢介面。若要改為程式傳入條件，可在 <code>applyFiltersToUrl()</code> 中把日期與關鍵字轉成 Ragic 報表可讀的參數（如需用 API 的 <code>where=</code> 語法請改走 API 端點）。</div>
   </div>
-  <div id="ragic_webview"></div>
-  <script>
-    var ragic_url = 'ap12.ragic.com/89793238/report/display?reportwv';
-    var ragic_feature= 'query';
-    var exactMatch = true;
-    var ragic_embedtype = 'report';
-    var reportHideSetting = true;
 
-    /* * * DON'T EDIT BELOW THIS LINE * * */
-    (function() {
-      var rq = document.createElement('script'); rq.type = 'text/javascript'; rq.async = true;
-      rq.src = "https://ap12.ragic.com/intl/common/load.js";
-      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(rq);
-    })();
-  </script>
-  <noscript>Please enable JavaScript to view the <a href="https://www.ragic.com/?ref_noscript">Online database form by Ragic.</a></noscript>
-  <a href="https://www.ragic.com" id="ragic-link">online database form by <span class="logo-ragic">Ragic</span></a>
-  
   <script>
     // === 依實際環境修改：填入各報表的 Ragic WebView URL（無需 https:// 前綴） ===
     const RAGIC_URLS = {
-      daily:   'ap12.ragic.com/89793238/report/display?reportwv',  // 日報 URL（你提供的既有）
-      weekly:  'ap12.ragic.com/89793238/report/weekly?reportwv',   // 週報 URL（示意：請換成真實路徑）
-      monthly: 'ap12.ragic.com/89793238/report/monthly?reportwv'   // 月報 URL（示意：請換成真實路徑）
+      daily:   'https://ap12.ragic.com/89793238/report/display?reportwv',  // 日報 URL（改為完整 https 前綴）
+      weekly:  'https://ap12.ragic.com/89793238/report/weekly?reportwv',   // 週報 URL（示意：請換成真實路徑）
+      monthly: 'https://ap12.ragic.com/89793238/report/monthly?reportwv'   // 月報 URL（示意：請換成真實路徑）
     };
 
     // === Ragic WebView 基本設定 ===
@@ -193,7 +176,18 @@
       rq.async = true;
       rq.src = 'https://ap12.ragic.com/intl/common/load.js';
       rq.setAttribute('data-ragic-loader','1');
-      rq.onload = () => { document.getElementById('loading').style.display = 'none'; };
+      rq.onload = () => {
+        // 若 3 秒後仍沒有載入內容，顯示疑難排解提示（多半是外嵌被阻擋或權限不足）
+        setTimeout(() => {
+          const iframe = document.querySelector('#ragic_webview iframe');
+          if (!iframe || iframe.clientHeight < 50) {
+            document.getElementById('loading').innerHTML =
+              '載入逾時。常見原因：<br>1) Ragic 報表未設為可外嵌 / 權限不足。<br>2) 你的網域未加入 Ragic 的「允許外嵌網域」。<br>3) 目前在本機 file:// 頁面，Referer 為空被擋。<br><br>解法：將頁面部署到正式或 localhost 網域，並在 Ragic 後台把該網域加入白名單，或改用 API 模式。';
+          } else {
+            document.getElementById('loading').style.display = 'none';
+          }
+        }, 3000);
+      };
       rq.onerror = () => {
         document.getElementById('loading').textContent = '載入失敗，請檢查 ragic_url 或網路設定。';
       };
