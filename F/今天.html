@@ -1,0 +1,210 @@
+<!doctype html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>J·KEY 報表中心</title>
+  <meta name="theme-color" content="#b80000" />
+  <style>
+    :root{
+      --brand:#b80000; --brand-dark:#8c0000;
+      --bg:#0b0b0b; --fg:#f4f4f4; --muted:#bfbfbf; --card:#141414; --border:rgba(255,255,255,.08);
+      --radius:18px; --shadow:0 12px 30px rgba(0,0,0,.35);
+    }
+    *{box-sizing:border-box}
+    html,body{margin:0;background:linear-gradient(180deg,var(--bg),#111);color:var(--fg);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial}
+    a{color:inherit;text-decoration:none}
+    .wrap{max-width:1080px;margin:0 auto;padding:18px 14px 48px}
+
+    /* 顶部 */
+    .topbar{position:sticky;top:0;z-index:50;background:rgba(10,10,10,.8);backdrop-filter:saturate(180%) blur(10px);border-bottom:1px solid var(--border)}
+    .topin{max-width:1080px;margin:0 auto;display:flex;align-items:center;gap:12px;padding:12px 14px}
+    .logo{display:flex;align-items:center;gap:10px}
+    .logo-badge{width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,var(--brand),var(--brand-dark));box-shadow:0 8px 24px rgba(184,0,0,.35)}
+    .title{font-weight:700;letter-spacing:.5px}
+
+    /* 控制列 */
+    .controls{display:grid;grid-template-columns:1fr;gap:12px;margin:16px 0}
+    @media(min-width:720px){.controls{grid-template-columns:auto 1fr auto;align-items:center}}
+    .seg{display:flex;gap:8px;flex-wrap:wrap}
+    .seg button{padding:10px 14px;border:1px solid var(--border);background:#121212;border-radius:14px;cursor:pointer}
+    .seg button.active{background:linear-gradient(135deg,var(--brand),var(--brand-dark));border-color:transparent;box-shadow:0 6px 18px rgba(184,0,0,.35)}
+
+    .filters{display:flex;gap:10px;flex-wrap:wrap}
+    .filters input, .filters select{background:#121212;border:1px solid var(--border);color:var(--fg);padding:10px 12px;border-radius:12px;min-width:140px}
+    .filters label{font-size:12px;color:var(--muted)}
+
+    .actions{display:flex;gap:10px;justify-content:flex-end}
+    .btn{padding:10px 16px;border-radius:14px;border:1px solid var(--border);background:#181818;color:var(--fg);cursor:pointer}
+    .btn.primary{background:linear-gradient(135deg,var(--brand),var(--brand-dark));border-color:transparent;box-shadow:0 8px 24px rgba(184,0,0,.35)}
+
+    /* 內容卡片 */
+    .card{background:var(--card);border:1px solid var(--border);border-radius:var(--radius);box-shadow:var(--shadow)}
+    .card .head{display:flex;justify-content:space-between;align-items:center;padding:14px 16px;border-bottom:1px solid var(--border)}
+    .card .head .hint{color:var(--muted);font-size:12px}
+    .card .body{padding:0}
+
+    /* Ragic 容器 */
+    #ragic_webview{min-height:68vh;display:block}
+    .loading{display:none;padding:18px;color:var(--muted)}
+
+    /* 底部小字 */
+    .foot{margin-top:18px;color:var(--muted);font-size:12px}
+    .foot a{color:var(--muted);text-decoration:underline dotted}
+  </style>
+</head>
+<body>
+  <div class="topbar"><div class="topin">
+    <div class="logo"><div class="logo-badge"></div><div>
+      <div class="title">J·KEY 報表中心</div>
+      <div style="font-size:12px;color:var(--muted)">Ragic 日報／週報／月報 嵌入模板</div>
+    </div></div>
+  </div></div>
+
+  <div class="wrap">
+    <!-- 控制列 -->
+    <div class="controls">
+      <div class="seg" role="tablist" aria-label="報表類型">
+        <button id="tab-daily"  class="active" aria-selected="true"  onclick="setReport('daily')">日報</button>
+        <button id="tab-week"   aria-selected="false" onclick="setReport('weekly')">週報</button>
+        <button id="tab-month"  aria-selected="false" onclick="setReport('monthly')">月報</button>
+      </div>
+
+      <div class="filters">
+        <!-- 預留：可自行映射到 Ragic 報表查詢條件（目前預設使用 Ragic 內建 query UI） -->
+        <div>
+          <label for="dateStart">開始日</label><br />
+          <input type="date" id="dateStart" />
+        </div>
+        <div>
+          <label for="dateEnd">結束日</label><br />
+          <input type="date" id="dateEnd" />
+        </div>
+        <div>
+          <label for="kw">關鍵字</label><br />
+          <input type="search" id="kw" placeholder="可輸入名稱、單號…（選填）" />
+        </div>
+      </div>
+
+      <div class="actions">
+        <button class="btn" onclick="resetFilters()">重設</button>
+        <button class="btn primary" onclick="reloadRagic()">套用到報表</button>
+      </div>
+    </div>
+
+    <!-- 內容卡片：Ragic WebView -->
+    <div class="card">
+      <div class="head">
+        <div>Ragic 內嵌報表</div>
+        <div class="hint">在下方直接使用 Ragic 的查詢面板（ragic_feature='query'）。</div>
+      </div>
+      <div class="body">
+        <div id="ragic_webview"></div>
+        <div class="loading" id="loading">載入中…</div>
+      </div>
+    </div>
+
+    <div class="foot">提示：目前以 <code>ragic_feature='query'</code> 顯示 Ragic 內建查詢介面。若要改為程式傳入條件，可在 <code>applyFiltersToUrl()</code> 中把日期與關鍵字轉成 Ragic 報表可讀的參數（如需用 API 的 <code>where=</code> 語法請改走 API 端點）。</div>
+  </div>
+  <div id="ragic_webview"></div>
+  <script>
+    var ragic_url = 'ap12.ragic.com/89793238/report/display?reportwv';
+    var ragic_feature= 'query';
+    var exactMatch = true;
+    var ragic_embedtype = 'report';
+    var reportHideSetting = true;
+
+    /* * * DON'T EDIT BELOW THIS LINE * * */
+    (function() {
+      var rq = document.createElement('script'); rq.type = 'text/javascript'; rq.async = true;
+      rq.src = "https://ap12.ragic.com/intl/common/load.js";
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(rq);
+    })();
+  </script>
+  <noscript>Please enable JavaScript to view the <a href="https://www.ragic.com/?ref_noscript">Online database form by Ragic.</a></noscript>
+  <a href="https://www.ragic.com" id="ragic-link">online database form by <span class="logo-ragic">Ragic</span></a>
+  
+  <script>
+    // === 依實際環境修改：填入各報表的 Ragic WebView URL（無需 https:// 前綴） ===
+    const RAGIC_URLS = {
+      daily:   'ap12.ragic.com/89793238/report/display?reportwv',  // 日報 URL（你提供的既有）
+      weekly:  'ap12.ragic.com/89793238/report/weekly?reportwv',   // 週報 URL（示意：請換成真實路徑）
+      monthly: 'ap12.ragic.com/89793238/report/monthly?reportwv'   // 月報 URL（示意：請換成真實路徑）
+    };
+
+    // === Ragic WebView 基本設定 ===
+    window.ragic_feature = 'query';        // 顯示查詢面板
+    window.exactMatch   = true;            // 關鍵字精確比對
+    window.ragic_embedtype = 'report';     // 內嵌類型：報表
+    window.reportHideSetting = true;       // 隱藏報表設定按鈕
+
+    // 目前啟用的報表類型
+    let currentType = 'daily';
+
+    // 初始化
+    document.addEventListener('DOMContentLoaded', () => {
+      setReport(currentType);
+    });
+
+    // 切換報表
+    function setReport(type){
+      currentType = type;
+      // 更新 Segmented UI 樣式
+      for (const id of ['tab-daily','tab-week','tab-month']) {
+        const el = document.getElementById(id);
+        if (!el) continue;
+        const t = id.replace('tab-','');
+        el.classList.toggle('active', t === (type==='weekly'?'week':type));
+        el.setAttribute('aria-selected', String(el.classList.contains('active')));
+      }
+      // 載入對應 Ragic 報表
+      reloadRagic();
+    }
+
+    // 將畫面上的日期 / 關鍵字，映射回 Ragic URL（如需要自訂查詢參數可在這裡改）
+    function applyFiltersToUrl(baseUrl){
+      const s = document.getElementById('dateStart').value;
+      const e = document.getElementById('dateEnd').value;
+      const kw = document.getElementById('kw').value.trim();
+
+      // 預設保留 Ragic 內建 query 面板，不強制傳參。
+      // 如果你的 Ragic 報表有支援特定自定義參數，請在這裡把 s/e/kw 串到 URL 後（例如 &start=YYYY-MM-DD）。
+      // 例：return baseUrl + (s?`&start=${encodeURIComponent(s)}`:'') + (e?`&end=${encodeURIComponent(e)}`:'') + (kw?`&kw=${encodeURIComponent(kw)}`:'');
+      return baseUrl;
+    }
+
+    // 重載 Ragic：移除舊的 load.js，重新注入
+    function reloadRagic(){
+      const url = RAGIC_URLS[currentType] || RAGIC_URLS.daily;
+      window.ragic_url = applyFiltersToUrl(url); // 供 Ragic loader 讀取
+
+      // 清空容器、顯示 loading
+      const box = document.getElementById('ragic_webview');
+      box.innerHTML = '';
+      document.getElementById('loading').style.display = 'block';
+
+      // 先移除舊的 loader（若存在）
+      const old = document.querySelector('script[data-ragic-loader]');
+      if (old) old.remove();
+
+      // 動態注入 Ragic loader
+      const rq = document.createElement('script');
+      rq.type = 'text/javascript';
+      rq.async = true;
+      rq.src = 'https://ap12.ragic.com/intl/common/load.js';
+      rq.setAttribute('data-ragic-loader','1');
+      rq.onload = () => { document.getElementById('loading').style.display = 'none'; };
+      rq.onerror = () => {
+        document.getElementById('loading').textContent = '載入失敗，請檢查 ragic_url 或網路設定。';
+      };
+      (document.head || document.body).appendChild(rq);
+    }
+
+    function resetFilters(){
+      document.getElementById('dateStart').value = '';
+      document.getElementById('dateEnd').value = '';
+      document.getElementById('kw').value = '';
+    }
+  </script>
+</body>
+</html>
