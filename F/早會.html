@@ -1,0 +1,403 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>全家福早會看板 - 調度中心</title>
+  <style>
+    body { font-family: "Microsoft JhengHei", system-ui, sans-serif; background: #e9ecef; padding: 20px; margin: 0; }
+
+    /* 頂部控制區 */
+    .controls {
+      background: white;
+      padding: 15px;
+      border-radius: 8px;
+      box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+      text-align: center;
+      margin-bottom: 20px;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    .filter-group { display: flex; justify-content: center; gap: 16px; align-items: center; flex-wrap: wrap; }
+
+    .chk-label {
+      display: flex;
+      align-items: center;
+      cursor: pointer;
+      font-size: 1.05em;
+      padding: 8px 14px;
+      border-radius: 20px;
+      transition: all 0.2s;
+      border: 2px solid transparent;
+      background: #f8f9fa;
+      user-select: none;
+    }
+    .chk-label input { margin-right: 8px; transform: scale(1.2); }
+
+    /* 兼容：不靠 :has，改由 JS 追加 .is-checked */
+    .chk-label.is-checked { background: #e7f1ff; border-color: #007bff; color: #0056b3; font-weight: 700; }
+
+    /* 看板區 */
+    .dashboard { display: flex; flex-wrap: wrap; gap: 15px; justify-content: center; }
+    .card {
+      background: white;
+      border-radius: 10px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.08);
+      padding: 14px;
+      width: 340px;
+      border-top: 6px solid #6c757d;
+      display: flex;
+      flex-direction: column;
+    }
+    .card h2 {
+      margin: 0 0 10px 0;
+      border-bottom: 1px solid #eee;
+      padding-bottom: 10px;
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      font-size: 1.25em;
+    }
+    .badge {
+      font-size: 0.75em;
+      background: #eee;
+      padding: 2px 10px;
+      border-radius: 999px;
+      color: #333;
+      font-weight: 700;
+    }
+
+    .task-item {
+      margin-bottom: 10px;
+      padding: 10px;
+      border-radius: 8px;
+      background: #fff;
+      border: 1px solid #ddd;
+      border-left: 6px solid #ccc;
+    }
+    /* 狀態顏色 */
+    .task-item.is-today { border-left-color: #28a745; background: #e8f5e9; }     /* 今天: 綠 */
+    .task-item.is-overdue { border-left-color: #dc3545; background: #fff5f5; }  /* 過期: 紅 */
+    .task-item.is-tomorrow { border-left-color: #17a2b8; background: #e0f7fa; } /* 明天: 藍 */
+
+    .task-header { font-weight: 800; font-size: 1.05em; color: #333; display: flex; justify-content: space-between; gap: 10px; align-items: flex-start; }
+    .task-detail { margin-top: 6px; font-size: 0.95em; color: #555; line-height: 1.45; }
+    .tag { padding: 2px 8px; border-radius: 6px; color: white; font-weight: 800; font-size: 0.75em; white-space: nowrap; }
+
+    .loading { font-size: 1.3em; text-align: center; color: #555; margin-top: 50px; }
+    .err { color: #b00020; text-align: center; font-weight: 700; }
+    .hint { color: #666; font-size: 0.9em; }
+    button {
+      border: 0;
+      background: #111;
+      color: #fff;
+      padding: 8px 12px;
+      border-radius: 10px;
+      cursor: pointer;
+      font-weight: 700;
+    }
+    button:disabled { opacity: 0.6; cursor: not-allowed; }
+  </style>
+</head>
+<body>
+
+  <div class="controls">
+    <h2 style="margin:0 0 10px 0;">全家福早會看板</h2>
+
+    <div class="filter-group">
+      <label class="chk-label" id="lblYesterday">
+        <input type="checkbox" id="chkYesterday" checked>
+        昨天以前 (追進度)
+      </label>
+      <label class="chk-label" id="lblToday">
+        <input type="checkbox" id="chkToday" checked>
+        今天 (衝刺)
+      </label>
+      <label class="chk-label" id="lblTomorrow">
+        <input type="checkbox" id="chkTomorrow">
+        明天 (預備)
+      </label>
+
+      <button id="btnReload" title="重新抓一次 Ragic">重新載入</button>
+    </div>
+
+    <div id="stats" class="hint" style="margin-top:10px;"></div>
+  </div>
+
+  <div id="app" class="loading">資料讀取中...</div>
+
+  <script>
+    // =============================
+    // 1) 你只要改這裡
+    // =============================
+    const CONFIG = {
+      apiKey: "UGQ4cGFmNjg2R0J2TXNSMXpZdVVvSlhIUVRLZHo2SmpISXUyMFQrRCtySXFDTUk2T2NCeUY4b0FDcXJ6OENqRA==",     // ← 請填「新生成」的 API Key（你剛貼的那把請作廢）
+      baseUrl: "https://ap12.ragic.com/89793238/fami/2", // ← 你的 sheet API base（看起來是對的）
+      fields: {
+        status: "1000111",
+        date:   "1000122",
+        person: "1000113",
+        reason: "1000120",
+        addr:   "1000119",
+        name:   "1000116"
+      }
+    };
+
+    // 你要視為「待辦」的狀態（用白名單最穩，避免用 ne）
+    const PENDING_STATUSES = ["待處理", "未完成", "延期"];
+
+    // =============================
+    // 2) 日期計算
+    // =============================
+    const today = new Date();
+    const yest = new Date(today); yest.setDate(today.getDate() - 1);
+    const tmrw = new Date(today); tmrw.setDate(today.getDate() + 1);
+
+    const toStr = (d) =>
+      d.getFullYear() + "/" +
+      String(d.getMonth() + 1).padStart(2, "0") + "/" +
+      String(d.getDate()).padStart(2, "0");
+
+    const DATE_MAP = {
+      today: toStr(today),
+      yesterday: toStr(yest),
+      tomorrow: toStr(tmrw)
+    };
+
+    let ALL_RECORDS = [];
+    let IS_LOADING = false;
+
+    // =============================
+    // 3) JSONP（跨域最穩）
+    // =============================
+    function jsonp(url) {
+      return new Promise((resolve, reject) => {
+        const cb = "__ragic_cb_" + Date.now() + "_" + Math.random().toString(16).slice(2);
+        window[cb] = (data) => { cleanup(); resolve(data); };
+
+        const s = document.createElement("script");
+        s.src = url + (url.includes("?") ? "&" : "?") + "callback=" + encodeURIComponent(cb);
+        s.onerror = () => { cleanup(); reject(new Error("JSONP failed")); };
+
+        function cleanup() {
+          try { delete window[cb]; } catch (e) { window[cb] = undefined; }
+          s.remove();
+        }
+
+        document.head.appendChild(s);
+      });
+    }
+
+    // =============================
+    // 4) 取值工具（Ragic 欄位有時是 object）
+    // =============================
+    function getValue(r, id) {
+      const v = r?.[id];
+      if (v == null) return "";
+      if (typeof v === "object") {
+        return (v.value ?? v._index_title_ ?? v.name ?? "").toString();
+      }
+      return v.toString();
+    }
+
+    function setLoading(flag) {
+      IS_LOADING = flag;
+      document.getElementById("btnReload").disabled = flag;
+    }
+
+    // 控制列 label 高亮（不依賴 :has）
+    function syncCheckStyle() {
+      const map = [
+        ["chkYesterday", "lblYesterday"],
+        ["chkToday", "lblToday"],
+        ["chkTomorrow", "lblTomorrow"],
+      ];
+      for (const [chkId, lblId] of map) {
+        const checked = document.getElementById(chkId).checked;
+        document.getElementById(lblId).classList.toggle("is-checked", checked);
+      }
+    }
+
+    // =============================
+    // 5) 抓資料（只抓「待辦狀態白名單」）
+    // =============================
+    async function loadFromRagic() {
+      if (!CONFIG.apiKey || CONFIG.apiKey.includes("__PUT")) {
+        document.getElementById("app").innerHTML =
+          `<div class="err">請先在 CONFIG.apiKey 填入新的 API Key（你剛貼那把請作廢重生）</div>`;
+        return;
+      }
+
+      try {
+        setLoading(true);
+        document.getElementById("app").innerHTML = `<div class="loading">資料讀取中...</div>`;
+
+        const params = new URLSearchParams();
+        params.set("api", "");
+        params.set("APIKey", CONFIG.apiKey);
+        params.set("naming", "EID");
+        params.set("limit", "1000");
+        params.set("reverse", "true");
+
+        // 同欄位多個 eq → OR（一次撈多種待辦狀態）
+        for (const st of PENDING_STATUSES) {
+          params.append("where", `${CONFIG.fields.status},eq,${st}`);
+        }
+
+        const url = `${CONFIG.baseUrl}?${params.toString()}`;
+        const data = await jsonp(url);
+
+        // data 會是物件（key=recordId），轉陣列，並過濾掉非 record
+        ALL_RECORDS = Object.values(data || {})
+          .filter(v => v && typeof v === "object")
+          .filter(v => v._ragicId !== 0);
+
+        render(ALL_RECORDS);
+      } catch (err) {
+        console.error(err);
+        document.getElementById("app").innerHTML =
+          `<div class="err">讀取失敗：請檢查 baseUrl 是否正確（ap12）、APIKey 權限、或狀態字串是否完全一致</div>`;
+      } finally {
+        setLoading(false);
+      }
+    }
+
+    // =============================
+    // 6) 渲染（日期區間勾選）
+    // =============================
+    function render(records) {
+      syncCheckStyle();
+
+      const showY = document.getElementById("chkYesterday").checked;
+      const showT = document.getElementById("chkToday").checked;
+      const showTm = document.getElementById("chkTomorrow").checked;
+
+      // 前端再做保險：排除「已完成/取消」
+      const filtered = records.filter(r => {
+        const status = getValue(r, CONFIG.fields.status);
+        if (status === "已完成" || status === "取消") return false;
+
+        const rawDate = getValue(r, CONFIG.fields.date);
+        if (!rawDate) return false;
+
+        const d = rawDate.substring(0, 10); // YYYY/MM/DD
+        if (d === DATE_MAP.today && showT) return true;
+        if (d === DATE_MAP.tomorrow && showTm) return true;
+        if (d < DATE_MAP.today && showY) return true;
+        return false;
+      });
+
+      // 統計
+      document.getElementById("stats").innerText =
+        `顯示筆數: ${filtered.length}（總待辦: ${records.length}）｜今天: ${DATE_MAP.today}｜明天: ${DATE_MAP.tomorrow}`;
+
+      if (filtered.length === 0) {
+        document.getElementById("app").innerHTML =
+          `<h3 style="width:100%; text-align:center; color:#888;">此範圍無待辦事項</h3>`;
+        return;
+      }
+
+      // 分組（人員）
+      const grouped = filtered.reduce((acc, curr) => {
+        const person = getValue(curr, CONFIG.fields.person) || "待指派";
+        (acc[person] ||= []).push(curr);
+        return acc;
+      }, {});
+
+      // 每個人裡面按日期排序（過期→今天→明天）
+      const dateScore = (dStr) => {
+        if (dStr < DATE_MAP.today) return 0;
+        if (dStr === DATE_MAP.today) return 1;
+        if (dStr === DATE_MAP.tomorrow) return 2;
+        return 3;
+      };
+
+      let html = `<div class="dashboard">`;
+
+      for (const person of Object.keys(grouped).sort((a,b)=>a.localeCompare(b,"zh-Hant"))) {
+        const tasks = grouped[person];
+
+        tasks.sort((a, b) => {
+          const da = getValue(a, CONFIG.fields.date).substring(0, 10);
+          const db = getValue(b, CONFIG.fields.date).substring(0, 10);
+          const sa = dateScore(da), sb = dateScore(db);
+          if (sa !== sb) return sa - sb;
+          return da.localeCompare(db);
+        });
+
+        html += `<div class="card">
+          <h2>
+            <span>${escapeHtml(person)}</span>
+            <span class="badge">${tasks.length}</span>
+          </h2>`;
+
+        html += tasks.map(t => {
+          const d = getValue(t, CONFIG.fields.date).substring(0, 10);
+          const task = getValue(t, CONFIG.fields.reason);
+          const addr = getValue(t, CONFIG.fields.addr);
+          const name = getValue(t, CONFIG.fields.name);
+
+          let cssClass = "";
+          let tagText = "";
+          let tagColor = "#666";
+
+          if (d === DATE_MAP.today) {
+            cssClass = "is-today"; tagText = "今天"; tagColor = "#28a745";
+          } else if (d === DATE_MAP.tomorrow) {
+            cssClass = "is-tomorrow"; tagText = "明天"; tagColor = "#17a2b8";
+          } else if (d < DATE_MAP.today) {
+            cssClass = "is-overdue"; tagText = `過期 ${d}`; tagColor = "#dc3545";
+          } else {
+            tagText = d;
+          }
+
+          return `
+            <div class="task-item ${cssClass}">
+              <div class="task-header">
+                <span>${escapeHtml(name || "(未填客名)")}</span>
+                <span class="tag" style="background:${tagColor}">${escapeHtml(tagText)}</span>
+              </div>
+              <div class="task-detail">
+                <strong>${escapeHtml(task || "(未填事項)")}</strong><br>
+                <span style="color:#666;">📍 ${escapeHtml(addr || "(未填地址)")}</span>
+              </div>
+            </div>
+          `;
+        }).join("");
+
+        html += `</div>`;
+      }
+
+      html += `</div>`;
+      document.getElementById("app").innerHTML = html;
+    }
+
+    function escapeHtml(s) {
+      return String(s ?? "")
+        .replaceAll("&", "&amp;")
+        .replaceAll("<", "&lt;")
+        .replaceAll(">", "&gt;")
+        .replaceAll('"', "&quot;")
+        .replaceAll("'", "&#039;");
+    }
+
+    // =============================
+    // 7) 初始化
+    // =============================
+    function init() {
+      ["chkYesterday", "chkToday", "chkTomorrow"].forEach(id => {
+        document.getElementById(id).addEventListener("change", () => render(ALL_RECORDS));
+      });
+
+      document.getElementById("btnReload").addEventListener("click", () => loadFromRagic());
+
+      syncCheckStyle();
+      loadFromRagic();
+    }
+
+    init();
+  </script>
+</body>
+</html>
