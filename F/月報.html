@@ -1,0 +1,583 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>全家福 月報表（師傅件數＋明細）</title>
+  <style>
+    :root{
+      --bg:#eef1f4;
+      --card:#ffffff;
+      --text:#1b1f24;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --shadow: 0 10px 25px rgba(0,0,0,0.08);
+      --shadow2: 0 3px 10px rgba(0,0,0,0.06);
+      --dark:#111827;
+      --chip:#f3f4f6;
+      --chipOn:#e7f1ff;
+      --chipBorder:#3b82f6;
+      --green:#16a34a;
+      --red:#dc2626;
+      --blue:#0891b2;
+    }
+    *{box-sizing:border-box;}
+    body{
+      margin:0;
+      font-family:"Microsoft JhengHei", system-ui, -apple-system, "Segoe UI", sans-serif;
+      color:var(--text);
+      background:var(--bg);
+      padding: max(12px, env(safe-area-inset-top)) 12px max(14px, env(safe-area-inset-bottom));
+      -webkit-tap-highlight-color: transparent;
+    }
+
+    .controls{
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(8px);
+      border:1px solid rgba(0,0,0,0.06);
+      box-shadow: var(--shadow2);
+      border-radius: 14px;
+      padding: 12px;
+      margin: 0 auto 12px auto;
+      max-width: 1100px;
+    }
+    .title{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:10px;
+    }
+    .title h1{ margin:0; font-size:18px; letter-spacing:.2px; }
+    .updated{ font-size:12px; color:var(--muted); white-space:nowrap; }
+
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content: space-between;
+    }
+
+    .chip{
+      display:flex; align-items:center; gap:8px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      background: var(--chip);
+      border: 2px solid transparent;
+      user-select:none;
+      cursor:pointer;
+      font-weight: 800;
+      font-size: 14px;
+      line-height: 1;
+      touch-action: manipulation;
+      white-space: nowrap;
+    }
+    .chip input{ transform: scale(1.25); }
+    .chip.on{ background:var(--chipOn); border-color:var(--chipBorder); color:#0b3a82; }
+
+    .inputs{
+      display:flex; gap:8px; flex-wrap:wrap; align-items:center;
+      flex: 1 1 320px;
+    }
+    .inputs label{
+      font-size:12px; color:var(--muted); font-weight:900;
+      display:flex; flex-direction:column; gap:6px;
+    }
+    .inputs input[type="month"]{
+      padding: 11px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      outline: none;
+      font-size: 14px;
+      background:#fff;
+      min-width: 160px;
+    }
+
+    .btn{
+      border:0;
+      background: var(--dark);
+      color:#fff;
+      padding: 11px 12px;
+      border-radius: 12px;
+      font-weight: 900;
+      cursor:pointer;
+      touch-action: manipulation;
+      white-space: nowrap;
+    }
+    .btn.secondary{
+      background: #374151;
+    }
+    .btn:disabled{ opacity:.6; cursor:not-allowed; }
+
+    .stats{
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      text-align:left;
+    }
+
+    #app{ max-width:1100px; margin:0 auto; }
+    .loading{
+      text-align:center;
+      color: var(--muted);
+      padding: 40px 0;
+      font-size: 16px;
+      font-weight: 800;
+    }
+    .err{
+      text-align:center;
+      color: #b00020;
+      padding: 18px;
+      font-weight: 900;
+      background: #fff;
+      border: 1px solid #ffd2d6;
+      border-radius: 14px;
+      box-shadow: var(--shadow2);
+    }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    @media (min-width: 820px){
+      .title h1{ font-size:22px; }
+      .grid{ grid-template-columns: 1fr 1fr; }
+    }
+    @media (min-width: 1120px){
+      .grid{ grid-template-columns: 1fr 1fr 1fr; }
+    }
+
+    /* ===== Person accordion card ===== */
+    details.personCard{
+      background: var(--card);
+      border-radius: 16px;
+      border: 1px solid rgba(0,0,0,0.06);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    summary.personHead{
+      list-style:none;
+      cursor:pointer;
+      user-select:none;
+      padding: 12px 14px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      border-top: 6px solid #6c757d;
+    }
+    summary.personHead::-webkit-details-marker{ display:none; }
+
+    .name{
+      font-weight: 1000;
+      font-size: 16px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .count{
+      background:#111827;
+      color:#fff;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 1000;
+      white-space:nowrap;
+    }
+    .metaRight{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      white-space:nowrap;
+    }
+
+    .body{
+      padding: 10px 12px 12px;
+      border-top: 1px solid var(--line);
+      background:#fff;
+    }
+
+    /* ===== Inner task cards ===== */
+    .task{
+      border: 1px solid var(--line);
+      border-left: 6px solid #c7c7c7;
+      border-radius: 12px;
+      padding: 10px 10px;
+      background:#fff;
+      margin-bottom: 10px;
+    }
+    .task:last-child{ margin-bottom:0; }
+    .task.is-done{ border-left-color: var(--green); background:#ecfdf3; }
+    .task.is-pending{ border-left-color: var(--blue); background:#e6fbff; }
+    .task.is-overdue{ border-left-color: var(--red); background:#fff5f5; }
+
+    .taskTop{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:flex-start;
+      font-weight: 1000;
+    }
+    .taskName{ font-size: 15px; }
+    .tag{
+      padding: 3px 8px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 1000;
+      color:#fff;
+      white-space:nowrap;
+    }
+    .detail{
+      margin-top: 6px;
+      font-size: 13px;
+      line-height: 1.45;
+      color: #374151;
+    }
+    .muted{ color: var(--muted); font-weight: 800; }
+  </style>
+</head>
+<body>
+
+  <div class="controls">
+    <div class="title">
+      <h1>全家福 月報表（師傅件數＋明細）</h1>
+      <div class="updated" id="updatedAt">—</div>
+    </div>
+
+    <div class="row">
+      <div class="inputs">
+        <label>
+          月份
+          <input type="month" id="monthPick" />
+        </label>
+
+        <label class="chip on" id="chipDoneOnly" style="margin-top: 18px;">
+          <input type="checkbox" id="chkDoneOnly" checked />
+          只算已完成
+        </label>
+      </div>
+
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn secondary" id="btnToggleAll">全部展開</button>
+        <button class="btn" id="btnReload">重載</button>
+      </div>
+    </div>
+
+    <div class="stats" id="stats"></div>
+  </div>
+
+  <div id="app" class="loading">資料讀取中...</div>
+
+<script>
+    function getThisMonthValue(){
+  const d = new Date();
+  const yyyy = d.getFullYear();
+  const mm = String(d.getMonth() + 1).padStart(2, "0");
+  return `${yyyy}-${mm}`; // input[type="month"] 用 YYYY-MM
+}
+  // =============================
+  // 只改這三段（沿用你原本的）
+  // =============================
+  const CONFIG = {
+    apiKey: "UGQ4cGFmNjg2R0J2TXNSMXpZdVVvSlhIUVRLZHo2SmpISXUyMFQrRCtySXFDTUk2T2NCeUY4b0FDcXJ6OENqRA==",
+    baseUrl: "https://ap12.ragic.com/89793238/fami/2",
+    fields: {
+      status: "1000111",
+      date:   "1000122",
+      person: "1000113",
+      reason: "1000120",
+      addr:   "1000119",
+      name:   "1000116"
+    }
+  };
+
+  let ALL_RECORDS = [];
+  let IS_LOADING = false;
+
+  function jsonp(url) {
+    return new Promise((resolve, reject) => {
+      const cb = "__ragic_cb_" + Date.now() + "_" + Math.random().toString(16).slice(2);
+      window[cb] = (data) => { cleanup(); resolve(data); };
+
+      const s = document.createElement("script");
+      s.src = url + (url.includes("?") ? "&" : "?") + "callback=" + encodeURIComponent(cb);
+      s.onerror = () => { cleanup(); reject(new Error("JSONP failed")); };
+
+      function cleanup(){
+        try { delete window[cb]; } catch(e){ window[cb] = undefined; }
+        s.remove();
+      }
+      document.head.appendChild(s);
+    });
+  }
+
+  function getValue(r, id){
+    const v = r?.[id];
+    if (v == null) return "";
+    if (typeof v === "object") {
+      if (Array.isArray(v)) return v.map(x => (x?.value ?? x?._index_title_ ?? x?.name ?? "")).join(",");
+      return (v.value ?? v._index_title_ ?? v.name ?? "").toString();
+    }
+    return v.toString();
+  }
+
+  function escapeHtml(s){
+    return String(s ?? "")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  function setLoading(flag){
+    IS_LOADING = flag;
+    document.getElementById("btnReload").disabled = flag;
+    document.getElementById("btnToggleAll").disabled = flag;
+  }
+
+  function syncChip(){
+    const on = document.getElementById("chkDoneOnly").checked;
+    document.getElementById("chipDoneOnly").classList.toggle("on", on);
+  }
+
+  function setUpdatedNow(){
+    const d = new Date();
+    const hh = String(d.getHours()).padStart(2,"0");
+    const mm = String(d.getMinutes()).padStart(2,"0");
+    document.getElementById("updatedAt").innerText = `更新 ${hh}:${mm}`;
+  }
+
+  // ✅ 支援多人：逗號 / 、 / 分號 / 換行
+  function splitPersons(personText){
+    const s = (personText || "").trim();
+    if (!s) return ["待指派"];
+    return s
+      .split(/[,、;；\n]+/g)
+      .map(x=>x.trim())
+      .filter(Boolean);
+  }
+
+  // 日期 "YYYY/MM/DD ..." -> "YYYY/MM/DD"
+  function date10(r){
+    const raw = getValue(r, CONFIG.fields.date) || "";
+    return raw ? raw.substring(0,10) : "";
+  }
+  function month7(r){
+    const raw = getValue(r, CONFIG.fields.date) || "";
+    return raw ? raw.substring(0,7) : "";
+  }
+
+  // =============================
+  // 讀資料（抓多一點，前端再篩）
+  // =============================
+  async function loadFromRagic(){
+    if (!CONFIG.apiKey || CONFIG.apiKey.includes("__PUT")){
+      document.getElementById("app").innerHTML =
+        `<div class="err">請先在 CONFIG.apiKey 填入有效 API Key</div>`;
+      return;
+    }
+
+    try{
+      setLoading(true);
+      document.getElementById("app").innerHTML = `<div class="loading">資料讀取中...</div>`;
+
+      const params = new URLSearchParams();
+      params.set("api","");
+      params.set("APIKey", CONFIG.apiKey);
+      params.set("naming","EID");
+      params.set("limit","5000");
+      params.set("reverse","true");
+
+      const url = `${CONFIG.baseUrl}?${params.toString()}`;
+      const data = await jsonp(url);
+
+      ALL_RECORDS = Object.values(data || {})
+        .filter(v => v && typeof v === "object" && v._ragicId !== 0);
+
+      setUpdatedNow();
+      render();
+    }catch(err){
+      console.error(err);
+      document.getElementById("app").innerHTML =
+        `<div class="err">讀取失敗：請檢查 baseUrl(ap12)、APIKey 權限</div>`;
+    }finally{
+      setLoading(false);
+    }
+  }
+
+  // =============================
+  // 渲染月報表（點開看內部卡片）
+  // =============================
+  function render(){
+    syncChip();
+
+const monthPick = document.getElementById("monthPick");
+if (!monthPick.value) monthPick.value = getThisMonthValue();
+const monthVal = monthPick.value;
+
+    const doneOnly = document.getElementById("chkDoneOnly").checked;
+    const monthKey = monthVal.replace("-", "/"); // "YYYY/MM"
+
+    // 先篩出當月資料
+    const inMonth = ALL_RECORDS.filter(r=>{
+      if (month7(r) !== monthKey) return false;
+      const status = getValue(r, CONFIG.fields.status);
+      if (status === "取消") return false;
+      if (doneOnly && status !== "已完成") return false;
+      return true;
+    });
+
+    // 依師傅統計 + 收集明細
+    const map = new Map(); // person -> {count, records[]}
+    for (const r of inMonth){
+      const status = getValue(r, CONFIG.fields.status);
+      const persons = splitPersons(getValue(r, CONFIG.fields.person));
+      for (const p of persons){
+        if (!map.has(p)) map.set(p, { count: 0, records: [] });
+        const obj = map.get(p);
+        obj.count += 1;
+        obj.records.push(r);
+      }
+    }
+
+    const rows = Array.from(map.entries())
+      .map(([person, obj])=>({ person, count: obj.count, records: obj.records }))
+      .sort((a,b)=> b.count - a.count || a.person.localeCompare(b.person, "zh-Hant"));
+
+    const totalSplit = rows.reduce((s,x)=> s + x.count, 0);
+
+    document.getElementById("stats").innerText =
+      `${monthKey}｜${doneOnly ? "只算已完成" : "含未完成/待處理(排除取消)"}｜原始筆數 ${inMonth.length}｜按師傅拆分後合計 ${totalSplit}`;
+
+    if (rows.length === 0){
+      document.getElementById("app").innerHTML =
+        `<div class="loading">${monthKey} 沒有符合條件的資料</div>`;
+      return;
+    }
+
+    // 讓 ToggleAll 依狀態顯示
+    const toggleBtn = document.getElementById("btnToggleAll");
+    toggleBtn.dataset.state = "collapsed";
+    toggleBtn.innerText = "全部展開";
+
+    // 產出 UI
+    let html = `<div class="grid">`;
+
+    for (const r of rows){
+      // 明細排序：日期升序，再客名
+      r.records.sort((a,b)=>{
+        const da = date10(a), db = date10(b);
+        if (da !== db) return da.localeCompare(db);
+        const na = getValue(a, CONFIG.fields.name) || "";
+        const nb = getValue(b, CONFIG.fields.name) || "";
+        return na.localeCompare(nb, "zh-Hant");
+      });
+
+      const pct = totalSplit ? (r.count / totalSplit * 100) : 0;
+
+      // 依情況上色（純視覺）
+      let topColor = "#6c757d";
+      if (!doneOnly) topColor = "#0891b2";
+      else topColor = "#16a34a";
+
+      html += `
+        <details class="personCard" data-person="${escapeHtml(r.person)}">
+          <summary class="personHead" style="border-top-color:${topColor}">
+            <div class="name">
+              ${escapeHtml(r.person)}
+              <span class="count">${r.count} 件</span>
+            </div>
+            <div class="metaRight">${pct.toFixed(1)}%</div>
+          </summary>
+          <div class="body">
+      `;
+
+      // 內部明細小卡
+      html += r.records.map(one=>{
+        const d = date10(one) || "(未填日期)";
+        const status = getValue(one, CONFIG.fields.status) || "(未填狀態)";
+        const name = getValue(one, CONFIG.fields.name) || "(未填客名)";
+        const reason = getValue(one, CONFIG.fields.reason) || "(未填事項)";
+        const addr = getValue(one, CONFIG.fields.addr) || "(未填地址)";
+
+        // tag / 顏色
+        let tagColor = "#6b7280";
+        if (status === "已完成") tagColor = "#16a34a";
+        else if (status === "待處理" || status === "未完成" || status === "延期") tagColor = "#0891b2";
+        else if (status === "取消") tagColor = "#dc2626";
+
+        // class
+        let cls = "";
+        if (status === "已完成") cls = "is-done";
+        else if (status === "待處理" || status === "未完成" || status === "延期") cls = "is-pending";
+
+        return `
+          <div class="task ${cls}">
+            <div class="taskTop">
+              <div class="taskName">${escapeHtml(name)}</div>
+              <div class="tag" style="background:${tagColor}">${escapeHtml(status)}</div>
+            </div>
+            <div class="detail">
+              <div><b>${escapeHtml(reason)}</b></div>
+              <div class="muted">📅 ${escapeHtml(d)}　📍 ${escapeHtml(addr)}</div>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      html += `</div></details>`;
+    }
+
+    html += `</div>`;
+    document.getElementById("app").innerHTML = html;
+  }
+
+  // =============================
+  // 展開/收合全部
+  // =============================
+  function toggleAll(){
+    const btn = document.getElementById("btnToggleAll");
+    const cards = document.querySelectorAll("details.personCard");
+    if (!cards.length) return;
+
+    const state = btn.dataset.state || "collapsed";
+    if (state === "collapsed"){
+      cards.forEach(d => d.open = true);
+      btn.dataset.state = "expanded";
+      btn.innerText = "全部收合";
+    }else{
+      cards.forEach(d => d.open = false);
+      btn.dataset.state = "collapsed";
+      btn.innerText = "全部展開";
+    }
+  }
+
+  // =============================
+  // Init（預設：2025-07）
+  // =============================
+function init(){
+  const monthPick = document.getElementById("monthPick");
+  monthPick.value = getThisMonthValue(); // ✅ 預設本月
+
+  document.getElementById("chkDoneOnly").addEventListener("change", render);
+  monthPick.addEventListener("change", render);
+  document.getElementById("btnReload").addEventListener("click", loadFromRagic);
+  document.getElementById("btnToggleAll").addEventListener("click", toggleAll);
+
+  loadFromRagic();
+}
+
+
+  init();
+</script>
+</body>
+</html>
