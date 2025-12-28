@@ -73,12 +73,19 @@
       justify-content: space-between;
     }
 
-    .chips{
+    /* ===== Scrollable date chips ===== */
+    .dayStrip{
       display:flex;
       gap:8px;
-      flex-wrap:wrap;
+      flex-wrap:nowrap;
+      overflow-x:auto;
+      -webkit-overflow-scrolling: touch;
+      scroll-snap-type: x mandatory;
+      padding-bottom: 2px;
       align-items:center;
+      max-width: 100%;
     }
+    .dayStrip::-webkit-scrollbar{ display:none; }
 
     .chip{
       display:flex;
@@ -94,12 +101,21 @@
       font-size: 14px;
       line-height: 1;
       touch-action: manipulation;
+      flex: 0 0 auto;
+      scroll-snap-align: start;
+      white-space: nowrap;
     }
     .chip input{ transform: scale(1.25); }
     .chip.on{
       background: var(--chipOn);
       border-color: var(--chipBorder);
       color: #0b3a82;
+    }
+    .chip .sub{
+      font-size: 12px;
+      font-weight: 800;
+      color: var(--muted);
+      margin-left: 2px;
     }
 
     .searchBox{
@@ -268,25 +284,13 @@
 
   <div class="controls">
     <div class="title">
-      <h1>全家福早會看板（手機優先）</h1>
+      <h1>全家福早會看板（手機優先｜7天滾動）</h1>
       <div class="updated" id="updatedAt">—</div>
     </div>
 
     <div class="row">
-      <div class="chips">
-        <label class="chip" id="chipYesterday">
-          <input type="checkbox" id="chkYesterday" checked />
-          昨天以前
-        </label>
-        <label class="chip" id="chipToday">
-          <input type="checkbox" id="chkToday" checked />
-          今天
-        </label>
-        <label class="chip" id="chipTomorrow">
-          <input type="checkbox" id="chkTomorrow" />
-          明天
-        </label>
-      </div>
+      <!-- ✅ 改成可左右滑的一週日期列 -->
+      <div class="dayStrip" id="dayStrip"></div>
 
       <div class="searchBox">
         <input id="q" placeholder="搜尋：客名 / 事項 / 地址（輸入就會篩）" />
@@ -301,10 +305,10 @@
 
 <script>
   // =============================
-  // 只改這三段
+  // 只改這三段（你原本就有）
   // =============================
   const CONFIG = {
-    apiKey: "UGQ4cGFmNjg2R0J2TXNSMXpZdVVvSlhIUVRLZHo2SmpISXUyMFQrRCtySXFDTUk2T2NCeUY4b0FDcXJ6OENqRA==", // ← 請填「新生成」的 key（你貼過的那把請作廢）
+    apiKey: "UGQ4cGFmNjg2R0J2TXNSMXpZdVVvSlhIUVRLZHo2SmpISXUyMFQrRCtySXFDTUk2T2NCeUY4b0FDcXJ6OENqRA==",
     baseUrl: "https://ap12.ragic.com/89793238/fami/2",
     fields: {
       status: "1000111",
@@ -320,22 +324,31 @@
   const PENDING_STATUSES = ["待處理", "未完成", "延期"];
 
   // =============================
-  // 日期工具
+  // ✅ 一週滾動：今天起算 7 天（+ 過期）
   // =============================
-  const today = new Date();
-  const yest = new Date(today); yest.setDate(today.getDate() - 1);
-  const tmrw = new Date(today); tmrw.setDate(today.getDate() + 1);
+  const WEEKDAY = ["日","一","二","三","四","五","六"];
+  const RANGE_DAYS = 7;
+
+  const startOfDay = (d) => {
+    const x = new Date(d);
+    x.setHours(0,0,0,0);
+    return x;
+  };
 
   const toStr = (d) =>
     d.getFullYear() + "/" +
     String(d.getMonth()+1).padStart(2,"0") + "/" +
     String(d.getDate()).padStart(2,"0");
 
-  const DATE_MAP = {
-    today: toStr(today),
-    yesterday: toStr(yest),
-    tomorrow: toStr(tmrw)
-  };
+  const RANGE_START = startOfDay(new Date());
+  const RANGE_DATES = Array.from({length:RANGE_DAYS}, (_,i)=>{
+    const d = new Date(RANGE_START);
+    d.setDate(d.getDate() + i);
+    return d;
+  });
+  const RANGE_STR = RANGE_DATES.map(toStr);     // 今天~D+6
+  const TODAY_STR = RANGE_STR[0];
+  const TOMORROW_STR = RANGE_STR[1] || "";
 
   let ALL_RECORDS = [];
   let IS_LOADING = false;
@@ -382,15 +395,11 @@
   }
 
   function syncChips(){
-    const map = [
-      ["chkYesterday","chipYesterday"],
-      ["chkToday","chipToday"],
-      ["chkTomorrow","chipTomorrow"],
-    ];
-    for (const [chk, chip] of map){
-      const on = document.getElementById(chk).checked;
-      document.getElementById(chip).classList.toggle("on", on);
-    }
+    document.querySelectorAll(".chip").forEach(chip=>{
+      const input = chip.querySelector('input[type="checkbox"]');
+      if (!input) return;
+      chip.classList.toggle("on", input.checked);
+    });
   }
 
   function setUpdatedNow(){
@@ -398,6 +407,44 @@
     const hh = String(d.getHours()).padStart(2,"0");
     const mm = String(d.getMinutes()).padStart(2,"0");
     document.getElementById("updatedAt").innerText = `更新 ${hh}:${mm}`;
+  }
+
+  // =============================
+  // ✅ 建立「可左右滑」的一週 chips
+  // 預設：過期 + 今天 + 明天 勾起來，其餘不勾（避免一打開爆量）
+  // =============================
+  function buildDayChips(){
+    const wrap = document.getElementById("dayStrip");
+    let html = `
+      <label class="chip on" id="chipOverdue">
+        <input type="checkbox" id="chkOverdue" checked />
+        過期
+      </label>
+    `;
+
+    RANGE_DATES.forEach((d, i)=>{
+      const ds = RANGE_STR[i];
+      const wd = WEEKDAY[d.getDay()];
+      const isToday = i === 0;
+      const isTomorrow = i === 1;
+      const checked = isToday || isTomorrow; // ✅ 預設勾：今天+明天
+
+      const label =
+        isToday ? "今天" :
+        isTomorrow ? "明天" :
+        `週${wd}`;
+
+      html += `
+        <label class="chip ${checked ? "on" : ""}" id="chipD${i}">
+          <input type="checkbox" id="chkD${i}" ${checked ? "checked" : ""} />
+          ${label}
+          <span class="sub">${ds.slice(5)}</span>
+        </label>
+      `;
+    });
+
+    wrap.innerHTML = html;
+    syncChips();
   }
 
   // =============================
@@ -444,16 +491,21 @@
   }
 
   // =============================
-  // 渲染（手機優先 + 可收合）
+  // ✅ 渲染（7天滾動）
   // =============================
   function render(){
     syncChips();
 
-    const showY  = document.getElementById("chkYesterday").checked;
-    const showT  = document.getElementById("chkToday").checked;
-    const showTm = document.getElementById("chkTomorrow").checked;
-
     const query = (document.getElementById("q").value || "").trim().toLowerCase();
+
+    const showOverdue = document.getElementById("chkOverdue")?.checked ?? true;
+
+    // 收集被勾選的日期（今天起算 7 天）
+    const selectedDates = [];
+    for (let i=0; i<RANGE_DAYS; i++){
+      const chk = document.getElementById(`chkD${i}`);
+      if (chk?.checked) selectedDates.push(RANGE_STR[i]);
+    }
 
     const filtered = ALL_RECORDS.filter(r => {
       // 防呆：排除完成/取消（即使你白名單沒列到也不會跑出來）
@@ -462,14 +514,16 @@
 
       const rawDate = getValue(r, CONFIG.fields.date);
       if (!rawDate) return false;
+
+      // 你的欄位通常是 "YYYY/MM/DD ..." 這裡沿用 substring(0,10)
       const d = rawDate.substring(0,10);
 
-      const inDateRange =
-        (d < DATE_MAP.today && showY) ||
-        (d === DATE_MAP.today && showT) ||
-        (d === DATE_MAP.tomorrow && showTm);
+      // ✅ 一週滾動條件：過期 or 被勾選日
+      const inRange =
+        (d < TODAY_STR && showOverdue) ||
+        (selectedDates.includes(d));
 
-      if (!inDateRange) return false;
+      if (!inRange) return false;
 
       if (!query) return true;
 
@@ -481,8 +535,9 @@
       return hay.includes(query);
     });
 
+    const rangeHint = `${RANGE_STR[0]} ~ ${RANGE_STR[RANGE_STR.length-1]}`;
     document.getElementById("stats").innerText =
-      `顯示 ${filtered.length}｜待辦總數 ${ALL_RECORDS.length}｜今天 ${DATE_MAP.today}｜明天 ${DATE_MAP.tomorrow}`;
+      `顯示 ${filtered.length}｜待辦總數 ${ALL_RECORDS.length}｜7天範圍 ${rangeHint}`;
 
     if (filtered.length === 0){
       document.getElementById("app").innerHTML =
@@ -498,12 +553,12 @@
 
     const isMobile = window.matchMedia("(max-width: 640px)").matches;
 
-    // 排序用：過期(0) → 今天(1) → 明天(2) → 其他(3)
+    // 排序用：過期(0) → 今天(1) → 明天(2) → 其他天(3+)
     const score = (d) => {
-      if (d < DATE_MAP.today) return 0;
-      if (d === DATE_MAP.today) return 1;
-      if (d === DATE_MAP.tomorrow) return 2;
-      return 3;
+      if (d < TODAY_STR) return 0;
+      const idx = RANGE_STR.indexOf(d);
+      if (idx >= 0) return idx + 1;
+      return 999;
     };
 
     let html = `<div class="dashboard">`;
@@ -520,14 +575,14 @@
       });
 
       // 手機預設：只有「有過期」的人展開；電腦預設全展開
-      const hasOverdue = tasks.some(t => getValue(t, CONFIG.fields.date).substring(0,10) < DATE_MAP.today);
+      const hasOverdue = tasks.some(t => getValue(t, CONFIG.fields.date).substring(0,10) < TODAY_STR);
       const openAttr = (!isMobile || hasOverdue) ? "open" : "";
 
       // 依整組的情況上色（純視覺）
       let topColor = "#6c757d";
       if (hasOverdue) topColor = "#dc2626";
-      else if (tasks.some(t => getValue(t, CONFIG.fields.date).substring(0,10) === DATE_MAP.today)) topColor = "#16a34a";
-      else if (tasks.some(t => getValue(t, CONFIG.fields.date).substring(0,10) === DATE_MAP.tomorrow)) topColor = "#0891b2";
+      else if (tasks.some(t => getValue(t, CONFIG.fields.date).substring(0,10) === TODAY_STR)) topColor = "#16a34a";
+      else if (TOMORROW_STR && tasks.some(t => getValue(t, CONFIG.fields.date).substring(0,10) === TOMORROW_STR)) topColor = "#0891b2";
 
       html += `
         <details class="card" ${openAttr}>
@@ -551,12 +606,19 @@
         let tagText = d;
         let tagColor = "#6b7280";
 
-        if (d < DATE_MAP.today){
+        if (d < TODAY_STR){
           cls = "is-overdue"; tagText = `過期 ${d}`; tagColor = "#dc2626";
-        } else if (d === DATE_MAP.today){
+        } else if (d === TODAY_STR){
           cls = "is-today"; tagText = "今天"; tagColor = "#16a34a";
-        } else if (d === DATE_MAP.tomorrow){
+        } else if (TOMORROW_STR && d === TOMORROW_STR){
           cls = "is-tomorrow"; tagText = "明天"; tagColor = "#0891b2";
+        } else {
+          // 其他天：顯示週幾 + 日期
+          const idx = RANGE_STR.indexOf(d);
+          if (idx >= 0){
+            const wd = WEEKDAY[RANGE_DATES[idx].getDay()];
+            tagText = `週${wd} ${d.slice(5)}`;
+          }
         }
 
         return `
@@ -584,15 +646,16 @@
   // Init
   // =============================
   function init(){
-    ["chkYesterday","chkToday","chkTomorrow"].forEach(id=>{
-      document.getElementById(id).addEventListener("change", render);
+    buildDayChips();
+
+    // 日期列：用事件代理抓 change（因為 chips 是 JS 動態生成）
+    document.getElementById("dayStrip").addEventListener("change", (e)=>{
+      if (e.target && e.target.matches('input[type="checkbox"]')) render();
     });
 
     document.getElementById("q").addEventListener("input", render);
-
     document.getElementById("btnReload").addEventListener("click", loadFromRagic);
 
-    syncChips();
     loadFromRagic();
   }
 
