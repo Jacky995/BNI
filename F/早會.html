@@ -20,6 +20,10 @@
       --chip:#f3f4f6;
       --chipOn:#e7f1ff;
       --chipBorder:#3b82f6;
+
+      /* ✅ 新增：小標籤顏色 */
+      --amber:#f59e0b;     /* 延期 */
+      --ghost:#e5e7eb;     /* 推算 */
     }
 
     *{box-sizing:border-box;}
@@ -260,6 +264,17 @@
       font-weight: 900;
     }
     .taskName{ font-size: 15px; }
+
+    /* ✅ 右上角可放多個標籤（日期 / 延期 / 推算） */
+    .tagWrap{
+      display:flex;
+      gap:6px;
+      align-items:center;
+      flex-wrap:wrap;
+      justify-content:flex-end;
+      max-width: 52%;
+    }
+
     .tag{
       padding: 3px 8px;
       border-radius: 8px;
@@ -268,6 +283,18 @@
       color:#fff;
       white-space:nowrap;
     }
+
+    .tagMini{
+      padding: 3px 8px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 900;
+      white-space:nowrap;
+      border: 1px solid rgba(0,0,0,0.06);
+    }
+    .tagDelay{ background: var(--amber); color:#111827; }
+    .tagInferred{ background: var(--ghost); color:#111827; }
+
     .detail{
       margin-top: 6px;
       font-size: 13px;
@@ -289,7 +316,6 @@
     </div>
 
     <div class="row">
-      <!-- ✅ 改成可左右滑的一週日期列 -->
       <div class="dayStrip" id="dayStrip"></div>
 
       <div class="searchBox">
@@ -304,9 +330,6 @@
   <div id="app" class="loading">資料讀取中...</div>
 
 <script>
-  // =============================
-  // 只改這三段（你原本就有）
-  // =============================
   const CONFIG = {
     apiKey: "UGQ4cGFmNjg2R0J2TXNSMXpZdVVvSlhIUVRLZHo2SmpISXUyMFQrRCtySXFDTUk2T2NCeUY4b0FDcXJ6OENqRA==",
     baseUrl: "https://ap12.ragic.com/89793238/fami/2",
@@ -320,12 +343,8 @@
     }
   };
 
-  // 你要視為待辦的狀態白名單（字要跟 Ragic 完全一致）
   const PENDING_STATUSES = ["待處理", "未完成", "延期"];
 
-  // =============================
-  // ✅ 一週滾動：今天起算 7 天（+ 過期）
-  // =============================
   const WEEKDAY = ["日","一","二","三","四","五","六"];
   const RANGE_DAYS = 7;
 
@@ -346,16 +365,13 @@
     d.setDate(d.getDate() + i);
     return d;
   });
-  const RANGE_STR = RANGE_DATES.map(toStr);     // 今天~D+6
+  const RANGE_STR = RANGE_DATES.map(toStr);
   const TODAY_STR = RANGE_STR[0];
   const TOMORROW_STR = RANGE_STR[1] || "";
 
   let ALL_RECORDS = [];
   let IS_LOADING = false;
 
-  // =============================
-  // JSONP（跨域穩）
-  // =============================
   function jsonp(url) {
     return new Promise((resolve, reject) => {
       const cb = "__ragic_cb_" + Date.now() + "_" + Math.random().toString(16).slice(2);
@@ -410,8 +426,34 @@
   }
 
   // =============================
-  // ✅ 建立「可左右滑」的一週 chips
-  // 預設：過期 + 今天 + 明天 勾起來，其餘不勾（避免一打開爆量）
+  // ✅ 補釘：把任何來源的日期正規化成 YYYY/MM/DD
+  // =============================
+  function normalizeDate10(raw){
+    const s = String(raw ?? "").trim();
+    if (!s) return "";
+    // 支援 2025/12/30 或 2025-12-30 或 "2025/12/30 10:20"
+    const m = s.match(/(20\d{2})[\/\-](\d{2})[\/\-](\d{2})/);
+    if (m) return `${m[1]}/${m[2]}/${m[3]}`;
+    // 支援 20251230
+    const m2 = s.match(/\b(20\d{2})(\d{2})(\d{2})\b/);
+    if (m2) return `${m2[1]}/${m2[2]}/${m2[3]}`;
+    return "";
+  }
+
+  // =============================
+  // ✅ 補釘：用單號(EID)推算日期（優先用「已建日期」）
+  // 單號需包含：YYYYMMDD 或 YYYY/MM/DD 或 YYYY-MM-DD
+  // =============================
+  function inferDateFromEid(eid){
+    const s = String(eid ?? "").trim();
+    if (!s) return "";
+    const m = s.match(/(20\d{2})[\/\-]?(\d{2})[\/\-]?(\d{2})/); // 20251230 / 2025-12-30 / 2025/12/30
+    if (!m) return "";
+    return `${m[1]}/${m[2]}/${m[3]}`;
+  }
+
+  // =============================
+  // ✅ 建立 chips
   // =============================
   function buildDayChips(){
     const wrap = document.getElementById("dayStrip");
@@ -427,7 +469,7 @@
       const wd = WEEKDAY[d.getDay()];
       const isToday = i === 0;
       const isTomorrow = i === 1;
-      const checked = isToday || isTomorrow; // ✅ 預設勾：今天+明天
+      const checked = isToday || isTomorrow;
 
       const label =
         isToday ? "今天" :
@@ -468,7 +510,6 @@
       params.set("limit","1000");
       params.set("reverse","true");
 
-      // OR：同欄位多個 eq（白名單狀態）
       for (const st of PENDING_STATUSES){
         params.append("where", `${CONFIG.fields.status},eq,${st}`);
       }
@@ -476,8 +517,20 @@
       const url = `${CONFIG.baseUrl}?${params.toString()}`;
       const data = await jsonp(url);
 
-      ALL_RECORDS = Object.values(data || {})
-        .filter(v => v && typeof v === "object" && v._ragicId !== 0);
+      // ✅ 關鍵：保留 EID（因為無日期要靠它推算）
+      ALL_RECORDS = Object.entries(data || {})
+        .filter(([eid, v]) => v && typeof v === "object" && v._ragicId !== 0)
+        .map(([eid, v]) => {
+          const rawDate = getValue(v, CONFIG.fields.date);
+          const d10_from_field = normalizeDate10(rawDate);
+          const d10_from_eid   = inferDateFromEid(eid);
+
+          v.__eid = eid;
+          v.__date10 = d10_from_field || d10_from_eid || "";
+          v.__dateSource = d10_from_field ? "field" : (d10_from_eid ? "eid" : "");
+
+          return v;
+        });
 
       setUpdatedNow();
       render();
@@ -497,10 +550,8 @@
     syncChips();
 
     const query = (document.getElementById("q").value || "").trim().toLowerCase();
-
     const showOverdue = document.getElementById("chkOverdue")?.checked ?? true;
 
-    // 收集被勾選的日期（今天起算 7 天）
     const selectedDates = [];
     for (let i=0; i<RANGE_DAYS; i++){
       const chk = document.getElementById(`chkD${i}`);
@@ -508,17 +559,13 @@
     }
 
     const filtered = ALL_RECORDS.filter(r => {
-      // 防呆：排除完成/取消（即使你白名單沒列到也不會跑出來）
       const status = getValue(r, CONFIG.fields.status);
       if (status === "已完成" || status === "取消") return false;
 
-      const rawDate = getValue(r, CONFIG.fields.date);
-      if (!rawDate) return false;
+      // ✅ 改用「補釘後的日期」
+      const d = r.__date10 || "";
+      if (!d) return false; // 連 EID 都推不出來就先不顯示（避免亂入）
 
-      // 你的欄位通常是 "YYYY/MM/DD ..." 這裡沿用 substring(0,10)
-      const d = rawDate.substring(0,10);
-
-      // ✅ 一週滾動條件：過期 or 被勾選日
       const inRange =
         (d < TODAY_STR && showOverdue) ||
         (selectedDates.includes(d));
@@ -531,13 +578,17 @@
       const task = getValue(r, CONFIG.fields.reason);
       const addr = getValue(r, CONFIG.fields.addr);
       const person = getValue(r, CONFIG.fields.person);
-      const hay = `${name} ${task} ${addr} ${person}`.toLowerCase();
+      const eid = r.__eid || "";
+      const hay = `${name} ${task} ${addr} ${person} ${eid}`.toLowerCase();
       return hay.includes(query);
     });
 
     const rangeHint = `${RANGE_STR[0]} ~ ${RANGE_STR[RANGE_STR.length-1]}`;
+    const inferredCount = ALL_RECORDS.filter(r => r.__dateSource === "eid").length;
+    const missingCount = ALL_RECORDS.filter(r => !r.__date10).length;
+
     document.getElementById("stats").innerText =
-      `顯示 ${filtered.length}｜待辦總數 ${ALL_RECORDS.length}｜7天範圍 ${rangeHint}`;
+      `顯示 ${filtered.length}｜待辦總數 ${ALL_RECORDS.length}｜7天範圍 ${rangeHint}｜無日期(用單號推算) ${inferredCount}｜仍無法推算 ${missingCount}`;
 
     if (filtered.length === 0){
       document.getElementById("app").innerHTML =
@@ -553,7 +604,6 @@
 
     const isMobile = window.matchMedia("(max-width: 640px)").matches;
 
-    // 排序用：過期(0) → 今天(1) → 明天(2) → 其他天(3+)
     const score = (d) => {
       if (d < TODAY_STR) return 0;
       const idx = RANGE_STR.indexOf(d);
@@ -567,22 +617,20 @@
       const tasks = grouped[person];
 
       tasks.sort((a,b)=>{
-        const da = getValue(a, CONFIG.fields.date).substring(0,10);
-        const db = getValue(b, CONFIG.fields.date).substring(0,10);
+        const da = a.__date10 || "";
+        const db = b.__date10 || "";
         const sa = score(da), sb = score(db);
         if (sa !== sb) return sa - sb;
         return da.localeCompare(db);
       });
 
-      // 手機預設：只有「有過期」的人展開；電腦預設全展開
-      const hasOverdue = tasks.some(t => getValue(t, CONFIG.fields.date).substring(0,10) < TODAY_STR);
+      const hasOverdue = tasks.some(t => (t.__date10 || "") < TODAY_STR);
       const openAttr = (!isMobile || hasOverdue) ? "open" : "";
 
-      // 依整組的情況上色（純視覺）
       let topColor = "#6c757d";
       if (hasOverdue) topColor = "#dc2626";
-      else if (tasks.some(t => getValue(t, CONFIG.fields.date).substring(0,10) === TODAY_STR)) topColor = "#16a34a";
-      else if (TOMORROW_STR && tasks.some(t => getValue(t, CONFIG.fields.date).substring(0,10) === TOMORROW_STR)) topColor = "#0891b2";
+      else if (tasks.some(t => (t.__date10 || "") === TODAY_STR)) topColor = "#16a34a";
+      else if (TOMORROW_STR && tasks.some(t => (t.__date10 || "") === TOMORROW_STR)) topColor = "#0891b2";
 
       html += `
         <details class="card" ${openAttr}>
@@ -597,23 +645,26 @@
       `;
 
       html += tasks.map(t=>{
-        const d = getValue(t, CONFIG.fields.date).substring(0,10);
+        const d = t.__date10 || "";
+        const status = getValue(t, CONFIG.fields.status);
         const name = getValue(t, CONFIG.fields.name) || "(未填客名)";
         const task = getValue(t, CONFIG.fields.reason) || "(未填事項)";
         const addr = getValue(t, CONFIG.fields.addr) || "(未填地址)";
+        const inferred = (t.__dateSource === "eid");
 
         let cls = "";
         let tagText = d;
         let tagColor = "#6b7280";
 
-        if (d < TODAY_STR){
+        const isOverdue = d < TODAY_STR;
+
+        if (isOverdue){
           cls = "is-overdue"; tagText = `過期 ${d}`; tagColor = "#dc2626";
         } else if (d === TODAY_STR){
           cls = "is-today"; tagText = "今天"; tagColor = "#16a34a";
         } else if (TOMORROW_STR && d === TOMORROW_STR){
           cls = "is-tomorrow"; tagText = "明天"; tagColor = "#0891b2";
         } else {
-          // 其他天：顯示週幾 + 日期
           const idx = RANGE_STR.indexOf(d);
           if (idx >= 0){
             const wd = WEEKDAY[RANGE_DATES[idx].getDay()];
@@ -621,11 +672,18 @@
           }
         }
 
+        // ✅ 功能 2：過期且標延期 → 顯示【延期】標籤
+        const showDelayBadge = isOverdue && status === "延期";
+
         return `
           <div class="task ${cls}">
             <div class="taskTop">
               <div class="taskName">${escapeHtml(name)}</div>
-              <div class="tag" style="background:${tagColor}">${escapeHtml(tagText)}</div>
+              <div class="tagWrap">
+                <div class="tag" style="background:${tagColor}">${escapeHtml(tagText)}</div>
+                ${showDelayBadge ? `<div class="tagMini tagDelay">延期</div>` : ``}
+                ${inferred ? `<div class="tagMini tagInferred">單號推算</div>` : ``}
+              </div>
             </div>
             <div class="detail">
               <div><b>${escapeHtml(task)}</b></div>
@@ -642,13 +700,9 @@
     document.getElementById("app").innerHTML = html;
   }
 
-  // =============================
-  // Init
-  // =============================
   function init(){
     buildDayChips();
 
-    // 日期列：用事件代理抓 change（因為 chips 是 JS 動態生成）
     document.getElementById("dayStrip").addEventListener("change", (e)=>{
       if (e.target && e.target.matches('input[type="checkbox"]')) render();
     });
