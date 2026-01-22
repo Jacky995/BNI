@@ -1,0 +1,1756 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>全家福 月報表（人員總覽＋趨勢＋明細）</title>
+  <style>
+    :root{
+      --bg:#eef1f4;
+      --card:#ffffff;
+      --text:#1b1f24;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --shadow: 0 10px 25px rgba(0,0,0,0.08);
+      --shadow2: 0 3px 10px rgba(0,0,0,0.06);
+      --dark:#111827;
+      --chip:#f3f4f6;
+      --chipOn:#e7f1ff;
+      --chipBorder:#3b82f6;
+      --green:#16a34a;
+      --red:#dc2626;
+      --blue:#0891b2;
+      --amber:#f59e0b;
+    }
+    *{box-sizing:border-box;}
+    body{
+      margin:0;
+      font-family:"Microsoft JhengHei", system-ui, -apple-system, "Segoe UI", sans-serif;
+      color:var(--text);
+      background:var(--bg);
+      padding: max(12px, env(safe-area-inset-top)) 12px max(14px, env(safe-area-inset-bottom));
+      -webkit-tap-highlight-color: transparent;
+    }
+    .controls{
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(8px);
+      border:1px solid rgba(0,0,0,0.06);
+      box-shadow: var(--shadow2);
+      border-radius: 14px;
+      padding: 12px;
+      margin: 0 auto 12px auto;
+      max-width: 1100px;
+    }
+    .title{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:10px;
+    }
+    .title h1{ margin:0; font-size:18px; letter-spacing:.2px; }
+    .updated{ font-size:12px; color:var(--muted); white-space:nowrap; }
+
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content: space-between;
+    }
+    .chip{
+      display:flex; align-items:center; gap:8px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      background: var(--chip);
+      border: 2px solid transparent;
+      user-select:none;
+      cursor:pointer;
+      font-weight: 800;
+      font-size: 14px;
+      line-height: 1;
+      touch-action: manipulation;
+      white-space: nowrap;
+    }
+    .chip input{ transform: scale(1.25); }
+    .chip.on{ background:var(--chipOn); border-color:var(--chipBorder); color:#0b3a82; }
+
+    .inputs{
+      display:flex; gap:8px; flex-wrap:wrap; align-items:center;
+      flex: 1 1 320px;
+    }
+    .inputs label{
+      font-size:12px; color:var(--muted); font-weight:900;
+      display:flex; flex-direction:column; gap:6px;
+    }
+    .inputs input[type="month"], .inputs select{
+      padding: 11px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      outline: none;
+      font-size: 14px;
+      background:#fff;
+      min-width: 160px;
+    }
+    .btn{
+      border:0;
+      background: var(--dark);
+      color:#fff;
+      padding: 11px 12px;
+      border-radius: 12px;
+      font-weight: 900;
+      cursor:pointer;
+      touch-action: manipulation;
+      white-space: nowrap;
+    }
+    .btn.secondary{ background: #374151; }
+    .btn:disabled{ opacity:.6; cursor:not-allowed; }
+    .stats{
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      text-align:left;
+      line-height: 1.55;
+      font-weight: 800;
+    }
+
+    /* ===== Charts ===== */
+    #chartsArea{ max-width:1100px; margin:0 auto 12px auto; }
+    .chartsGrid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    @media (min-width: 820px){
+      .title h1{ font-size:22px; }
+      .chartsGrid{ grid-template-columns: 1fr 1fr; }
+    }
+    .chartCard{
+      background: var(--card);
+      border-radius: 16px;
+      border: 1px solid rgba(0,0,0,0.06);
+      box-shadow: var(--shadow);
+      padding: 12px 12px 8px 12px;
+      overflow:hidden;
+    }
+    .chartTitle{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      margin-bottom: 8px;
+      font-weight: 1000;
+      font-size: 14px;
+      color: #111827;
+    }
+    .chartHint{
+      font-size: 13px;
+      color: var(--muted);
+      padding: 12px;
+      border: 1px dashed var(--line);
+      border-radius: 12px;
+      background: #fff;
+      font-weight: 800;
+      line-height: 1.55;
+    }
+    .chartWrap{
+      position: relative;
+      width: 100%;
+      height: 240px;
+    }
+    @media (min-width: 820px){
+      .chartWrap{ height: 260px; }
+    }
+    canvas{ width: 100% !important; height: 100% !important; }
+
+    /* ===== List / cards ===== */
+    #app{ max-width:1100px; margin:0 auto; }
+    .loading{
+      text-align:center;
+      color: var(--muted);
+      padding: 40px 0;
+      font-size: 16px;
+      font-weight: 800;
+    }
+    .err{
+      text-align:center;
+      color: #b00020;
+      padding: 18px;
+      font-weight: 900;
+      background: #fff;
+      border: 1px solid #ffd2d6;
+      border-radius: 14px;
+      box-shadow: var(--shadow2);
+      max-width:1100px;
+      margin: 0 auto 12px auto;
+    }
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    @media (min-width: 820px){
+      .grid{ grid-template-columns: 1fr 1fr; }
+    }
+    @media (min-width: 1120px){
+      .grid{ grid-template-columns: 1fr 1fr 1fr; }
+    }
+
+    /* ===== Person accordion card ===== */
+    details.personCard{
+      background: var(--card);
+      border-radius: 16px;
+      border: 1px solid rgba(0,0,0,0.06);
+      box-shadow: var(--shadow);
+      overflow:hidden;
+    }
+    summary.personHead{
+      list-style:none;
+      cursor:pointer;
+      user-select:none;
+      padding: 12px 14px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      border-top: 6px solid #6c757d;
+    }
+    summary.personHead::-webkit-details-marker{ display:none; }
+
+    .name{
+      font-weight: 1000;
+      font-size: 16px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .count{
+      background:#111827;
+      color:#fff;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 1000;
+      white-space:nowrap;
+    }
+    .metaRight{
+      display:flex;
+      align-items:center;
+      gap:8px;
+      color: var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      white-space:nowrap;
+    }
+
+    .body{
+      padding: 10px 12px 12px;
+      border-top: 1px solid var(--line);
+      background:#fff;
+    }
+
+    /* ===== Inner task cards ===== */
+    .task{
+      border: 1px solid var(--line);
+      border-left: 6px solid #c7c7c7;
+      border-radius: 12px;
+      padding: 10px 10px;
+      background:#fff;
+      margin-bottom: 10px;
+    }
+    .task:last-child{ margin-bottom:0; }
+    .task.is-done{ border-left-color: var(--green); background:#ecfdf3; }
+    .task.is-pending{ border-left-color: var(--blue); background:#e6fbff; }
+    .task.is-overdue{ border-left-color: var(--red); background:#fff5f5; }
+
+    .taskTop{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:flex-start;
+      font-weight: 1000;
+    }
+    .taskName{ font-size: 15px; }
+    .tag{
+      padding: 3px 8px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 1000;
+      color:#fff;
+      white-space:nowrap;
+    }
+    .detail{
+      margin-top: 6px;
+      font-size: 13px;
+      line-height: 1.45;
+      color: #374151;
+    }
+    .muted{ color: var(--muted); font-weight: 800; }
+
+    /* ===== People Overview ===== */
+    #peopleArea{ max-width:1100px; margin:0 auto 12px auto; }
+    .sectionCard{
+      background: var(--card);
+      border-radius: 16px;
+      border: 1px solid rgba(0,0,0,0.06);
+      box-shadow: var(--shadow);
+      padding: 12px;
+      overflow:hidden;
+    }
+    .sectionHead{
+      display:flex;
+      align-items:flex-start;
+      justify-content:space-between;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-bottom: 10px;
+    }
+    .sectionTitle{ font-weight: 1100; font-size: 15px; color:#111827; }
+    .sectionSub{ font-size: 12px; color: var(--muted); font-weight: 900; line-height:1.55; }
+
+    .topCards{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 10px;
+      margin-top: 8px;
+    }
+    @media (min-width: 820px){
+      .topCards{ grid-template-columns: repeat(3, 1fr); }
+    }
+    .miniCard{
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      padding: 10px 10px;
+      background:#fff;
+    }
+    .miniTop{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+      margin-bottom:6px;
+    }
+    .miniName{ font-weight: 1100; font-size: 14px; }
+    .pill{
+      font-size: 12px;
+      font-weight: 1100;
+      padding: 4px 8px;
+      border-radius: 999px;
+      background: #f3f4f6;
+      color:#111827;
+      white-space:nowrap;
+    }
+    .kpis{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      font-size: 12px;
+      color:#374151;
+      font-weight: 900;
+    }
+    .kpis b{ color:#111827; }
+    .bar{ height:8px; background: #e5e7eb; border-radius:999px; overflow:hidden; margin-top:8px; }
+    .bar > i{ display:block; height:100%; background: #16a34a; width:0%; }
+
+    .peopleChartsGrid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+      margin-top: 12px;
+    }
+    @media (min-width: 820px){
+      .peopleChartsGrid{ grid-template-columns: 1fr 1fr; }
+      .peopleChartsGrid .wide{ grid-column: 1 / -1; }
+    }
+
+    .rankWrap{
+      margin-top: 12px;
+      overflow:auto;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background:#fff;
+    }
+    table.rankTable{ width:100%; border-collapse: collapse; min-width: 900px; }
+    .rankTable th, .rankTable td{
+      padding: 10px 10px;
+      border-bottom: 1px solid var(--line);
+      text-align:left;
+      font-size: 13px;
+      font-weight: 900;
+    }
+    .rankTable th{
+      position: sticky;
+      top: 0;
+      background: #fff;
+      z-index: 5;
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 1100;
+    }
+    .rankTable tr{ cursor:pointer; }
+    .rankTable tr:hover{ background:#f9fafb; }
+    .num{ text-align:right; }
+    .badge{
+      font-size: 12px;
+      font-weight: 1100;
+      padding: 2px 8px;
+      border-radius: 999px;
+      color:#fff;
+      display:inline-block;
+      white-space:nowrap;
+    }
+    .badge.g{ background: var(--green); }
+    .badge.b{ background: var(--blue); }
+    .badge.r{ background: var(--red); }
+    .badge.am{ background: var(--amber); color:#111827; }
+
+    details.personCard.flash > summary{ box-shadow: 0 0 0 3px rgba(59,130,246,0.35) inset; }
+
+    /* ===== Debug ===== */
+    .debugBox{
+      margin-top:12px;
+      border:1px dashed var(--line);
+      border-radius:14px;
+      padding:10px;
+      background:#fff;
+    }
+    .debugBox h3{ margin:0 0 8px 0; font-size:13px; }
+    .debugList{
+      max-height: 220px;
+      overflow:auto;
+      font-size: 12px;
+      color:#374151;
+      line-height:1.5;
+      font-weight:800;
+    }
+    .mono{ font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace; }
+  </style>
+</head>
+<body>
+
+  <div class="controls">
+    <div class="title">
+      <h1>全家福 月報表（人員總覽＋趨勢＋明細）</h1>
+      <div class="updated" id="updatedAt">—</div>
+    </div>
+
+    <div class="row">
+      <div class="inputs">
+        <label>
+          月份
+          <input type="month" id="monthPick" />
+        </label>
+
+        <label>
+          排行依據
+          <select id="sortMetric">
+            <option value="score" selected>貢獻</option>
+            <option value="amount">金額</option>
+            <option value="done">已完成</option>
+            <option value="total">件數</option>
+            <option value="rate">完成率</option>
+          </select>
+        </label>
+
+        <label class="chip on" id="chipDoneOnly" style="margin-top: 18px;">
+          <input type="checkbox" id="chkDoneOnly" checked />
+          列表只顯示已完成
+        </label>
+
+        <label class="chip on" id="chipSplitAmount" style="margin-top: 18px;">
+          <input type="checkbox" id="chkSplitAmount" checked />
+          金額多人平分
+        </label>
+
+        <label class="chip on" id="chipAmtDoneOnly" style="margin-top: 18px;">
+          <input type="checkbox" id="chkAmtDoneOnly" checked />
+          金額只算已完成
+        </label>
+
+        <label class="chip" id="chipDebug" style="margin-top: 18px;">
+          <input type="checkbox" id="chkDebug" />
+          解析除錯
+        </label>
+
+      </div>
+
+      <div style="display:flex; gap:8px; flex-wrap:wrap;">
+        <button class="btn secondary" id="btnToggleAll">全部展開</button>
+        <button class="btn" id="btnReload">重載</button>
+      </div>
+    </div>
+
+    <div class="stats" id="stats"></div>
+  </div>
+
+  <div id="peopleArea"></div>
+  <div id="chartsArea"></div>
+  <div id="app" class="loading">資料讀取中...</div>
+
+  <!-- Chart.js（若你環境不能連外，這段載不到就會自動顯示提醒） -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+
+<script>
+  function getThisMonthValue(){
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth() + 1).padStart(2, "0");
+    return `${yyyy}-${mm}`;
+  }
+
+  // =============================
+  // ✅ 你只改這段 CONFIG
+  // =============================
+  const CONFIG = {
+    apiKey: "UGQ4cGFmNjg2R0J2TXNSMXpZdVVvSlhIUVRLZHo2SmpISXUyMFQrRCtySXFDTUk2T2NCeUY4b0FDcXJ6OENqRA==",
+    baseUrl: "https://ap12.ragic.com/89793238/fami/2",
+    fields: {
+      status: "1000111",
+      date:   "1000122",
+      person: "1000113",
+      reason: "1000120",
+      addr:   "1000119",
+      name:   "1000116",
+      // ✅ 金額欄位：填入你的「金額」欄位 EID（不填就不顯示金額/金額圖）
+      amount: "1000114"
+    },
+
+    // ✅ 人員解析規則（你可自行補 alias）
+    person: {
+      placeholderName: "待指派",
+      stripNotes: true, // 移除括號備註： (xx) （xx） [xx] 【xx】 {xx} 「xx」
+      removeSuffixes: [
+        /師傅$/g, /師父$/g, /先生$/g, /小姐$/g, /師$/g, /傅$/g
+      ],
+      // ✅ 別名對照：key 會被標準化後再匹配（大小寫/全形半形/空白/括號都會先處理）
+      // 範例：
+      // aliases: { "阿昱":"昱", "昱哥":"昱", "小俞":"俞" }
+      aliases: {}
+    }
+  };
+
+  // =============================
+  // State
+  // =============================
+  let ALL_RECORDS = [];
+  let IS_LOADING = false;
+
+  const CHARTS = {
+    countTrend: null,
+    ratio: null,
+    amountTrend: null,
+    personAmount: null,
+    personCounts: null,
+    personMoney: null,
+    personScore: null,
+    teamMoney: null,
+    teamCounts: null
+  };
+
+  // =============================
+  // JSONP
+  // =============================
+  function jsonp(url) {
+    return new Promise((resolve, reject) => {
+      const cb = "__ragic_cb_" + Date.now() + "_" + Math.random().toString(16).slice(2);
+      window[cb] = (data) => { cleanup(); resolve(data); };
+
+      const s = document.createElement("script");
+      s.src = url + (url.includes("?") ? "&" : "?") + "callback=" + encodeURIComponent(cb);
+      s.onerror = () => { cleanup(); reject(new Error("JSONP failed")); };
+
+      function cleanup(){
+        try { delete window[cb]; } catch(e){ window[cb] = undefined; }
+        s.remove();
+      }
+      document.head.appendChild(s);
+    });
+  }
+
+  // =============================
+  // ✅ 更穩的 getValue：優先抓 text
+  // =============================
+  function getValue(r, id){
+    const v = r?.[id];
+    if (v == null) return "";
+    if (typeof v === "object") {
+      if (Array.isArray(v)) return v.map(x => (x?.text ?? x?.value ?? x?._index_title_ ?? x?.name ?? "")).join(",");
+      return String(v.text ?? v.value ?? v._index_title_ ?? v.name ?? "");
+    }
+    return String(v);
+  }
+
+  function escapeHtml(s){
+    return String(s ?? "")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  function setLoading(flag){
+    IS_LOADING = flag;
+    document.getElementById("btnReload").disabled = flag;
+    document.getElementById("btnToggleAll").disabled = flag;
+  }
+
+  function syncChips(){
+    const on1 = document.getElementById("chkDoneOnly").checked;
+    document.getElementById("chipDoneOnly").classList.toggle("on", on1);
+
+    const on2 = document.getElementById("chkSplitAmount").checked;
+    document.getElementById("chipSplitAmount").classList.toggle("on", on2);
+
+    const on3 = document.getElementById("chkAmtDoneOnly").checked;
+    document.getElementById("chipAmtDoneOnly").classList.toggle("on", on3);
+
+    const on4 = document.getElementById("chkDebug").checked;
+    document.getElementById("chipDebug").classList.toggle("on", on4);
+  }
+
+  function setUpdatedNow(){
+    const d = new Date();
+    const hh = String(d.getHours()).padStart(2,"0");
+    const mm = String(d.getMinutes()).padStart(2,"0");
+    document.getElementById("updatedAt").innerText = `更新 ${hh}:${mm}`;
+  }
+
+  // =============================
+  // ✅ 人員欄位：超耐髒解析 + 分門別類
+  // =============================
+  function normalizeText(s){
+    return String(s ?? "")
+      .normalize("NFKC")
+      .replace(/\u00A0/g, " ")
+      .replace(/[\u200B-\u200D\uFEFF]/g, "") // zero-width
+      .trim();
+  }
+
+  function stripBracketNotes(s){
+    return s
+      .replace(/\([^)]*\)/g, "")
+      .replace(/（[^）]*）/g, "")
+      .replace(/\[[^\]]*\]/g, "")
+      .replace(/【[^】]*】/g, "")
+      .replace(/\{[^}]*\}/g, "")
+      .replace(/「[^」]*」/g, "")
+      .trim();
+  }
+
+  function unifySeparators(s){
+    // 把各種分隔符（含怪點、斜線、加號、&、換行、頓號、全形逗號…）統一成逗號
+    return s
+      .replace(/[，、﹐﹑､]/g, ",")
+      .replace(/[；﹔;]/g, ",")
+      .replace(/[／/\\|｜]/g, ",")
+      .replace(/[＋+&＆]/g, ",")
+      .replace(/[。．·•●・]/g, ",")
+      .replace(/[\n\r\t]+/g, ",")
+      .replace(/\s{2,}/g, " ")
+      .trim();
+  }
+
+  function canonName(raw){
+    let x = normalizeText(raw);
+    if (!x) return CONFIG.person.placeholderName;
+
+    if (CONFIG.person.stripNotes) x = stripBracketNotes(x);
+
+    // 去掉前後多餘標點空白
+    x = x.replace(/^[\s,，、.。·•]+|[\s,，、.。·•]+$/g, "").trim();
+
+    // 如果是純中文名，移除中間空格（避免 "昱 俞" 變兩個 token）
+    const cjkCount = (x.match(/[\u4e00-\u9fff]/g) || []).length;
+    const latinCount = (x.match(/[A-Za-z]/g) || []).length;
+    if (cjkCount >= 1 && latinCount === 0) x = x.replace(/\s+/g, "");
+    else x = x.replace(/\s+/g, " ").trim();
+
+    // 去掉常見尾綴
+    for (const re of (CONFIG.person.removeSuffixes || [])){
+      x = x.replace(re, "");
+    }
+    x = x.trim();
+
+    // placeholder
+    if (!x) return CONFIG.person.placeholderName;
+    const lower = x.toLowerCase();
+    const placeholders = new Set([
+      "", "-", "—", "無", "未填", "未指派", "待指派", "n/a", "na", "null", "none"
+    ]);
+    if (placeholders.has(lower) || placeholders.has(x)) return CONFIG.person.placeholderName;
+
+    // alias
+    // 先用 canon 後的 key 去找 alias
+    const aliasMap = CONFIG.person.aliases || {};
+    if (aliasMap[x] != null) x = aliasMap[x];
+
+    return x || CONFIG.person.placeholderName;
+  }
+
+  // 回傳：persons[], crewType, rawNormalized, tokensBeforeCanon（用於除錯）
+  function parsePersonsDetailed(personText){
+    let raw = normalizeText(personText);
+    raw = unifySeparators(raw);
+
+    if (!raw) {
+      return {
+        persons: [CONFIG.person.placeholderName],
+        crew: "未指派",
+        rawNormalized: "",
+        tokens: [],
+      };
+    }
+
+    // 用逗號拆 token
+    const tokens = raw.split(",")
+      .map(t => normalizeText(t))
+      .filter(Boolean);
+
+    const persons = [];
+    for (const t of tokens){
+      // 有些人會寫成 "昱 俞"（空格）但其實要兩人；我們保守做法：
+      // - 如果 token 內有「多個中文名且被空格隔開」，才拆
+      // - 其他情況一律不拆，避免把 "王 小明" 這種誤拆
+      const maybeSplit = t.includes(" ") ? t.split(/\s+/g).filter(Boolean) : [t];
+
+      if (maybeSplit.length >= 2){
+        // 檢查每段是否像短中文名（1~3字），才當作多人
+        const looksLikeShortCjk = maybeSplit.every(x=>{
+          const s = stripBracketNotes(x);
+          const c = (s.match(/[\u4e00-\u9fff]/g)||[]).length;
+          const other = s.replace(/[\u4e00-\u9fff]/g,"").length;
+          return (c>=1 && c<=3 && other===0);
+        });
+        if (looksLikeShortCjk){
+          for (const part of maybeSplit){
+            persons.push(canonName(part));
+          }
+          continue;
+        }
+      }
+
+      persons.push(canonName(t));
+    }
+
+    // 去重（維持順序）
+    const seen = new Set();
+    const uniq = persons.filter(p=>{
+      const k = p;
+      if (seen.has(k)) return false;
+      seen.add(k);
+      return true;
+    });
+
+    const cleaned = (uniq.length ? uniq : [CONFIG.person.placeholderName]);
+
+    const crew = classifyCrew(cleaned);
+
+    return {
+      persons: cleaned,
+      crew,
+      rawNormalized: raw,
+      tokens
+    };
+  }
+
+  function classifyCrew(persons){
+    if (!persons || persons.length === 0) return "未指派";
+    if (persons.length === 1 && persons[0] === CONFIG.person.placeholderName) return "未指派";
+    if (persons.length === 1) return "單人";
+    if (persons.length === 2) return "雙人";
+    return "多人";
+  }
+
+  function crewBadge(crew){
+    if (crew === "單人") return `<span class="badge g">👤單人</span>`;
+    if (crew === "雙人") return `<span class="badge am">👥雙人</span>`;
+    if (crew === "多人") return `<span class="badge b">👥多人</span>`;
+    return `<span class="badge r">❔未指派</span>`;
+  }
+
+  // 日期 "YYYY/MM/DD ..." -> "YYYY/MM/DD"
+  function date10(r){
+    const raw = getValue(r, CONFIG.fields.date) || "";
+    return raw ? raw.substring(0,10) : "";
+  }
+  function month7(r){
+    const raw = getValue(r, CONFIG.fields.date) || "";
+    return raw ? raw.substring(0,7) : "";
+  }
+
+  function daysInMonth(yyyy, mm1to12){
+    return new Date(yyyy, mm1to12, 0).getDate();
+  }
+
+  function parseAmount(v){
+    const s = String(v ?? "").trim();
+    if (!s) return null;
+    const cleaned = s
+      .replace(/[,$\s]/g, "")
+      .replace(/[元ＮＴntNT]/g, "");
+    const n = Number(cleaned);
+    if (!Number.isFinite(n)) return null;
+    return n;
+  }
+
+  function fmtMoney(n){
+    const v = Math.round(Number(n) || 0);
+    return v.toLocaleString();
+  }
+
+  function destroyChart(key){
+    if (CHARTS[key]) {
+      try{ CHARTS[key].destroy(); }catch(e){}
+      CHARTS[key] = null;
+    }
+  }
+
+  // ===== Debug helper：找金額欄位 EID（不確定時用） =====
+  function suggestAmountEIDs(){
+    const sample = ALL_RECORDS.slice(0, 300);
+    const hit = {};
+    const ex = {};
+    for (const r of sample){
+      for (const k of Object.keys(r)){
+        if (!/^\d{6,}$/.test(k)) continue;
+        const n = parseAmount(getValue(r, k));
+        if (n != null){
+          hit[k] = (hit[k] || 0) + 1;
+          if (!ex[k]) ex[k] = getValue(r, k);
+        }
+      }
+    }
+    console.table(
+      Object.entries(hit)
+        .sort((a,b)=> b[1]-a[1])
+        .slice(0, 25)
+        .map(([eid, cnt])=>({ eid, hits: cnt, example: ex[eid] }))
+    );
+  }
+  window.suggestAmountEIDs = suggestAmountEIDs;
+
+  // =============================
+  // 人員總覽 + 合作組合（Top）
+  // =============================
+  function pid(person){
+    const s = String(person ?? "");
+    let h = 2166136261;
+    for (let i=0;i<s.length;i++){
+      h ^= s.charCodeAt(i);
+      h = Math.imul(h, 16777619);
+    }
+    const base = (s.normalize ? s.normalize("NFKD") : s)
+      .replace(/[^\w\u4e00-\u9fff]/g, "_")
+      .slice(0, 18) || "p";
+    return "p_" + base + "_" + ((h>>>0).toString(16));
+  }
+
+  function renderPeopleOverview(ctx){
+    const peopleArea = document.getElementById("peopleArea");
+    const {
+      monthKey,
+      amountEnabled,
+      amtDoneOnly,
+      splitAmount,
+      totalAmountRaw,
+      amountValidCount,
+      rows,
+      teamRows,
+      crewCounts,
+      debugRows
+    } = ctx;
+
+    if (!rows || !rows.length){
+      peopleArea.innerHTML = "";
+      return;
+    }
+
+    const amountNote = splitAmount ? "（多人平分）" : "（多人不分攤）";
+    const moneyLabel = amountEnabled ? (amtDoneOnly ? "金額（已完成）" : "金額（含未完成）") : "金額（未啟用）";
+    const sumText = amountEnabled
+      ? `${moneyLabel} 合計 ${fmtMoney(totalAmountRaw)}｜筆數 ${amountValidCount}${amountNote}`
+      : `要顯示金額：請在 CONFIG.fields.amount 填入金額欄位 EID（例如 1000121）`;
+
+    const top3 = rows.slice(0, 3);
+
+    const crewText =
+      `分類：單人 ${crewCounts["單人"]||0}｜雙人 ${crewCounts["雙人"]||0}｜多人 ${crewCounts["多人"]||0}｜未指派 ${crewCounts["未指派"]||0}`;
+
+    const topCardsHtml = top3.map((x, i)=>{
+      const ratePct = (x.rate * 100);
+      const badge = i === 0 ? '🏆' : (i === 1 ? '🥈' : '🥉');
+      const moneyText = amountEnabled ? `💰 <b>${fmtMoney(x.amount)}</b>` : `💰 <b>—</b>`;
+      return `
+        <div class="miniCard">
+          <div class="miniTop">
+            <div class="miniName">${badge} ${escapeHtml(x.person)}</div>
+            <div class="pill">貢獻 ${Number(x.score).toFixed(1)}</div>
+          </div>
+          <div class="kpis">
+            <span>🧾 <b>${x.total}</b></span>
+            <span>✅ <b>${x.done}</b></span>
+            <span>❌ <b>${x.pending}</b></span>
+            <span>${moneyText}</span>
+          </div>
+          <div class="bar" title="完成率">
+            <i style="width:${Math.max(0, Math.min(100, ratePct)).toFixed(1)}%"></i>
+          </div>
+          <div class="sectionSub">完成率 ${ratePct.toFixed(1)}%</div>
+        </div>
+      `;
+    }).join("");
+
+    const trs = rows.map((x, idx)=>{
+      const ratePct = x.rate * 100;
+      const money = amountEnabled ? fmtMoney(x.amount) : "—";
+      return `
+        <tr data-pid="${pid(x.person)}">
+          <td>${idx+1}</td>
+          <td>${escapeHtml(x.person)}</td>
+          <td class="num">${x.total}</td>
+          <td class="num"><span class="badge g">${x.done}</span></td>
+          <td class="num"><span class="badge b">${x.pending}</span></td>
+          <td class="num">${ratePct.toFixed(1)}%</td>
+          <td class="num">${money}</td>
+          <td class="num"><b>${Number(x.score).toFixed(1)}</b></td>
+        </tr>
+      `;
+    }).join("");
+
+    const hasChartJs = !!window.Chart;
+
+    const teamHtml = teamRows && teamRows.length ? `
+      <div class="sectionSub" style="margin-top:10px;">合作組合 Top（看「雙人/多人施作」常見搭配與貢獻）</div>
+      <div class="rankWrap" style="margin-top:8px;">
+        <table class="rankTable">
+          <thead>
+            <tr>
+              <th>#</th>
+              <th>組合</th>
+              <th class="num">件數</th>
+              <th class="num">已完成</th>
+              <th class="num">未完成</th>
+              <th class="num">完成率</th>
+              <th class="num">${escapeHtml(moneyLabel)}</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${teamRows.slice(0, 12).map((t, i)=>{
+              const rate = t.total ? (t.done/t.total*100) : 0;
+              const money = amountEnabled ? fmtMoney(t.amount) : "—";
+              return `
+                <tr>
+                  <td>${i+1}</td>
+                  <td>${escapeHtml(t.team)}</td>
+                  <td class="num">${t.total}</td>
+                  <td class="num"><span class="badge g">${t.done}</span></td>
+                  <td class="num"><span class="badge b">${t.pending}</span></td>
+                  <td class="num">${rate.toFixed(1)}%</td>
+                  <td class="num">${money}</td>
+                </tr>
+              `;
+            }).join("")}
+          </tbody>
+        </table>
+      </div>
+    ` : "";
+
+    const chartsHtml = hasChartJs ? `
+      <div class="peopleChartsGrid">
+        <div class="chartCard">
+          <div class="chartTitle">
+            <span>人員件數（已完成/未完成）</span>
+            <span class="muted">Top 12</span>
+          </div>
+          <div class="chartWrap"><canvas id="chartPersonCounts"></canvas></div>
+        </div>
+
+        <div class="chartCard">
+          <div class="chartTitle">
+            <span>${moneyLabel} ${amountNote}</span>
+            <span class="muted">${amountEnabled ? ("合計 " + fmtMoney(totalAmountRaw)) : "未啟用"}</span>
+          </div>
+          ${amountEnabled
+            ? `<div class="chartWrap"><canvas id="chartPersonMoney"></canvas></div>`
+            : `<div class="chartHint">要顯示金額：請在 <b>CONFIG.fields.amount</b> 填入金額欄位 EID（例如 1000121）。</div>`
+          }
+        </div>
+
+        <div class="chartCard wide">
+          <div class="chartTitle">
+            <span>貢獻分數（0–100）</span>
+            <span class="muted">${amountEnabled ? "金額 60% / 已完成 25% / 完成率 15%" : "已完成 70% / 完成率 30%"}</span>
+          </div>
+          <div class="chartWrap"><canvas id="chartPersonScore"></canvas></div>
+        </div>
+
+        <div class="chartCard">
+          <div class="chartTitle">
+            <span>合作組合（Top 12｜金額）</span>
+            <span class="muted">${amountEnabled ? "按組合累計" : "未啟用"}</span>
+          </div>
+          ${amountEnabled
+            ? `<div class="chartWrap"><canvas id="chartTeamMoney"></canvas></div>`
+            : `<div class="chartHint">未設定金額欄位 EID，暫不顯示。</div>`
+          }
+        </div>
+
+        <div class="chartCard">
+          <div class="chartTitle">
+            <span>合作組合（Top 12｜件數）</span>
+            <span class="muted">雙人/多人優先</span>
+          </div>
+          <div class="chartWrap"><canvas id="chartTeamCounts"></canvas></div>
+        </div>
+      </div>
+    ` : `
+      <div class="err" style="margin-top:12px;">
+        Chart.js 載入失敗（可能是環境無法連外）— 下面排行榜仍可使用。
+      </div>
+    `;
+
+    const debugOn = document.getElementById("chkDebug").checked;
+    const debugHtml = debugOn ? `
+      <div class="debugBox">
+        <h3>解析除錯（raw → persons / crew）</h3>
+        <div class="debugList mono">
+          ${(debugRows || []).slice(0, 80).map(d=>{
+            return `• raw: ${escapeHtml(d.raw || "(空)")}  →  [${escapeHtml(d.persons.join(" , "))}]  (${escapeHtml(d.crew)})`;
+          }).join("<br/>")}
+        </div>
+        <div class="sectionSub" style="margin-top:8px;">
+          你可以在 console 跑 <span class="mono">suggestAmountEIDs()</span> 來找金額欄位 EID。
+        </div>
+      </div>
+    ` : "";
+
+    peopleArea.innerHTML = `
+      <div class="sectionCard">
+        <div class="sectionHead">
+          <div>
+            <div class="sectionTitle">人員總覽（${escapeHtml(monthKey)}）</div>
+            <div class="sectionSub">一眼看：每人做了多少 / 賺多少 / 貢獻多少｜點表格人名可跳到明細</div>
+          </div>
+          <div class="sectionSub">${escapeHtml(sumText)}<br/>${escapeHtml(crewText)}</div>
+        </div>
+
+        <div class="topCards">${topCardsHtml}</div>
+
+        ${chartsHtml}
+
+        <div class="rankWrap">
+          <table class="rankTable">
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>人員</th>
+                <th class="num">件數</th>
+                <th class="num">已完成</th>
+                <th class="num">未完成</th>
+                <th class="num">完成率</th>
+                <th class="num">${escapeHtml(moneyLabel)}</th>
+                <th class="num">貢獻</th>
+              </tr>
+            </thead>
+            <tbody>${trs}</tbody>
+          </table>
+        </div>
+
+        ${teamHtml}
+        ${debugHtml}
+      </div>
+    `;
+
+    if (!hasChartJs) return;
+
+    // ===== charts (people) =====
+    const topN = rows.slice(0, Math.min(12, rows.length));
+    const labels = topN.map(x=>x.person);
+    const doneData = topN.map(x=>x.done);
+    const pendingData = topN.map(x=>x.pending);
+    const moneyData = topN.map(x=>Math.round(x.amount));
+    const scoreData = topN.map(x=>Number(x.score));
+
+    destroyChart("personCounts");
+    destroyChart("personMoney");
+    destroyChart("personScore");
+
+    CHARTS.personCounts = new Chart(document.getElementById("chartPersonCounts"), {
+      type: "bar",
+      data: {
+        labels,
+        datasets: [
+          { label: "已完成", data: doneData, backgroundColor: "rgba(22,163,74,0.78)" },
+          { label: "未完成", data: pendingData, backgroundColor: "rgba(8,145,178,0.72)" }
+        ]
+      },
+      options: {
+        indexAxis: "y",
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: "bottom" } },
+        scales: {
+          x: { beginAtZero: true, ticks: { precision: 0 } },
+          y: { ticks: { autoSkip: false } }
+        }
+      }
+    });
+
+    if (amountEnabled){
+      CHARTS.personMoney = new Chart(document.getElementById("chartPersonMoney"), {
+        type: "bar",
+        data: {
+          labels,
+          datasets: [{ label: moneyLabel, data: moneyData, backgroundColor: "rgba(17,24,39,0.72)" }]
+        },
+        options: {
+          indexAxis: "y",
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: { legend: { position: "bottom" } },
+          scales: { x: { beginAtZero: true }, y: { ticks: { autoSkip: false } } }
+        }
+      });
+    }
+
+    CHARTS.personScore = new Chart(document.getElementById("chartPersonScore"), {
+      type: "bar",
+      data: { labels, datasets: [{ label: "貢獻分數", data: scoreData, backgroundColor: "rgba(220,38,38,0.72)" }] },
+      options: {
+        indexAxis: "y",
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: { legend: { position: "bottom" } },
+        scales: { x: { beginAtZero: true, max: 100 }, y: { ticks: { autoSkip: false } } }
+      }
+    });
+
+    // ===== team charts =====
+    const teamTop = (teamRows || []).slice(0, 12);
+    const tLabels = teamTop.map(x=>x.team);
+    const tCounts = teamTop.map(x=>x.total);
+    const tMoney = teamTop.map(x=>Math.round(x.amount));
+
+    destroyChart("teamMoney");
+    destroyChart("teamCounts");
+
+    if (amountEnabled){
+      CHARTS.teamMoney = new Chart(document.getElementById("chartTeamMoney"), {
+        type: "bar",
+        data: { labels: tLabels, datasets: [{ label: "組合金額", data: tMoney, backgroundColor: "rgba(245,158,11,0.70)" }] },
+        options: {
+          indexAxis: "y",
+          responsive:true,
+          maintainAspectRatio:false,
+          plugins:{ legend:{ position:"bottom" } },
+          scales:{ x:{ beginAtZero:true }, y:{ ticks:{ autoSkip:false } } }
+        }
+      });
+    }
+
+    CHARTS.teamCounts = new Chart(document.getElementById("chartTeamCounts"), {
+      type: "bar",
+      data: { labels: tLabels, datasets: [{ label: "組合件數", data: tCounts, backgroundColor: "rgba(8,145,178,0.68)" }] },
+      options: {
+        indexAxis: "y",
+        responsive:true,
+        maintainAspectRatio:false,
+        plugins:{ legend:{ position:"bottom" } },
+        scales:{ x:{ beginAtZero:true, ticks:{ precision:0 } }, y:{ ticks:{ autoSkip:false } } }
+      }
+    });
+  }
+
+  function onPeopleAreaClick(e){
+    const tr = e.target.closest("tr[data-pid]");
+    if (!tr) return;
+    const pidVal = tr.getAttribute("data-pid");
+    const el = document.getElementById(pidVal);
+    if (el){
+      el.open = true;
+      el.classList.add("flash");
+      el.scrollIntoView({ behavior:"smooth", block:"start" });
+      setTimeout(()=> el.classList.remove("flash"), 900);
+    }
+  }
+
+  function renderCharts(payload){
+    const chartsArea = document.getElementById("chartsArea");
+    const hasChartJs = !!window.Chart;
+    if (!hasChartJs){
+      chartsArea.innerHTML = `
+        <div class="err">Chart.js 載入失敗（可能是環境無法連外）。<br/>你可以：1) 允許連外、或 2) 把 Chart.js 檔案下載後改成本地引用。</div>
+      `;
+      return;
+    }
+
+    const {
+      labels,
+      dailyDone,
+      dailyPending,
+      doneCount,
+      pendingCount,
+      donePct,
+      pendingPct,
+      amountEnabled,
+      dailyAmount,
+      totalAmount,
+      points
+    } = payload;
+
+    const amountNote = document.getElementById("chkSplitAmount").checked ? "（多人平分）" : "（多人不分攤）";
+    const amtModeNote = document.getElementById("chkAmtDoneOnly").checked ? "（只算已完成）" : "（含未完成）";
+
+    chartsArea.innerHTML = `
+      <div class="chartsGrid">
+        <div class="chartCard">
+          <div class="chartTitle">
+            <span>件數趨勢（每日）</span>
+            <span class="muted">已完成 / 未完成</span>
+          </div>
+          <div class="chartWrap"><canvas id="chartCountTrend"></canvas></div>
+        </div>
+
+        <div class="chartCard">
+          <div class="chartTitle">
+            <span>完成 vs 未完成比例</span>
+            <span class="muted">${donePct.toFixed(1)}% / ${pendingPct.toFixed(1)}%</span>
+          </div>
+          <div class="chartWrap"><canvas id="chartRatio"></canvas></div>
+        </div>
+
+        <div class="chartCard">
+          <div class="chartTitle">
+            <span>金額趨勢（每日）${amountNote}${amtModeNote}</span>
+            <span class="muted">${amountEnabled ? ("合計 " + totalAmount.toLocaleString()) : "未啟用"}</span>
+          </div>
+          ${amountEnabled
+            ? `<div class="chartWrap"><canvas id="chartAmountTrend"></canvas></div>`
+            : `<div class="chartHint">要顯示金額相關圖：請在 <b>CONFIG.fields.amount</b> 填入你的「金額」欄位 EID（例如 1000121）。</div>`
+          }
+        </div>
+
+        <div class="chartCard">
+          <div class="chartTitle">
+            <span>金額 × 人（關係圖）${amountNote}${amtModeNote}</span>
+            <span class="muted">${amountEnabled ? "X=件數, Y=金額合計" : "未啟用"}</span>
+          </div>
+          ${amountEnabled
+            ? `<div class="chartWrap"><canvas id="chartPersonAmount"></canvas></div>`
+            : `<div class="chartHint">同上：未設定金額欄位 EID，暫時不顯示。</div>`
+          }
+        </div>
+      </div>
+    `;
+
+    destroyChart("countTrend");
+    CHARTS.countTrend = new Chart(document.getElementById("chartCountTrend"), {
+      type: "line",
+      data: {
+        labels,
+        datasets: [
+          { label: "已完成", data: dailyDone, borderColor: "#16a34a", backgroundColor: "rgba(22,163,74,0.15)", tension: 0.25, fill: true, pointRadius: 2 },
+          { label: "未完成", data: dailyPending, borderColor: "#0891b2", backgroundColor: "rgba(8,145,178,0.12)", tension: 0.25, fill: true, pointRadius: 2 }
+        ]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: "index", intersect: false },
+        plugins: {
+          legend: { position: "bottom" },
+          tooltip: { callbacks: { footer: (items)=> {
+            const done = Number(items?.find(x=>x.dataset.label==="已完成")?.raw ?? 0);
+            const pen  = Number(items?.find(x=>x.dataset.label==="未完成")?.raw ?? 0);
+            return `合計：${done + pen}`;
+          }}}
+        },
+        scales: { y: { beginAtZero: true, ticks: { precision: 0 } } }
+      }
+    });
+
+    destroyChart("ratio");
+    CHARTS.ratio = new Chart(document.getElementById("chartRatio"), {
+      type: "doughnut",
+      data: {
+        labels: ["已完成", "未完成"],
+        datasets: [{ data: [doneCount, pendingCount], backgroundColor: ["#16a34a", "#0891b2"], borderWidth: 0 }]
+      },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        plugins: {
+          legend: { position: "bottom" },
+          tooltip: { callbacks: { label: (ctx)=> {
+            const total = doneCount + pendingCount;
+            const v = ctx.raw || 0;
+            const pct = total ? (v / total * 100) : 0;
+            return `${ctx.label}: ${v}（${pct.toFixed(1)}%）`;
+          }}}
+        },
+        cutout: "62%"
+      }
+    });
+
+    destroyChart("amountTrend");
+    destroyChart("personAmount");
+    if (amountEnabled){
+      CHARTS.amountTrend = new Chart(document.getElementById("chartAmountTrend"), {
+        type: "line",
+        data: { labels, datasets: [{ label: "金額合計", data: dailyAmount, borderColor: "#111827", backgroundColor: "rgba(17,24,39,0.10)", tension: 0.25, fill: true, pointRadius: 2 }] },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          interaction: { mode: "index", intersect: false },
+          plugins: { legend: { position: "bottom" } },
+          scales: { y: { beginAtZero: true } }
+        }
+      });
+
+      CHARTS.personAmount = new Chart(document.getElementById("chartPersonAmount"), {
+        type: "scatter",
+        data: { datasets: [{ label: "師傅", data: points, borderColor: "#dc2626", backgroundColor: "rgba(220,38,38,0.25)", pointRadius: 4 }] },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { display: false },
+            tooltip: { callbacks: { label: (ctx)=> {
+              const p = ctx.raw || {};
+              const x = p.x ?? 0;
+              const y = p.y ?? 0;
+              const avg = p.avg ?? 0;
+              return `${p.person}｜件數 ${x}｜金額 ${Number(y).toLocaleString()}｜均價 ${Number(avg).toLocaleString()}`;
+            }}}
+          },
+          scales: {
+            x: { beginAtZero: true, title: { display: true, text: "件數（按多人拆分顯示）" }, ticks: { precision: 0 } },
+            y: { beginAtZero: true, title: { display: true, text: "金額合計" } }
+          }
+        }
+      });
+    }
+  }
+
+  // =============================
+  // 讀資料（抓多一點，前端再篩）
+  // =============================
+  async function loadFromRagic(){
+    if (!CONFIG.apiKey || CONFIG.apiKey.includes("PUT_YOUR_APIKEY")){
+      document.getElementById("app").innerHTML =
+        `<div class="err">請先在 CONFIG.apiKey 填入有效 API Key</div>`;
+      return;
+    }
+
+    try{
+      setLoading(true);
+      document.getElementById("peopleArea").innerHTML = "";
+      document.getElementById("chartsArea").innerHTML = "";
+      document.getElementById("app").innerHTML = `<div class="loading">資料讀取中...</div>`;
+
+      const params = new URLSearchParams();
+      params.set("api","");
+      params.set("APIKey", CONFIG.apiKey);
+      params.set("naming","EID");
+      params.set("limit","5000");
+      params.set("reverse","true");
+
+      const url = `${CONFIG.baseUrl}?${params.toString()}`;
+      const data = await jsonp(url);
+
+      ALL_RECORDS = Object.values(data || {})
+        .filter(v => v && typeof v === "object" && v._ragicId !== 0);
+
+      setUpdatedNow();
+      render();
+    }catch(err){
+      console.error(err);
+      document.getElementById("chartsArea").innerHTML = "";
+      document.getElementById("app").innerHTML =
+        `<div class="err">讀取失敗：請檢查 baseUrl(ap12)、APIKey 權限</div>`;
+    }finally{
+      setLoading(false);
+    }
+  }
+
+  // =============================
+  // 主渲染
+  // =============================
+  function render(){
+    syncChips();
+
+    const monthPick = document.getElementById("monthPick");
+    if (!monthPick.value) monthPick.value = getThisMonthValue();
+    const monthVal = monthPick.value;            // "YYYY-MM"
+    const monthKey = monthVal.replace("-", "/"); // "YYYY/MM"
+
+    const listDoneOnly = document.getElementById("chkDoneOnly").checked;
+    const splitAmount  = document.getElementById("chkSplitAmount").checked;
+    const amtDoneOnly  = document.getElementById("chkAmtDoneOnly").checked;
+
+    const amountEnabled = !!(CONFIG.fields.amount && !String(CONFIG.fields.amount).includes("PUT_AMOUNT_EID"));
+
+    // baseMonth：當月、排除取消
+    const baseMonth = ALL_RECORDS.filter(r=>{
+      if (month7(r) !== monthKey) return false;
+      const status = getValue(r, CONFIG.fields.status);
+      if (status === "取消") return false;
+      return true;
+    });
+
+    const doneMonth = baseMonth.filter(r => getValue(r, CONFIG.fields.status) === "已完成");
+    const pendingMonth = baseMonth.filter(r => getValue(r, CONFIG.fields.status) !== "已完成");
+    const listMonth = listDoneOnly ? doneMonth : baseMonth;
+
+    // ===== 趨勢（每日）=====
+    const [yyyy, mm] = monthVal.split("-").map(x=>Number(x));
+    const dim = daysInMonth(yyyy, mm);
+    const labels = Array.from({length: dim}, (_,i)=> String(i+1).padStart(2,"0"));
+
+    const dailyDone = Array(dim).fill(0);
+    const dailyPending = Array(dim).fill(0);
+    const dailyAmount = Array(dim).fill(0);
+
+    let totalAmountRaw = 0;
+    let amountValidCount = 0;
+
+    // per-person stats（按拆人）
+    const pStats = new Map(); // person -> {person,total,done,pending,amount,rate,score}
+    function ensureP(p){
+      if (!pStats.has(p)) pStats.set(p, { person: p, total: 0, done: 0, pending: 0, amount: 0, rate: 0, score: 0 });
+      return pStats.get(p);
+    }
+
+    // per-team stats（合作組合）
+    const tStats = new Map(); // team -> {team,total,done,pending,amount}
+    function ensureT(team){
+      if (!tStats.has(team)) tStats.set(team, { team, total:0, done:0, pending:0, amount:0 });
+      return tStats.get(team);
+    }
+
+    // 分門別類：單/雙/多/未指派（以「每筆單」分類）
+    const crewCounts = { "單人":0, "雙人":0, "多人":0, "未指派":0 };
+
+    // debug rows（raw -> parsed）
+    const debugRows = [];
+
+    for (const r of baseMonth){
+      const status = getValue(r, CONFIG.fields.status);
+      const d10 = date10(r);
+
+      // 解析人員
+      const parsed = parsePersonsDetailed(getValue(r, CONFIG.fields.person));
+      const persons = parsed.persons;
+      const crew = parsed.crew;
+
+      crewCounts[crew] = (crewCounts[crew] || 0) + 1;
+
+      // debug
+      if (document.getElementById("chkDebug").checked){
+        debugRows.push({ raw: getValue(r, CONFIG.fields.person), persons, crew });
+      }
+
+      // 日趨勢：件數（不拆人）
+      if (d10 && d10.length >= 10){
+        const day = Number(d10.substring(8,10));
+        if (day >= 1 && day <= dim){
+          if (status === "已完成") dailyDone[day-1] += 1;
+          else dailyPending[day-1] += 1;
+        }
+      }
+
+      // 人員件數（拆人）
+      for (const p of persons){
+        const st = ensureP(p);
+        st.total += 1;
+        if (status === "已完成") st.done += 1;
+        else st.pending += 1;
+      }
+
+      // 合作組合 key（排序後固定，避免 "A,B" 與 "B,A" 被分成兩種）
+      const teamKey = [...persons].sort((a,b)=> String(a).localeCompare(String(b),"zh-Hant")).join(" + ");
+      const team = ensureT(teamKey);
+      team.total += 1;
+      if (status === "已完成") team.done += 1;
+      else team.pending += 1;
+
+      // 金額
+      if (amountEnabled){
+        const amt = parseAmount(getValue(r, CONFIG.fields.amount));
+        if (amt != null){
+          const shouldCountMoney = (!amtDoneOnly) || (status === "已完成");
+          if (shouldCountMoney){
+            totalAmountRaw += amt;
+            amountValidCount += 1;
+
+            if (d10 && d10.length >= 10){
+              const day = Number(d10.substring(8,10));
+              if (day >= 1 && day <= dim) dailyAmount[day-1] += amt;
+            }
+
+            // per-person：可平分
+            const share = splitAmount ? (amt / Math.max(1, persons.length)) : amt;
+            for (const p of persons){
+              ensureP(p).amount += share;
+            }
+
+            // per-team：組合用「原始金額」累計（比較直覺：這筆錢是這組做出來的）
+            team.amount += amt;
+          }
+        }
+      }
+    }
+
+    const doneCount = doneMonth.length;
+    const pendingCount = pendingMonth.length;
+    const totalCount = doneCount + pendingCount;
+    const donePct = totalCount ? (doneCount / totalCount * 100) : 0;
+    const pendingPct = totalCount ? (pendingCount / totalCount * 100) : 0;
+
+    const pRows = Array.from(pStats.values()).map(x=>{
+      x.rate = x.total ? (x.done / x.total) : 0;
+      return x;
+    });
+
+    // 貢獻分數（同你原本口徑）
+    const sumDoneSplit = pRows.reduce((s,x)=> s + x.done, 0);
+    const sumAmount = pRows.reduce((s,x)=> s + x.amount, 0);
+
+    for (const x of pRows){
+      const doneShare = sumDoneSplit ? (x.done / sumDoneSplit) : 0;
+      const amountShare = (amountEnabled && sumAmount) ? (x.amount / sumAmount) : 0;
+      const rate = x.rate || 0;
+
+      let score;
+      if (amountEnabled && sumAmount > 0){
+        score = 100 * (0.60 * amountShare + 0.25 * doneShare + 0.15 * rate);
+      }else{
+        score = 100 * (0.70 * doneShare + 0.30 * rate);
+      }
+      x.score = Math.round(score * 10) / 10;
+    }
+
+    // 排序（下拉）
+    const sortMetric = (document.getElementById("sortMetric")?.value || "score");
+    const metricValue = (x)=>{
+      if (sortMetric === "amount") return x.amount;
+      if (sortMetric === "done") return x.done;
+      if (sortMetric === "total") return x.total;
+      if (sortMetric === "rate") return x.rate;
+      return x.score;
+    };
+    pRows.sort((a,b)=>
+      (metricValue(b) - metricValue(a))
+      || (b.score - a.score)
+      || (b.amount - a.amount)
+      || (b.done - a.done)
+      || (b.total - a.total)
+      || String(a.person).localeCompare(String(b.person), "zh-Hant")
+    );
+
+    // 合作組合 rows（優先顯示雙人/多人；未指派也會出現）
+    const teamRows = Array.from(tStats.values()).map(x=>{
+      x.rate = x.total ? (x.done / x.total) : 0;
+      return x;
+    }).sort((a,b)=>
+      (b.amount - a.amount)
+      || (b.total - a.total)
+      || (b.rate - a.rate)
+      || String(a.team).localeCompare(String(b.team),"zh-Hant")
+    );
+
+    // scatter points（X=件數，Y=金額；X 用 done 或 total 依 amtDoneOnly）
+    const points = [];
+    if (amountEnabled){
+      for (const x of pRows){
+        const cnt = amtDoneOnly ? x.done : x.total;
+        const avg = cnt ? (x.amount / cnt) : 0;
+        points.push({ x: cnt, y: Math.round(x.amount), avg: Math.round(avg), person: x.person });
+      }
+      points.sort((a,b)=> b.y - a.y || b.x - a.x || String(a.person).localeCompare(String(b.person), "zh-Hant"));
+    }
+
+    // ===== 人員總覽（含合作組合 + debug）=====
+    renderPeopleOverview({
+      monthKey,
+      amountEnabled,
+      amtDoneOnly,
+      splitAmount,
+      totalAmountRaw: Math.round(totalAmountRaw),
+      amountValidCount,
+      rows: pRows,
+      teamRows,
+      crewCounts,
+      debugRows
+    });
+
+    // ===== stats =====
+    const listText = listDoneOnly ? "列表=只顯示已完成" : "列表=含未完成";
+    const amtMode = amtDoneOnly ? "（只算已完成）" : "（含未完成）";
+    const amountText = amountEnabled
+      ? `｜金額筆數 ${amountValidCount}｜金額合計 ${Math.round(totalAmountRaw).toLocaleString()}${amtMode}`
+      : `｜金額：未設定欄位 EID`;
+
+    document.getElementById("stats").innerHTML =
+      `${monthKey}｜完成 ${doneCount}（${donePct.toFixed(1)}%）｜未完成 ${pendingCount}（${pendingPct.toFixed(1)}%）｜總計 ${totalCount}｜${listText}${amountText}
+       <br/>分類（以每筆單的人數）：單人 ${crewCounts["單人"]||0}｜雙人 ${crewCounts["雙人"]||0}｜多人 ${crewCounts["多人"]||0}｜未指派 ${crewCounts["未指派"]||0}`;
+
+    // ===== 趨勢 charts =====
+    renderCharts({
+      labels,
+      dailyDone,
+      dailyPending,
+      doneCount,
+      pendingCount,
+      donePct,
+      pendingPct,
+      amountEnabled,
+      dailyAmount,
+      totalAmount: Math.round(totalAmountRaw),
+      points
+    });
+
+    // ===== 列表彙總（依人員）=====
+    const map = new Map(); // person -> {count, records[]}
+    for (const r of listMonth){
+      const parsed = parsePersonsDetailed(getValue(r, CONFIG.fields.person));
+      for (const p of parsed.persons){
+        if (!map.has(p)) map.set(p, { count: 0, records: [] });
+        const obj = map.get(p);
+        obj.count += 1;
+        obj.records.push({ rec:r, parsed }); // 把 crew 帶進明細
+      }
+    }
+
+    const rows = Array.from(map.entries())
+      .map(([person, obj])=>({ person, count: obj.count, records: obj.records }))
+      .sort((a,b)=> b.count - a.count || a.person.localeCompare(b.person, "zh-Hant"));
+
+    const totalSplit = rows.reduce((s,x)=> s + x.count, 0);
+
+    if (rows.length === 0){
+      document.getElementById("app").innerHTML =
+        `<div class="loading">${monthKey} 沒有符合條件的列表資料</div>`;
+      return;
+    }
+
+    const toggleBtn = document.getElementById("btnToggleAll");
+    toggleBtn.dataset.state = "collapsed";
+    toggleBtn.innerText = "全部展開";
+
+    let html = `<div class="grid">`;
+
+    for (const r of rows){
+      // 明細排序：日期升序，再客名
+      r.records.sort((a,b)=>{
+        const da = date10(a.rec), db = date10(b.rec);
+        if (da !== db) return da.localeCompare(db);
+        const na = getValue(a.rec, CONFIG.fields.name) || "";
+        const nb = getValue(b.rec, CONFIG.fields.name) || "";
+        return na.localeCompare(nb, "zh-Hant");
+      });
+
+      const pct = totalSplit ? (r.count / totalSplit * 100) : 0;
+      let topColor = listDoneOnly ? "#16a34a" : "#0891b2";
+
+      html += `
+        <details class="personCard" id="${pid(r.person)}" data-person="${escapeHtml(r.person)}">
+          <summary class="personHead" style="border-top-color:${topColor}">
+            <div class="name">
+              ${escapeHtml(r.person)}
+              <span class="count">${r.count} 件</span>
+            </div>
+            <div class="metaRight">${pct.toFixed(1)}%</div>
+          </summary>
+          <div class="body">
+      `;
+
+      html += r.records.map(({rec, parsed})=>{
+        const d = date10(rec) || "(未填日期)";
+        const status = getValue(rec, CONFIG.fields.status) || "(未填狀態)";
+        const name = getValue(rec, CONFIG.fields.name) || "(未填客名)";
+        const reason = getValue(rec, CONFIG.fields.reason) || "(未填事項)";
+        const addr = getValue(rec, CONFIG.fields.addr) || "(未填地址)";
+
+        let tagColor = "#6b7280";
+        if (status === "已完成") tagColor = "#16a34a";
+        else if (status === "待處理" || status === "未完成" || status === "延期") tagColor = "#0891b2";
+        else if (status === "取消") tagColor = "#dc2626";
+
+        let cls = "";
+        if (status === "已完成") cls = "is-done";
+        else if (status === "待處理" || status === "未完成" || status === "延期") cls = "is-pending";
+
+        let amtHtml = "";
+        if (amountEnabled){
+          const amt = parseAmount(getValue(rec, CONFIG.fields.amount));
+          if (amt != null) amtHtml = `　<span class="muted">💰 ${amt.toLocaleString()}</span>`;
+        }
+
+        return `
+          <div class="task ${cls}">
+            <div class="taskTop">
+              <div class="taskName">${escapeHtml(name)}</div>
+              <div class="tag" style="background:${tagColor}">${escapeHtml(status)}</div>
+            </div>
+            <div class="detail">
+              <div><b>${escapeHtml(reason)}</b></div>
+              <div class="muted">📅 ${escapeHtml(d)}　📍 ${escapeHtml(addr)}${amtHtml}</div>
+              <div style="margin-top:6px;">
+                ${crewBadge(parsed.crew)}
+                <span class="muted" style="margin-left:6px;">人員：${escapeHtml(parsed.persons.join("、"))}</span>
+              </div>
+            </div>
+          </div>
+        `;
+      }).join("");
+
+      html += `</div></details>`;
+    }
+
+    html += `</div>`;
+    document.getElementById("app").innerHTML = html;
+  }
+
+  function toggleAll(){
+    const btn = document.getElementById("btnToggleAll");
+    const cards = document.querySelectorAll("details.personCard");
+    if (!cards.length) return;
+
+    const state = btn.dataset.state || "collapsed";
+    if (state === "collapsed"){
+      cards.forEach(d => d.open = true);
+      btn.dataset.state = "expanded";
+      btn.innerText = "全部收合";
+    }else{
+      cards.forEach(d => d.open = false);
+      btn.dataset.state = "collapsed";
+      btn.innerText = "全部展開";
+    }
+  }
+
+  function init(){
+    const monthPick = document.getElementById("monthPick");
+    monthPick.value = getThisMonthValue();
+
+    document.getElementById("chkDoneOnly").addEventListener("change", render);
+    document.getElementById("chkSplitAmount").addEventListener("change", render);
+    document.getElementById("chkAmtDoneOnly").addEventListener("change", render);
+    document.getElementById("chkDebug").addEventListener("change", render);
+    document.getElementById("sortMetric").addEventListener("change", render);
+    monthPick.addEventListener("change", render);
+    document.getElementById("peopleArea").addEventListener("click", onPeopleAreaClick);
+    document.getElementById("btnReload").addEventListener("click", loadFromRagic);
+    document.getElementById("btnToggleAll").addEventListener("click", toggleAll);
+
+    loadFromRagic();
+  }
+
+  init();
+</script>
+</body>
+</html>
