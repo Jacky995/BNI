@@ -1,0 +1,979 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>全家福｜可列印月報分析表（A4）</title>
+
+  <style>
+    :root{
+      --bg:#eef1f4;
+      --card:#ffffff;
+      --text:#111827;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --shadow: 0 10px 25px rgba(0,0,0,0.08);
+      --shadow2: 0 3px 10px rgba(0,0,0,0.06);
+    }
+    *{box-sizing:border-box;}
+    body{
+      margin:0;
+      font-family:"Microsoft JhengHei", system-ui, -apple-system, "Segoe UI", sans-serif;
+      color:var(--text);
+      background:var(--bg);
+      padding:12px;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .wrap{ max-width:1100px; margin:0 auto; }
+
+    .controls{
+      position: sticky;
+      top: 0;
+      z-index: 50;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(8px);
+      border:1px solid rgba(0,0,0,0.06);
+      box-shadow: var(--shadow2);
+      border-radius: 14px;
+      padding: 12px;
+      margin-bottom: 12px;
+    }
+    .row{ display:flex; gap:10px; flex-wrap:wrap; align-items:center; justify-content:space-between; }
+    .title{ display:flex; justify-content:space-between; gap:10px; align-items:baseline; }
+    h1{ margin:0; font-size:18px; font-weight:1100; letter-spacing:.2px; }
+    .updated{ font-size:12px; color:var(--muted); font-weight:900; white-space:nowrap; }
+
+    .inputs{ display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
+    label{ font-size:12px; color:var(--muted); font-weight:900; display:flex; flex-direction:column; gap:6px; }
+    input[type="month"], select{
+      padding: 10px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      outline: none;
+      font-size: 14px;
+      background:#fff;
+      min-width: 160px;
+      font-weight:900;
+    }
+
+    .chip{
+      display:flex; align-items:center; gap:8px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      background: #f3f4f6;
+      border: 2px solid transparent;
+      user-select:none;
+      cursor:pointer;
+      font-weight: 900;
+      font-size: 14px;
+      line-height: 1;
+      white-space: nowrap;
+    }
+    .chip input{ transform: scale(1.15); }
+    .chip.on{ background:#e7f1ff; border-color:#3b82f6; color:#0b3a82; }
+
+    .btn{
+      border:0;
+      background: #111827;
+      color:#fff;
+      padding: 11px 12px;
+      border-radius: 12px;
+      font-weight: 1100;
+      cursor:pointer;
+      white-space: nowrap;
+    }
+    .btn.secondary{ background:#374151; }
+    .btn:disabled{ opacity:.6; cursor:not-allowed; }
+
+    .card{
+      background: var(--card);
+      border-radius: 16px;
+      border: 1px solid rgba(0,0,0,0.06);
+      box-shadow: var(--shadow);
+      padding: 12px;
+      overflow:hidden;
+      margin-bottom: 12px;
+    }
+    .page{
+      background:#fff;
+      border: 1px solid rgba(0,0,0,0.06);
+      border-radius: 16px;
+      box-shadow: var(--shadow);
+      padding: 14px;
+      margin-bottom: 12px;
+    }
+
+    .pageHeader{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:12px;
+      margin-bottom: 10px;
+      padding-bottom: 10px;
+      border-bottom: 2px solid #111827;
+    }
+    .pageHeader .big{ font-size:18px; font-weight:1200; }
+    .pageHeader .small{ font-size:12px; font-weight:900; color:#374151; text-align:right; }
+
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    @media (min-width: 820px){
+      h1{ font-size:22px; }
+      .grid{ grid-template-columns: 1fr 1fr; }
+    }
+
+    .chartTitle{
+      font-weight: 1100;
+      font-size: 15px;
+      margin: 0 0 8px 0;
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:baseline;
+    }
+    .chartTitle small{
+      color:var(--muted);
+      font-size: 12px;
+      font-weight: 900;
+      white-space:nowrap;
+    }
+    .subHint{
+      font-size: 12px;
+      color: #374151;
+      font-weight: 900;
+      margin-top: 8px;
+      line-height: 1.55;
+    }
+    .statsLine{
+      font-size: 12px;
+      color: #374151;
+      font-weight: 900;
+      line-height: 1.6;
+      margin-top: 8px;
+    }
+
+    /* ===== Table (print-friendly) ===== */
+    .tableWrap{ overflow:auto; }
+    table{
+      width:100%;
+      border-collapse: collapse;
+      font-size: 12px;
+      font-weight: 900;
+    }
+    thead th{
+      text-align:left;
+      padding: 8px 8px;
+      border-bottom: 2px solid #111827;
+      background: #f3f4f6;
+      white-space: nowrap;
+    }
+    tbody td{
+      padding: 7px 8px;
+      border-bottom: 1px solid #d1d5db;
+      vertical-align: top;
+      white-space: nowrap;
+    }
+    tbody tr:nth-child(even){ background:#fafafa; }
+    .right{ text-align:right; }
+    .mono{ font-variant-numeric: tabular-nums; }
+
+    /* numbers toggle */
+    .num{ display:inline; }
+    body.hideNums .num{ display:none !important; }
+
+    /* ===== Print ===== */
+    body.printA4 .wrap{ max-width: initial; }
+    @media print{
+      /* A4 settings */
+      @page { size: A4; margin: 10mm; }
+      body.landscape @page { size: A4 landscape; }
+
+      body{
+        background:#fff !important;
+        padding:0 !important;
+        -webkit-print-color-adjust: exact;
+        print-color-adjust: exact;
+      }
+      .controls{ display:none !important; }
+      .wrap{ margin:0 !important; max-width: initial !important; }
+
+      /* remove shadows */
+      .card, .page{
+        box-shadow:none !important;
+        border: 1px solid #111827 !important;
+        border-radius: 10px !important;
+      }
+
+      /* pages */
+      .page{ break-after: page; page-break-after: always; }
+      .page:last-child{ break-after: auto; page-break-after: auto; }
+
+      /* avoid splitting table header */
+      thead{ display: table-header-group; }
+      tfoot{ display: table-footer-group; }
+      tr{ break-inside: avoid; page-break-inside: avoid; }
+
+      /* keep charts neat */
+      .grid{ grid-template-columns: 1fr 1fr; }
+    }
+
+    .svgWrap{ width:100%; overflow:hidden; }
+    svg{ width:100%; height:auto; }
+    .err{
+      color:#b00020;
+      font-weight:1000;
+      background:#fff;
+      border:1px solid #111827;
+      border-radius:14px;
+      padding:12px;
+    }
+  </style>
+</head>
+
+<body class="printA4">
+  <div class="wrap">
+    <div class="controls">
+      <div class="title">
+        <h1>全家福｜可列印月報分析表（A4）</h1>
+        <div class="updated" id="updatedAt">—</div>
+      </div>
+
+      <div class="row" style="margin-top:10px;">
+        <div class="inputs">
+          <label>月份
+            <input type="month" id="monthPick" />
+          </label>
+
+          <label>排名依據
+            <select id="sortMetric">
+              <option value="money" selected>金額</option>
+              <option value="count">件數</option>
+            </select>
+          </label>
+
+          <label class="chip on" id="chipMoneyDoneOnly" style="margin-top:18px;">
+            <input type="checkbox" id="chkMoneyDoneOnly" checked />
+            金額只算已完成
+          </label>
+
+          <label class="chip on" id="chipSplitMoney" style="margin-top:18px;">
+            <input type="checkbox" id="chkSplitMoney" checked />
+            多人金額平分
+          </label>
+
+          <label class="chip on" id="chipHideNums" style="margin-top:18px;">
+            <input type="checkbox" id="chkHideNums" />
+            隱藏數字（老闆版）
+          </label>
+
+          <label class="chip" id="chipLandscape" style="margin-top:18px;">
+            <input type="checkbox" id="chkLandscape" />
+            A4 橫式列印
+          </label>
+        </div>
+
+        <div style="display:flex; gap:8px; flex-wrap:wrap;">
+          <button class="btn secondary" id="btnReload">重載</button>
+          <button class="btn" id="btnPrint">列印 / 存PDF</button>
+        </div>
+      </div>
+
+      <div class="statsLine" id="stats"></div>
+    </div>
+
+    <!-- Page 1: Charts -->
+    <div class="page" id="pageCharts"></div>
+
+    <!-- Page 2: Table -->
+    <div class="page" id="pageTable"></div>
+  </div>
+
+<script>
+  // =============================
+  // ✅ 你只要改這段 CONFIG
+  // =============================
+  const CONFIG = {
+    apiKey: "UGQ4cGFmNjg2R0J2TXNSMXpZdVVvSlhIUVRLZHo2SmpISXUyMFQrRCtySXFDTUk2T2NCeUY4b0FDcXJ6OENqRA==",
+    baseUrl: "https://ap12.ragic.com/89793238/fami/2",
+    fields: {
+      status: "1000111",
+      date:   "1000122",
+      person: "1000113",
+      reason: "1000120",
+      addr:   "1000119",
+      name:   "1000116",
+      amount: "1000114"
+    },
+    person: {
+      placeholderName: "待指派",
+      removeSuffixes: [/師傅$/g, /師父$/g, /先生$/g, /小姐$/g, /師$/g, /傅$/g],
+      aliases: {} // 例：{ "阿昱":"昱", "昱哥":"昱" }
+    }
+  };
+
+  let ALL_RECORDS = [];
+  let IS_LOADING = false;
+
+  // JSONP
+  function jsonp(url) {
+    return new Promise((resolve, reject) => {
+      const cb = "__ragic_cb_" + Date.now() + "_" + Math.random().toString(16).slice(2);
+      window[cb] = (data) => { cleanup(); resolve(data); };
+
+      const s = document.createElement("script");
+      s.src = url + (url.includes("?") ? "&" : "?") + "callback=" + encodeURIComponent(cb);
+      s.onerror = () => { cleanup(); reject(new Error("JSONP failed")); };
+
+      function cleanup(){
+        try { delete window[cb]; } catch(e){ window[cb] = undefined; }
+        s.remove();
+      }
+      document.head.appendChild(s);
+    });
+  }
+
+  function setUpdatedNow(){
+    const d = new Date();
+    const hh = String(d.getHours()).padStart(2,"0");
+    const mm = String(d.getMinutes()).padStart(2,"0");
+    document.getElementById("updatedAt").innerText = `更新 ${hh}:${mm}`;
+  }
+  function getThisMonthValue(){
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`;
+  }
+
+  function escapeHtml(s){
+    return String(s ?? "")
+      .replaceAll("&","&amp;")
+      .replaceAll("<","&lt;")
+      .replaceAll(">","&gt;")
+      .replaceAll('"',"&quot;")
+      .replaceAll("'","&#039;");
+  }
+
+  function normalizeText(s){
+    return String(s ?? "")
+      .normalize("NFKC")
+      .replace(/\u00A0/g, " ")
+      .replace(/[\u200B-\u200D\uFEFF]/g, "")
+      .trim();
+  }
+  function unifySeparators(s){
+    return String(s ?? "")
+      .replace(/[，、﹐﹑､]/g, ",")
+      .replace(/[；﹔;]/g, ",")
+      .replace(/[／/\\|｜]/g, ",")
+      .replace(/[＋+&＆]/g, ",")
+      .replace(/[。．·•●・]/g, ",")
+      .replace(/[\n\r\t]+/g, ",")
+      .replace(/\s{2,}/g, " ")
+      .trim();
+  }
+  function stripBracketNotes(s){
+    return String(s ?? "")
+      .replace(/\([^)]*\)/g, "")
+      .replace(/（[^）]*）/g, "")
+      .replace(/\[[^\]]*\]/g, "")
+      .replace(/【[^】]*】/g, "")
+      .replace(/\{[^}]*\}/g, "")
+      .replace(/「[^」]*」/g, "")
+      .trim();
+  }
+
+  function canonName(raw){
+    let x = normalizeText(raw);
+    if (!x) return CONFIG.person.placeholderName;
+
+    x = stripBracketNotes(x);
+    x = x.replace(/^[\s,，、.。·•]+|[\s,，、.。·•]+$/g, "").trim();
+
+    const cjkCount = (x.match(/[\u4e00-\u9fff]/g) || []).length;
+    const latinCount = (x.match(/[A-Za-z]/g) || []).length;
+    if (cjkCount >= 1 && latinCount === 0) x = x.replace(/\s+/g, "");
+    else x = x.replace(/\s+/g, " ").trim();
+
+    for (const re of (CONFIG.person.removeSuffixes || [])) x = x.replace(re, "");
+    x = x.trim();
+
+    const placeholders = new Set(["", "-", "—", "無", "未填", "未指派", "待指派", "n/a", "na", "null", "none"]);
+    if (placeholders.has(x.toLowerCase()) || placeholders.has(x)) return CONFIG.person.placeholderName;
+
+    const aliasMap = CONFIG.person.aliases || {};
+    if (aliasMap[x] != null) x = aliasMap[x];
+
+    return x || CONFIG.person.placeholderName;
+  }
+
+  function parsePersons(personText){
+    let raw = normalizeText(personText);
+    raw = unifySeparators(raw);
+    if (!raw) return [CONFIG.person.placeholderName];
+
+    const tokens = raw.split(",").map(t => canonName(t)).filter(Boolean);
+    const uniq = [];
+    const seen = new Set();
+    for (const p of tokens){
+      if (!seen.has(p)){
+        seen.add(p);
+        uniq.push(p);
+      }
+    }
+    return uniq.length ? uniq : [CONFIG.person.placeholderName];
+  }
+
+  function getValue(r, id){
+    const v = r?.[id];
+    if (v == null) return "";
+    if (typeof v === "object") {
+      if (Array.isArray(v)) return v.map(x => (x?.text ?? x?.value ?? x?._index_title_ ?? x?.name ?? "")).join(",");
+      return String(v.text ?? v.value ?? v._index_title_ ?? v.name ?? "");
+    }
+    return String(v);
+  }
+
+  function monthKeyFromRecord(r){
+    const raw = getValue(r, CONFIG.fields.date) || "";
+    return raw ? raw.substring(0,7).replace("-", "/") : "";
+  }
+  function date10(r){
+    const raw = getValue(r, CONFIG.fields.date) || "";
+    return raw ? raw.substring(0,10) : "";
+  }
+
+  function parseAmount(v){
+    const s = String(v ?? "").trim();
+    if (!s) return null;
+    const cleaned = s.replace(/[,$\s]/g, "").replace(/[元ＮＴntNT]/g, "");
+    const n = Number(cleaned);
+    if (!Number.isFinite(n)) return null;
+    return n;
+  }
+  function fmtMoney(n){
+    const v = Math.round(Number(n) || 0);
+    return v.toLocaleString();
+  }
+
+  function statusBucket(status){
+    const s = normalizeText(status);
+    if (s.includes("已完成")) return "已完成";
+    if (s.includes("待處理")) return "待處理";
+    if (s.includes("未完成")) return "未完成";
+    if (s.includes("延期")) return "延期";
+    if (s.includes("取消")) return "取消";
+    return "其他";
+  }
+
+  // ===== SVG donut helpers =====
+  function polarToCartesian(cx, cy, r, angleDeg){
+    const a = (angleDeg - 90) * Math.PI / 180;
+    return { x: cx + (r * Math.cos(a)), y: cy + (r * Math.sin(a)) };
+  }
+  function describeDonutArc(cx, cy, rOuter, rInner, startAngle, endAngle){
+    const startOuter = polarToCartesian(cx, cy, rOuter, endAngle);
+    const endOuter   = polarToCartesian(cx, cy, rOuter, startAngle);
+    const startInner = polarToCartesian(cx, cy, rInner, startAngle);
+    const endInner   = polarToCartesian(cx, cy, rInner, endAngle);
+    const largeArc = (endAngle - startAngle) <= 180 ? "0" : "1";
+    return [
+      `M ${startOuter.x} ${startOuter.y}`,
+      `A ${rOuter} ${rOuter} 0 ${largeArc} 0 ${endOuter.x} ${endOuter.y}`,
+      `L ${startInner.x} ${startInner.y}`,
+      `A ${rInner} ${rInner} 0 ${largeArc} 1 ${endInner.x} ${endInner.y}`,
+      "Z"
+    ].join(" ");
+  }
+
+  function svgStatusDonut(statusCounts){
+    const order = ["已完成","待處理","未完成","延期","取消","其他"];
+    const total = order.reduce((s,k)=> s + (statusCounts[k]||0), 0) || 1;
+
+    const pat = {
+      "已完成": "patSolid",
+      "待處理": "patDiag",
+      "未完成": "patDots",
+      "延期":   "patCross",
+      "取消":   "patLightDiag",
+      "其他":   "patGray"
+    };
+
+    let angle = 0;
+    const cx = 120, cy = 120, rO = 92, rI = 58;
+
+    const segs = order.map(k=>{
+      const v = statusCounts[k] || 0;
+      const frac = v / total;
+      const a1 = angle;
+      const a2 = angle + frac * 360;
+      angle = a2;
+
+      if (v <= 0) return "";
+
+      const d = describeDonutArc(cx, cy, rO, rI, a1, a2);
+      const mid = (a1 + a2) / 2;
+      const pt = polarToCartesian(cx, cy, 115, mid);
+
+      return `
+        <path d="${d}" fill="url(#${pat[k]})" stroke="#111827" stroke-width="1.2">
+          <title>${k}：${v}</title>
+        </path>
+        <text class="num" x="${pt.x}" y="${pt.y}" text-anchor="middle" dominant-baseline="middle"
+              font-size="11" font-weight="1000" fill="#111827">${v}</text>
+      `;
+    }).join("");
+
+    const legend = order.map(k=>{
+      const v = statusCounts[k] || 0;
+      return `
+        <div style="display:flex;align-items:center;gap:8px;font-weight:1000;font-size:12px;">
+          <svg width="14" height="14" viewBox="0 0 14 14" style="display:block;">
+            <rect x="0" y="0" width="14" height="14" fill="url(#${pat[k]})" stroke="#111827" stroke-width="0.8"></rect>
+          </svg>
+          <span>${escapeHtml(k)}</span>
+          <span class="num mono" style="margin-left:auto;">${v}</span>
+        </div>
+      `;
+    }).join("");
+
+    return `
+      <div class="card">
+        <div class="chartTitle">
+          <span>狀態圓餅圖（黑白影印可辨識）</span>
+          <small class="num mono">總計 ${total}</small>
+        </div>
+        <div style="display:flex;gap:12px;align-items:center;flex-wrap:wrap;">
+          <div class="svgWrap" style="max-width:260px;">
+            <svg viewBox="0 0 240 240" role="img" aria-label="狀態圓餅圖">
+              <defs>
+                <pattern id="patSolid" width="6" height="6" patternUnits="userSpaceOnUse">
+                  <rect width="6" height="6" fill="#111827"></rect>
+                </pattern>
+                <pattern id="patGray" width="6" height="6" patternUnits="userSpaceOnUse">
+                  <rect width="6" height="6" fill="#d1d5db"></rect>
+                </pattern>
+                <pattern id="patDiag" width="10" height="10" patternUnits="userSpaceOnUse">
+                  <rect width="10" height="10" fill="#ffffff"></rect>
+                  <path d="M-2 10 L10 -2 M0 12 L12 0" stroke="#111827" stroke-width="2.2"></path>
+                </pattern>
+                <pattern id="patLightDiag" width="10" height="10" patternUnits="userSpaceOnUse">
+                  <rect width="10" height="10" fill="#f3f4f6"></rect>
+                  <path d="M-2 10 L10 -2 M0 12 L12 0" stroke="#111827" stroke-width="1.2"></path>
+                </pattern>
+                <pattern id="patDots" width="10" height="10" patternUnits="userSpaceOnUse">
+                  <rect width="10" height="10" fill="#ffffff"></rect>
+                  <circle cx="2" cy="2" r="1.6" fill="#111827"></circle>
+                  <circle cx="7" cy="7" r="1.6" fill="#111827"></circle>
+                </pattern>
+                <pattern id="patCross" width="10" height="10" patternUnits="userSpaceOnUse">
+                  <rect width="10" height="10" fill="#ffffff"></rect>
+                  <path d="M0 0 L10 10 M10 0 L0 10" stroke="#111827" stroke-width="1.8"></path>
+                </pattern>
+              </defs>
+
+              ${segs}
+
+              <circle cx="120" cy="120" r="56" fill="#ffffff" stroke="#111827" stroke-width="1.2"></circle>
+              <text x="120" y="118" text-anchor="middle" font-size="12" font-weight="1100" fill="#111827">總單量</text>
+              <text class="num mono" x="120" y="138" text-anchor="middle" font-size="18" font-weight="1200" fill="#111827">${total}</text>
+            </svg>
+          </div>
+
+          <div style="flex:1 1 260px;display:flex;flex-direction:column;gap:8px;">
+            ${legend}
+            <div class="subHint">紋理：已完成=實黑｜待處理=粗斜線｜未完成=點點｜延期=交叉線｜取消=淺斜線｜其他=灰底。</div>
+          </div>
+        </div>
+      </div>
+    `;
+  }
+
+  function svgStackedLeaderboard(rows, metric, title){
+    const topN = 10;
+    const list = rows.filter(x => x.person !== CONFIG.person.placeholderName).slice(0);
+
+    const sortMetric = document.getElementById("sortMetric").value;
+    list.sort((a,b)=>{
+      const av = sortMetric==="money" ? (a.soloMoney + a.teamMoney) : (a.soloCount + a.teamCount);
+      const bv = sortMetric==="money" ? (b.soloMoney + b.teamMoney) : (b.soloCount + b.teamCount);
+      return (bv-av) || String(a.person).localeCompare(String(b.person),"zh-Hant");
+    });
+
+    const top = list.slice(0, topN);
+    const totalOf = (x)=> metric==="money" ? (x.soloMoney + x.teamMoney) : (x.soloCount + x.teamCount);
+    const maxV = Math.max(1, ...top.map(totalOf));
+
+    const rowH = 36, leftPad = 120, rightPad = 18, barMax = 600;
+    const h = top.length * rowH + 56;
+    const w = leftPad + barMax + rightPad;
+
+    const bars = top.map((x,i)=>{
+      const solo = metric==="money" ? x.soloMoney : x.soloCount;
+      const team = metric==="money" ? x.teamMoney : x.teamCount;
+      const tot  = Math.max(0.000001, solo + team);
+
+      const bwTot = Math.round((tot/maxV) * barMax);
+      const bwSolo = Math.round(bwTot * (solo/tot));
+      const bwTeam = Math.max(0, bwTot - bwSolo);
+
+      const y = 18 + i*rowH;
+      const numText = metric==="money" ? `總${fmtMoney(tot)}` : `總${Math.round(tot)}`;
+
+      return `
+        <text x="0" y="${y+22}" font-size="13" font-weight="1000" fill="#111827">${escapeHtml(x.person)}</text>
+        <rect x="${leftPad}" y="${y+9}" width="${bwSolo}" height="18" rx="9" fill="#111827"></rect>
+        <rect x="${leftPad + bwSolo}" y="${y+9}" width="${bwTeam}" height="18" rx="9"
+              fill="url(#patTeam)" stroke="#111827" stroke-width="1"></rect>
+        <text class="num mono" x="${leftPad + Math.min(bwTot+8, barMax-8)}" y="${y+22}" font-size="12"
+              font-weight="1000" fill="#111827">${numText}</text>
+      `;
+    }).join("");
+
+    return `
+      <div class="card">
+        <div class="chartTitle">
+          <span>${escapeHtml(title)}</span>
+          <small>黑=單人｜斜線=協作（AB 會拆人次）</small>
+        </div>
+        <div class="svgWrap">
+          <svg viewBox="0 0 ${w} ${h}" role="img" aria-label="${escapeHtml(title)}">
+            <defs>
+              <pattern id="patTeam" width="10" height="10" patternUnits="userSpaceOnUse">
+                <rect width="10" height="10" fill="#ffffff"></rect>
+                <path d="M-2 10 L10 -2 M0 12 L12 0" stroke="#111827" stroke-width="2.2"></path>
+              </pattern>
+            </defs>
+            ${bars}
+            <rect x="${leftPad}" y="${h-26}" width="18" height="12" rx="3" fill="#111827"></rect>
+            <text x="${leftPad+26}" y="${h-16}" font-size="12" font-weight="1000" fill="#111827">單人</text>
+            <rect x="${leftPad+90}" y="${h-26}" width="18" height="12" rx="3" fill="url(#patTeam)" stroke="#111827" stroke-width="1"></rect>
+            <text x="${leftPad+118}" y="${h-16}" font-size="12" font-weight="1000" fill="#111827">協作</text>
+          </svg>
+        </div>
+      </div>
+    `;
+  }
+
+  function svgDailyTrend(series, title){
+    const w = 900, h = 240;
+    const padL=44, padR=18, padT=18, padB=44;
+    const plotW = w - padL - padR;
+    const plotH = h - padT - padB;
+
+    const maxX = 31;
+    const maxY = Math.max(1, ...series.map(p=>p.v));
+    const pts = series.map(p=>{
+      const x = padL + ((p.day-1)/(maxX-1))*plotW;
+      const y = padT + (1 - (p.v/maxY))*plotH;
+      return {x,y, v:p.v, d:p.day};
+    });
+    const dPath = pts.map((p,i)=> (i===0?`M ${p.x.toFixed(2)} ${p.y.toFixed(2)}`:`L ${p.x.toFixed(2)} ${p.y.toFixed(2)}`)).join(" ");
+
+    return `
+      <div class="card">
+        <div class="chartTitle">
+          <span>${escapeHtml(title)}</span>
+          <small class="num mono">max ${Math.round(maxY)}</small>
+        </div>
+        <div class="svgWrap">
+          <svg viewBox="0 0 ${w} ${h}" role="img" aria-label="${escapeHtml(title)}">
+            <line x1="${padL}" y1="${padT}" x2="${padL}" y2="${padT+plotH}" stroke="#111827" stroke-width="1.2"></line>
+            <line x1="${padL}" y1="${padT+plotH}" x2="${padL+plotW}" y2="${padT+plotH}" stroke="#111827" stroke-width="1.2"></line>
+            ${[0.25,0.5,0.75].map(t=>{
+              const y = padT + (1-t)*plotH;
+              return `<line x1="${padL}" y1="${y}" x2="${padL+plotW}" y2="${y}" stroke="#e5e7eb" stroke-width="1"></line>`;
+            }).join("")}
+            <path d="${dPath}" fill="none" stroke="#111827" stroke-width="3" stroke-linecap="round"></path>
+            ${pts.filter((_,i)=> i%5===0).map(p=>`
+              <circle cx="${p.x}" cy="${p.y}" r="3.2" fill="#111827"></circle>
+            `).join("")}
+            <text x="${padL}" y="${h-14}" font-size="12" font-weight="1000" fill="#111827">1</text>
+            <text x="${padL+plotW-10}" y="${h-14}" font-size="12" font-weight="1000" fill="#111827">31</text>
+            <text class="num mono" x="${padL}" y="${padT+12}" font-size="12" font-weight="1000" fill="#111827">${Math.round(maxY)}</text>
+          </svg>
+        </div>
+      </div>
+    `;
+  }
+
+  function syncChips(){
+    const mdo = document.getElementById("chkMoneyDoneOnly").checked;
+    document.getElementById("chipMoneyDoneOnly").classList.toggle("on", mdo);
+
+    const sm = document.getElementById("chkSplitMoney").checked;
+    document.getElementById("chipSplitMoney").classList.toggle("on", sm);
+
+    const hn = document.getElementById("chkHideNums").checked;
+    document.getElementById("chipHideNums").classList.toggle("on", hn);
+
+    const land = document.getElementById("chkLandscape").checked;
+    document.getElementById("chipLandscape").classList.toggle("on", land);
+  }
+
+  function setLoading(flag){
+    IS_LOADING = flag;
+    document.getElementById("btnReload").disabled = flag;
+  }
+
+  async function loadFromRagic(){
+    try{
+      setLoading(true);
+      document.getElementById("pageCharts").innerHTML = `<div class="err">資料讀取中...</div>`;
+      document.getElementById("pageTable").innerHTML = ``;
+
+      const params = new URLSearchParams();
+      params.set("api","");
+      params.set("APIKey", CONFIG.apiKey);
+      params.set("naming","EID");
+      params.set("limit","5000");
+      params.set("reverse","true");
+
+      const url = `${CONFIG.baseUrl}?${params.toString()}`;
+      const data = await jsonp(url);
+
+      ALL_RECORDS = Object.values(data || {})
+        .filter(v => v && typeof v === "object" && v._ragicId !== 0);
+
+      setUpdatedNow();
+      render();
+    }catch(e){
+      console.error(e);
+      document.getElementById("pageCharts").innerHTML =
+        `<div class="err">讀取失敗：請檢查 baseUrl(ap12)、APIKey 權限</div>`;
+    }finally{
+      setLoading(false);
+    }
+  }
+
+  function render(){
+    syncChips();
+
+    const monthPick = document.getElementById("monthPick");
+    if (!monthPick.value) monthPick.value = getThisMonthValue();
+    const monthVal = monthPick.value;            // YYYY-MM
+    const monthKey = monthVal.replace("-", "/"); // YYYY/MM
+
+    const moneyDoneOnly = document.getElementById("chkMoneyDoneOnly").checked;
+    const splitMoney = document.getElementById("chkSplitMoney").checked;
+    const hideNums = document.getElementById("chkHideNums").checked;
+    const landscape = document.getElementById("chkLandscape").checked;
+
+    document.body.classList.toggle("hideNums", hideNums);
+    document.body.classList.toggle("landscape", landscape);
+
+    const monthAll = ALL_RECORDS.filter(r => monthKeyFromRecord(r) === monthKey);
+    if (!monthAll.length){
+      document.getElementById("pageCharts").innerHTML = `<div class="err">本月（${escapeHtml(monthKey)}）沒有資料</div>`;
+      document.getElementById("pageTable").innerHTML = ``;
+      document.getElementById("stats").innerText = `${monthKey}｜無資料`;
+      return;
+    }
+
+    const statusCounts = { "已完成":0,"待處理":0,"未完成":0,"延期":0,"取消":0,"其他":0 };
+
+    const pMap = new Map();
+    const ensure = (p)=>{
+      if (!pMap.has(p)){
+        pMap.set(p, {
+          person:p,
+          soloCount:0, teamCount:0,
+          soloMoney:0, teamMoney:0,
+          doneCount:0, // 這裡是「訂單級」拆人次的 done 件數
+          doneMoney:0  // 金額只算已完成時可用
+        });
+      }
+      return pMap.get(p);
+    };
+
+    const dailyTotal = Array.from({length:31}, (_,i)=>({ day:i+1, v:0 }));
+    const dailyDone  = Array.from({length:31}, (_,i)=>({ day:i+1, v:0 }));
+
+    let totalOrders=0, doneOrders=0;
+    let totalMoney=0, moneyCount=0;
+
+    for (const r of monthAll){
+      const stRaw = normalizeText(getValue(r, CONFIG.fields.status));
+      const bucket = statusBucket(stRaw);
+      statusCounts[bucket] = (statusCounts[bucket]||0) + 1;
+
+      const isDone = stRaw.includes("已完成");
+      totalOrders++;
+      if (isDone) doneOrders++;
+
+      const d10 = date10(r);
+      const day = d10 && d10.length>=10 ? Number(d10.substring(8,10)) : null;
+      if (day && day>=1 && day<=31) dailyTotal[day-1].v += 1;
+      if (isDone && day && day>=1 && day<=31) dailyDone[day-1].v += 1;
+
+      const persons = parsePersons(getValue(r, CONFIG.fields.person));
+      const isSolo = persons.length === 1 && persons[0] !== CONFIG.person.placeholderName;
+
+      const amt = parseAmount(getValue(r, CONFIG.fields.amount));
+      const shouldCountMoney = (amt != null) && (!moneyDoneOnly || isDone);
+
+      if (shouldCountMoney){
+        totalMoney += amt;
+        moneyCount += 1;
+      }
+
+      const shareN = Math.max(1, persons.length);
+
+      // ✅ 核心規則：多人單拆人次（AB=20 => A +20、B +20）
+      for (const p of persons){
+        const st = ensure(p);
+
+        if (isSolo) st.soloCount += 1;
+        else st.teamCount += 1;
+
+        if (isDone) st.doneCount += 1;
+
+        if (shouldCountMoney){
+          if (isSolo){
+            st.soloMoney += amt;
+            if (isDone) st.doneMoney += amt;
+          }else{
+            const add = splitMoney ? (amt / shareN) : amt;
+            st.teamMoney += add;
+            if (isDone) st.doneMoney += add;
+          }
+        }
+      }
+    }
+
+    const rows = Array.from(pMap.values()).map(x=>{
+      x.totalCount = x.soloCount + x.teamCount;
+      x.totalMoney = x.soloMoney + x.teamMoney;
+      return x;
+    });
+
+    rows.sort((a,b)=> (b.totalMoney - a.totalMoney) || (b.totalCount - a.totalCount) || String(a.person).localeCompare(String(b.person),"zh-Hant"));
+
+    const donePct = totalOrders ? (doneOrders/totalOrders*100) : 0;
+    document.getElementById("stats").innerHTML = `
+      ${escapeHtml(monthKey)}｜
+      已完成 <span class="num mono">${doneOrders}</span>（<span class="num mono">${donePct.toFixed(1)}%</span>）｜
+      總單量 <span class="num mono">${totalOrders}</span>｜
+      金額合計 <span class="num mono">${fmtMoney(totalMoney)}</span>（筆數 <span class="num mono">${moneyCount}</span>）
+      <br/>規則：多人單拆人次（AB 會讓 A、B 都各 +1）｜${moneyDoneOnly ? "金額只算已完成" : "金額含未完成"}｜${splitMoney ? "多人金額平分" : "多人金額不平分"}
+    `;
+
+    // ===== Page 1 (Charts) =====
+    const chartsHeader = `
+      <div class="pageHeader">
+        <div class="big">月報圖表總覽（A4 可印）</div>
+        <div class="small">
+          月份：${escapeHtml(monthKey)}<br/>
+          產出：${new Date().toLocaleString("zh-TW")}
+        </div>
+      </div>
+    `;
+
+    const donut = svgStatusDonut(statusCounts);
+    const moneyRank = svgStackedLeaderboard(rows, "money", "誰賺最多（Top 10｜金額）");
+    const countRank = svgStackedLeaderboard(rows, "count", "誰做最多（Top 10｜件數）");
+    const trendTotal = svgDailyTrend(dailyTotal, "本月趨勢（總單量）");
+    const trendDone  = svgDailyTrend(dailyDone,  "本月趨勢（已完成單量）");
+
+    document.getElementById("pageCharts").innerHTML = `
+      ${chartsHeader}
+      ${donut}
+      <div class="grid">
+        ${moneyRank}
+        ${countRank}
+        ${trendTotal}
+        ${trendDone}
+      </div>
+      <div class="subHint">列印提示：黑白影印請保持「實際大小」或「適合頁面」，不要用低品質草稿模式。</div>
+    `;
+
+    // ===== Page 2 (Table) =====
+    const tableHeader = `
+      <div class="pageHeader">
+        <div class="big">分析表（給主管/你自己查）</div>
+        <div class="small">
+          月份：${escapeHtml(monthKey)}<br/>
+          協作規則：AB 拆人次；協作金額${splitMoney ? "平分" : "不平分"}
+        </div>
+      </div>
+    `;
+
+    const bodyRows = rows
+      .filter(r => r.person !== CONFIG.person.placeholderName)
+      .map((r, idx)=>{
+        const doneRate = r.totalCount ? (r.doneCount / r.totalCount * 100) : 0;
+        return `
+          <tr>
+            <td>${idx+1}</td>
+            <td>${escapeHtml(r.person)}</td>
+            <td class="right mono"><span class="num">${r.totalCount}</span></td>
+            <td class="right mono"><span class="num">${r.soloCount}</span></td>
+            <td class="right mono"><span class="num">${r.teamCount}</span></td>
+            <td class="right mono"><span class="num">${doneRate.toFixed(0)}%</span></td>
+            <td class="right mono"><span class="num">${fmtMoney(r.totalMoney)}</span></td>
+            <td class="right mono"><span class="num">${fmtMoney(r.soloMoney)}</span></td>
+            <td class="right mono"><span class="num">${fmtMoney(r.teamMoney)}</span></td>
+            <td class="right mono"><span class="num">${fmtMoney(r.doneMoney)}</span></td>
+          </tr>
+        `;
+      }).join("");
+
+    document.getElementById("pageTable").innerHTML = `
+      ${tableHeader}
+      <div class="card">
+        <div class="chartTitle">
+          <span>師傅貢獻彙總表</span>
+          <small>建議：這頁用來做「績效討論」</small>
+        </div>
+
+        <div class="tableWrap">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th>
+                <th>人員</th>
+                <th class="right">總件數</th>
+                <th class="right">單人件</th>
+                <th class="right">協作件</th>
+                <th class="right">完成率</th>
+                <th class="right">總金額</th>
+                <th class="right">單人金額</th>
+                <th class="right">協作金額</th>
+                <th class="right">已完成金額</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${bodyRows || `<tr><td colspan="10">無資料</td></tr>`}
+            </tbody>
+          </table>
+        </div>
+
+        <div class="subHint">
+          解讀：完成率 =（已完成件數 / 總件數）。協作件數會把 AB 拆成每人 +1（所以 AB=20 → A、B 的協作件各 +20）。<br/>
+          「已完成金額」是用你上面的開關「金額只算已完成」+「多人金額平分」一起計算後的值。
+        </div>
+      </div>
+    `;
+  }
+
+  function init(){
+    document.getElementById("monthPick").value = getThisMonthValue();
+
+    const rerender = ()=>render();
+    document.getElementById("monthPick").addEventListener("change", rerender);
+    document.getElementById("sortMetric").addEventListener("change", rerender);
+    document.getElementById("chkMoneyDoneOnly").addEventListener("change", rerender);
+    document.getElementById("chkSplitMoney").addEventListener("change", rerender);
+    document.getElementById("chkHideNums").addEventListener("change", rerender);
+    document.getElementById("chkLandscape").addEventListener("change", rerender);
+
+    document.getElementById("btnReload").addEventListener("click", loadFromRagic);
+    document.getElementById("btnPrint").addEventListener("click", ()=>window.print());
+
+    loadFromRagic();
+  }
+  init();
+</script>
+</body>
+</html>
