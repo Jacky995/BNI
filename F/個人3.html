@@ -1,0 +1,218 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>全家福 月報表（全局疊合矩陣版）</title>
+  <style>
+    :root{
+      --bg:#f3f4f6;
+      --card:#ffffff;
+      --text:#1f2937;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --primary:#3b82f6;
+      --dark:#111827;
+      --green:#10b981;
+      --amber:#f59e0b;
+    }
+    *{box-sizing:border-box;}
+    body{
+      margin:0;
+      font-family:"Microsoft JhengHei", system-ui, -apple-system, sans-serif;
+      color:var(--text);
+      background:var(--bg);
+      padding: 12px;
+    }
+    .controls{
+      position: sticky; top: 0; z-index: 1000;
+      background: rgba(255,255,255,0.9); backdrop-filter: blur(10px);
+      border-radius: 16px; padding: 15px; margin-bottom: 15px;
+      box-shadow: 0 4px 12px rgba(0,0,0,0.05);
+      border: 1px solid rgba(0,0,0,0.05);
+    }
+    .row{ display:flex; gap:12px; flex-wrap:wrap; align-items:center; justify-content: space-between; }
+    .inputs input, .inputs select { padding: 10px; border-radius: 10px; border: 1px solid var(--line); font-size: 14px; }
+    .btn{ border:0; background: var(--dark); color:#fff; padding: 10px 18px; border-radius: 10px; font-weight: 800; cursor:pointer; transition: 0.2s; }
+    .btn:active{ transform: scale(0.95); }
+
+    /* 全局矩陣表格樣式 */
+    .matrix-container {
+      background: var(--card); border-radius: 16px; padding: 15px; margin-bottom: 20px;
+      border: 1px solid var(--line); box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+      overflow-x: auto; /* 支援橫向捲動 */
+    }
+    .matrix-title { font-weight: 900; font-size: 16px; margin-bottom: 12px; display: flex; align-items: center; gap: 8px; }
+    .matrix-table { width: 100%; border-collapse: collapse; font-size: 12px; min-width: 900px; }
+    .matrix-table th, .matrix-table td { 
+      border: 1px solid #edf2f7; text-align: center; padding: 8px 4px; 
+    }
+    .matrix-table th { background: #f8fafc; color: #64748b; font-weight: 800; }
+    .matrix-table th.sticky-col, .matrix-table td.sticky-col { 
+      position: sticky; left: 0; background: #fff; z-index: 10; border-right: 2px solid #e2e8f0; font-weight: 900;
+    }
+    .matrix-table tr:hover td { background-color: #f1f5f9; }
+    
+    /* 熱力圖顏色 */
+    .val-0 { color: #cbd5e1; } /* 沒事做的淡灰色 */
+    .val-1 { background-color: #eff6ff; color: #2563eb; font-weight: bold; } 
+    .val-2 { background-color: #dbeafe; color: #1d4ed8; font-weight: 900; }
+    .val-3 { background-color: #bfdbfe; color: #1e40af; font-weight: 900; }
+    .val-high { background-color: #93c5fd; color: #1e3a8a; font-weight: 900; }
+
+    /* 明細卡片 */
+    #app{ max-width:1200px; margin:0 auto; }
+    .grid{ display:grid; grid-template-columns: 1fr; gap: 12px; }
+    @media (min-width: 900px){ .grid{ grid-template-columns: 1fr 1fr; } }
+
+    details.personCard{ background: var(--card); border-radius: 12px; border: 1px solid var(--line); margin-bottom: 10px; overflow:hidden; }
+    summary.personHead{ list-style:none; cursor:pointer; padding: 12px; display:flex; justify-content:space-between; align-items:center; background:#fff; border-top: 5px solid #64748b; }
+    .badge { padding: 2px 8px; border-radius: 999px; font-size: 11px; background: var(--primary); color: #fff; }
+
+    .loading { text-align: center; padding: 50px; font-weight: 900; color: var(--muted); }
+  </style>
+</head>
+<body>
+
+  <div class="controls">
+    <div class="row">
+      <div class="inputs">
+        <input type="month" id="monthPick" />
+        <select id="sortMetric"><option value="total">按月件數排序</option><option value="name">按人名排序</option></select>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn" id="btnReload">🔄 更新數據</button>
+        <button class="btn" style="background:#4b5563" id="btnToggleAll">📂 展開全部</button>
+      </div>
+    </div>
+  </div>
+
+  <div id="app">
+    <div class="loading">J-OS 正在疊合全團隊數據...</div>
+  </div>
+
+<script>
+  const CONFIG = {
+    apiKey: "UGQ4cGFmNjg2R0J2TXNSMXpZdVVvSlhIUVRLZHo2SmpISXUyMFQrRCtySXFDTUk2T2NCeUY4b0FDcXJ6OENqRA==",
+    baseUrl: "https://ap12.ragic.com/89793238/fami/2",
+    fields: { status: "1000111", date: "1000122", person: "1000113", name: "1000116", reason: "1000120" }
+  };
+
+  let ALL_RECORDS = [];
+
+  // 取得該月天數
+  function getDaysInMonth(monthStr) {
+    const [y, m] = monthStr.split("-").map(Number);
+    return new Date(y, m, 0).getDate();
+  }
+
+  async function loadData() {
+    const url = `${CONFIG.baseUrl}?api=&APIKey=${CONFIG.apiKey}&naming=EID&limit=5000&reverse=true`;
+    const cb = "cb_" + Date.now();
+    return new Promise(res => {
+      window[cb] = d => { delete window[cb]; document.head.removeChild(s); res(Object.values(d).filter(v=>v._ragicId)); };
+      const s = document.createElement("script"); s.src = url + "&callback=" + cb; document.head.appendChild(s);
+    });
+  }
+
+  function render() {
+    const selectedMonth = document.getElementById("monthPick").value;
+    const mKey = selectedMonth.replace("-", "/");
+    const daysCount = getDaysInMonth(selectedMonth);
+    
+    // 1. 數據清洗與疊合
+    const pMap = new Map(); // 人名 -> { days: {day: count}, total: 0 }
+    
+    ALL_RECORDS.filter(r => (r[CONFIG.fields.date]||"").startsWith(mKey) && r[CONFIG.fields.status] !== "取消").forEach(r => {
+      const ps = (r[CONFIG.fields.person]||"").split(/[，、,]/).map(p=>p.trim().replace(/\([^)]*\)|（[^）]*）/g, "")).filter(Boolean);
+      const day = parseInt((r[CONFIG.fields.date]||"").split(/[/ -]/)[2]);
+      
+      ps.forEach(p => {
+        if(!pMap.has(p)) pMap.set(p, { name: p, days: {}, total: 0, recs: [] });
+        const o = pMap.get(p);
+        o.total++;
+        if(day) o.days[day] = (o.days[day] || 0) + 1;
+        o.recs.push(r);
+      });
+    });
+
+    const rows = Array.from(pMap.values()).sort((a,b) => b.total - a.total);
+
+    // 2. 構建全局疊合矩陣表格
+    let matrixHtml = `
+      <div class="matrix-container">
+        <div class="matrix-title">📅 ${selectedMonth} 團隊出勤疊合矩陣</div>
+        <table class="matrix-table">
+          <thead>
+            <tr>
+              <th class="sticky-col">師傅 \ 日期</th>
+              ${Array.from({length: daysCount}, (_, i) => `<th>${i+1}</th>`).join("")}
+              <th style="background:#e2e8f0">月總計</th>
+            </tr>
+          </thead>
+          <tbody>
+            ${rows.map(r => `
+              <tr>
+                <td class="sticky-col">${r.name}</td>
+                ${Array.from({length: daysCount}, (_, i) => {
+                  const val = r.days[i+1] || 0;
+                  let cls = "val-" + val;
+                  if(val > 3) cls = "val-high";
+                  return `<td class="${cls}">${val > 0 ? val : '-'}</td>`;
+                }).join("")}
+                <td style="background:#f1f5f9; font-weight:900;">${r.total}</td>
+              </tr>
+            `).join("")}
+          </tbody>
+        </table>
+      </div>`;
+
+    // 3. 構建個人明細清單
+    let detailsHtml = `<div class="grid">`;
+    rows.forEach(r => {
+      detailsHtml += `
+        <details class="personCard">
+          <summary class="personHead">
+            <div class="name">👤 ${r.name}</div>
+            <div class="badge">${r.total} 件案件</div>
+          </summary>
+          <div style="padding:12px;">
+            ${r.recs.map(rec => `
+              <div style="border-bottom:1px solid #eee; padding:8px 0; font-size:13px;">
+                <div style="font-weight:bold;">${rec[CONFIG.fields.name] || '無客名'} (${(rec[CONFIG.fields.date]||"").slice(5)})</div>
+                <div style="color:#666; font-size:12px;">${rec[CONFIG.fields.reason] || ''}</div>
+              </div>
+            `).join("")}
+          </div>
+        </details>`;
+    });
+    detailsHtml += `</div>`;
+
+    document.getElementById("app").innerHTML = matrixHtml + detailsHtml;
+  }
+
+  // 事件綁定
+  document.getElementById("btnReload").onclick = async () => {
+    document.getElementById("app").innerHTML = `<div class="loading">重新抓取 Ragic 數據中...</div>`;
+    ALL_RECORDS = await loadData();
+    render();
+  };
+
+  document.getElementById("monthPick").onchange = render;
+  document.getElementById("btnToggleAll").onclick = () => {
+    const isEx = document.getElementById("btnToggleAll").innerText.includes("展開");
+    document.querySelectorAll('details').forEach(d => d.open = isEx);
+    document.getElementById("btnToggleAll").innerText = isEx ? "📂 收合全部" : "📂 展開全部";
+  };
+
+  // 初始化
+  window.onload = async () => {
+    const now = new Date();
+    document.getElementById("monthPick").value = `${now.getFullYear()}-${String(now.getMonth()+1).padStart(2,'0')}`;
+    ALL_RECORDS = await loadData();
+    render();
+  };
+</script>
+
+</body>
+</html>
