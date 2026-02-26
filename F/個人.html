@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>全家福 個人日報表（J-OS Daily）</title>
+  <style>
+    :root{
+      --bg:#f3f4f6; --card:#ffffff; --text:#1f2937; --muted:#6b7280;
+      --primary:#2563eb; --green:#16a34a; --red:#dc2626; --amber:#d97706;
+      --shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+    }
+    *{box-sizing:border-box;}
+    body{
+      margin:0; font-family:"Microsoft JhengHei", system-ui, sans-serif;
+      background:var(--bg); color:var(--text);
+      padding: max(16px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom));
+      -webkit-tap-highlight-color: transparent;
+    }
+    
+    /* === Header Control === */
+    .header{
+      max-width: 600px; margin: 0 auto 16px;
+      display:flex; flex-direction:column; gap:12px;
+    }
+    .topRow{ display:flex; justify-content:space-between; align-items:center; }
+    h1{ margin:0; font-size:20px; font-weight:900; letter-spacing:.5px; }
+    .status{ font-size:12px; color:var(--muted); font-weight:700; }
+
+    .controls{
+      background: var(--card); padding: 12px; border-radius: 16px;
+      box-shadow: var(--shadow); display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+    }
+    .input-group{ display:flex; flex-direction:column; gap:4px; flex:1; min-width:140px; }
+    .input-group label{ font-size:11px; color:var(--muted); font-weight:800; text-transform:uppercase; }
+    input[type="date"], select{
+      width:100%; padding: 10px; border-radius:10px; border:1px solid #e5e7eb;
+      background:#f9fafb; font-size:15px; font-weight:600; outline:none; appearance:none;
+    }
+    input[type="date"]:focus, select:focus{ border-color:var(--primary); background:#fff; }
+    
+    .btn{
+      border:0; background:var(--text); color:#fff; padding:10px 16px; border-radius:10px;
+      font-weight:700; cursor:pointer; white-space:nowrap; height:42px; align-self:flex-end;
+    }
+    .btn:active{ transform:scale(0.98); }
+
+    /* === Dashboard Hero === */
+    .hero{
+      max-width: 600px; margin: 0 auto 16px;
+      display:grid; grid-template-columns: 1fr 1fr; gap:12px;
+    }
+    .statCard{
+      background: var(--card); padding: 16px; border-radius: 16px;
+      box-shadow: var(--shadow); display:flex; flex-direction:column; justify-content:center;
+    }
+    .statLabel{ font-size:12px; color:var(--muted); font-weight:800; margin-bottom:4px; }
+    .statValue{ font-size:24px; font-weight:1000; color:var(--text); }
+    .statSub{ font-size:12px; font-weight:700; margin-top:4px; display:flex; gap:6px; align-items:center;}
+    .c-green{ color:var(--green); } .c-red{ color:var(--red); } .c-blue{ color:var(--primary); }
+
+    /* === List === */
+    #listArea{ max-width: 600px; margin: 0 auto; padding-bottom:40px; }
+    .empty{ text-align:center; padding:40px 0; color:var(--muted); font-weight:700; }
+    
+    .taskCard{
+      background: var(--card); border-radius: 14px; padding: 14px;
+      margin-bottom: 12px; box-shadow: var(--shadow);
+      border-left: 5px solid #d1d5db; position:relative;
+      transition: transform 0.2s;
+    }
+    .taskCard:active{ transform:scale(0.99); }
+    .taskCard.done{ border-left-color: var(--green); background: #f0fdf4; }
+    .taskCard.pending{ border-left-color: var(--primary); background: #eff6ff; }
+    .taskCard.cancel{ border-left-color: var(--red); opacity:0.7; }
+
+    .t-head{ display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px; }
+    .t-name{ font-size:16px; font-weight:900; color:#111827; }
+    .t-status{ 
+      font-size:11px; font-weight:800; padding:3px 8px; border-radius:99px; 
+      background:#e5e7eb; color:#374151; white-space:nowrap;
+    }
+    .done .t-status{ background:#dcfce7; color:#166534; }
+    .pending .t-status{ background:#dbeafe; color:#1e40af; }
+    
+    .t-body{ font-size:14px; color:#4b5563; line-height:1.5; font-weight:500; }
+    .t-row{ display:flex; gap:6px; align-items:center; margin-top:4px; }
+    .icon{ width:16px; text-align:center; display:inline-block; }
+    
+    .money-tag{
+      margin-top:8px; display:inline-flex; align-items:center; gap:4px;
+      background: #fff; border:1px solid #e5e7eb; 
+      padding:4px 10px; border-radius:8px; font-size:12px; font-weight:800; color:#059669;
+    }
+
+    /* === Loading === */
+    .loading-overlay{
+      position:fixed; top:0; left:0; right:0; bottom:0;
+      background:rgba(255,255,255,0.9); z-index:999;
+      display:flex; align-items:center; justify-content:center;
+      font-weight:900; color:var(--muted); flex-direction:column; gap:10px;
+    }
+    .hidden{ display:none !important; }
+
+  </style>
+</head>
+<body>
+
+<div id="loader" class="loading-overlay">
+  <div>讀取資料庫中...</div>
+  <div style="font-size:12px; font-weight:500;">Connecting to Ragic</div>
+</div>
+
+<div class="header">
+  <div class="topRow">
+    <h1>全家福 個人日報表</h1>
+    <div class="status" id="updateTime">...</div>
+  </div>
+  
+  <div class="controls">
+    <div class="input-group">
+      <label>日期 (Date)</label>
+      <input type="date" id="datePick">
+    </div>
+    <div class="input-group">
+      <label>人員 (Who)</label>
+      <select id="personPick">
+        <option value="">載入中...</option>
+      </select>
+    </div>
+    <button class="btn" id="btnReload">重刷</button>
+  </div>
+</div>
+
+<div class="hero">
+  <div class="statCard">
+    <div class="statLabel">今日進度 (Daily Progress)</div>
+    <div class="statValue" id="valCount">0 / 0</div>
+    <div class="statSub" id="valRate">完成率 0%</div>
+  </div>
+  <div class="statCard">
+    <div class="statLabel">預估產值 (Est. Value)</div>
+    <div class="statValue c-green" id="valMoney">$0</div>
+    <div class="statSub">
+      <span id="valShare">含分潤計算</span>
+    </div>
+  </div>
+</div>
+
+<div id="listArea">
+  </div>
+
+<script>
+  // ==========================================
+  // ⚙️ CONFIG (請填入與月報表相同的 API Key)
+  // ==========================================
+  const CONFIG = {
+    apiKey: "UGQ4cGFmNjg2R0J2TXNSMXpZdVVvSlhIUVRLZHo2SmpISXUyMFQrRCtySXFDTUk2T2NCeUY4b0FDcXJ6OENqRA==",
+    baseUrl: "https://ap12.ragic.com/89793238/fami/2",
+    fields: {
+      status: "1000111",
+      date:   "1000122",
+      person: "1000113",
+      reason: "1000120",
+      addr:   "1000119",
+      name:   "1000116",
+      amount: "1000114" // 金額欄位
+    },
+    // 人員解析規則（保持一致）
+    person: {
+      placeholderName: "未指派",
+      stripNotes: true,
+      removeSuffixes: [/師傅$/g, /師父$/g, /先生$/g, /小姐$/g, /師$/g, /傅$/g],
+      aliases: {} 
+    }
+  };
+
+  // ==========================================
+  // Core Logic
+  // ==========================================
+  let ALL_RECORDS = [];
+  let UNIQUE_PERSONS = new Set();
+
+  // 1. JSONP Fetch
+  function jsonp(url) {
+    return new Promise((resolve, reject) => {
+      const cb = "__ragic_cb_" + Date.now().toString(36);
+      window[cb] = (data) => { cleanup(); resolve(data); };
+      const s = document.createElement("script");
+      s.src = url + (url.includes("?") ? "&" : "?") + "callback=" + cb;
+      s.onerror = () => { cleanup(); reject(); };
+      function cleanup(){ try{delete window[cb];}catch(e){} s.remove(); }
+      document.head.appendChild(s);
+    });
+  }
+
+  // 2. Data Parsing Helpers
+  function getValue(r, id){
+    const v = r?.[id];
+    if(v == null) return "";
+    if(typeof v === "object") return String(v.text || v.value || v.name || "");
+    return String(v);
+  }
+
+  function date10(r){
+    const raw = getValue(r, CONFIG.fields.date) || "";
+    return raw.substring(0, 10);
+  }
+
+  function normalizeText(s){
+    return String(s||"").normalize("NFKC").trim();
+  }
+
+  function parseAmount(v){
+    const s = String(v||"").replace(/[,$\s]/g,"").replace(/NT/i,"");
+    const n = Number(s);
+    return isFinite(n) ? n : 0;
+  }
+
+  function parsePersons(raw){
+    // 簡化版解析：逗號分隔 + 清理
+    let s = normalizeText(raw);
+    if(CONFIG.person.stripNotes) s = s.replace(/\([^)]*\)|（[^）]*）|\[[^\]]*\]/g, "");
+    const tokens = s.split(/[,，、/&]/).map(t => {
+      let name = t.trim();
+      for(const re of CONFIG.person.removeSuffixes) name = name.replace(re, "");
+      return name.trim();
+    }).filter(Boolean);
+    return tokens.length ? tokens : ["未指派"];
+  }
+
+  // 3. Load Data
+  async function loadData(){
+    const loader = document.getElementById("loader");
+    loader.classList.remove("hidden");
+    
+    try {
+      const params = new URLSearchParams({
+        api: "", APIKey: CONFIG.apiKey, naming: "EID", 
+        limit: "2000", reverse: "true" // 抓最近 2000 筆通常夠涵蓋近期
+      });
+      const data = await jsonp(`${CONFIG.baseUrl}?${params}`);
+      ALL_RECORDS = Object.values(data || {}).filter(x => x && x._ragicId);
+      
+      // Extract Persons for Dropdown
+      const pCounts = {};
+      ALL_RECORDS.forEach(r => {
+        const pp = parsePersons(getValue(r, CONFIG.fields.person));
+        pp.forEach(p => { pCounts[p] = (pCounts[p]||0) + 1; });
+      });
+      
+      const sortedP = Object.keys(pCounts).sort((a,b) => pCounts[b] - pCounts[a]);
+      const sel = document.getElementById("personPick");
+      const saved = localStorage.getItem("JOS_PREF_PERSON");
+      
+      sel.innerHTML = `<option value="">-- 選擇人員 --</option>` + 
+        sortedP.map(p => `<option value="${p}">${p} (${pCounts[p]})</option>`).join("");
+        
+      if(saved && sortedP.includes(saved)) sel.value = saved;
+      
+      setUpdateTime();
+      render();
+    } catch(e) {
+      alert("讀取失敗，請檢查網路或 API Key");
+      console.error(e);
+    } finally {
+      loader.classList.add("hidden");
+    }
+  }
+
+  function setUpdateTime(){
+    const now = new Date();
+    document.getElementById("updateTime").innerText = 
+      `Updated ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
+  }
+
+  // 4. Render Dashboard
+  function render(){
+    const dateVal = document.getElementById("datePick").value; // YYYY-MM-DD
+    const personVal = document.getElementById("personPick").value;
+    
+    // Save preference
+    if(personVal) localStorage.setItem("JOS_PREF_PERSON", personVal);
+
+    const listArea = document.getElementById("listArea");
+    
+    // Filter
+    const todayRecs = ALL_RECORDS.filter(r => {
+      const d = date10(r);
+      if(d !== dateVal) return false; // Date Match
+      if(personVal){
+        const pp = parsePersons(getValue(r, CONFIG.fields.person));
+        if(!pp.includes(personVal)) return false; // Person Match
+      }
+      return true;
+    });
+
+    // Stats
+    let done = 0, total = 0, money = 0;
+    
+    // Sort: 已完成在下，未完成在上 (To-Do List 邏輯)
+    // Secondary Sort: 時間/單號 (這裡用 ID 倒序模擬)
+    todayRecs.sort((a,b) => {
+      const sa = getValue(a, CONFIG.fields.status) === "已完成" ? 1 : 0;
+      const sb = getValue(b, CONFIG.fields.status) === "已完成" ? 1 : 0;
+      return sa - sb || b._ragicId - a._ragicId;
+    });
+
+    let html = "";
+    
+    todayRecs.forEach(r => {
+      const status = getValue(r, CONFIG.fields.status);
+      const isDone = status === "已完成";
+      const isCancel = status === "取消";
+      
+      if(!isCancel){
+        total++;
+        if(isDone) done++;
+      }
+
+      // Money Calc (Split logic)
+      const rawAmt = parseAmount(getValue(r, CONFIG.fields.amount));
+      const pp = parsePersons(getValue(r, CONFIG.fields.person));
+      const splitCount = Math.max(1, pp.length);
+      const myShare = (personVal && !isCancel) ? (rawAmt / splitCount) : (isCancel ? 0 : rawAmt);
+      
+      if(!isCancel) money += myShare;
+
+      // Render Card
+      const cls = isDone ? "done" : (isCancel ? "cancel" : "pending");
+      const name = getValue(r, CONFIG.fields.name) || "未填客名";
+      const reason = getValue(r, CONFIG.fields.reason) || "未填事項";
+      const addr = getValue(r, CONFIG.fields.addr) || "未填地址";
+      const note = pp.length > 1 ? ` (與 ${pp.filter(x=>x!==personVal).join(", ")} 合力)` : "";
+
+      html += `
+        <div class="taskCard ${cls}">
+          <div class="t-head">
+            <div class="t-name">${name}</div>
+            <div class="t-status">${status}</div>
+          </div>
+          <div class="t-body">
+            <div style="font-weight:700; color:#1f2937; margin-bottom:4px;">${reason}</div>
+            <div class="t-row"><span class="icon">📍</span> ${addr}</div>
+            ${rawAmt > 0 ? `
+              <div class="money-tag">
+                💰 ${Math.round(myShare).toLocaleString()} 
+                ${pp.length>1 ? `<span style="font-weight:400; color:#6b7280; font-size:10px;">(分潤 ${Math.round(rawAmt).toLocaleString()}/${splitCount})</span>` : ""}
+              </div>
+            ` : ""}
+            ${note ? `<div style="margin-top:6px; font-size:12px; color:#6b7280;">👥 ${note}</div>` : ""}
+          </div>
+        </div>
+      `;
+    });
+
+    if(todayRecs.length === 0) html = `<div class="empty">📅 本日尚無指派單據</div>`;
+    
+    listArea.innerHTML = html;
+    
+    // Update Hero Stats
+    document.getElementById("valCount").innerText = `${done} / ${total}`;
+    const rate = total ? Math.round(done/total*100) : 0;
+    document.getElementById("valRate").innerText = `完成率 ${rate}%`;
+    document.getElementById("valMoney").innerText = `$${Math.round(money).toLocaleString()}`;
+  }
+
+  // 5. Init
+  (function(){
+    // Set Date to Today
+    const d = new Date();
+    const yyyy = d.getFullYear();
+    const mm = String(d.getMonth()+1).padStart(2,'0');
+    const dd = String(d.getDate()).padStart(2,'0');
+    document.getElementById("datePick").value = `${yyyy}-${mm}-${dd}`;
+
+    // Events
+    document.getElementById("btnReload").addEventListener("click", loadData);
+    document.getElementById("datePick").addEventListener("change", render);
+    document.getElementById("personPick").addEventListener("change", render);
+
+    loadData();
+  })();
+</script>
+
+</body>
+</html>
