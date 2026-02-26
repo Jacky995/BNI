@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>全家福 個人日報表（J-OS Daily）</title>
+  <title>全家福 個人日報表（已修正日期）</title>
   <style>
     :root{
       --bg:#f3f4f6; --card:#ffffff; --text:#1f2937; --muted:#6b7280;
@@ -166,7 +166,6 @@
       name:   "1000116",
       amount: "1000114" // 金額欄位
     },
-    // 人員解析規則（保持一致）
     person: {
       placeholderName: "未指派",
       stripNotes: true,
@@ -179,7 +178,6 @@
   // Core Logic
   // ==========================================
   let ALL_RECORDS = [];
-  let UNIQUE_PERSONS = new Set();
 
   // 1. JSONP Fetch
   function jsonp(url) {
@@ -202,9 +200,11 @@
     return String(v);
   }
 
+  // ✅ 核心修正：強制把 2026/02/25 轉成 2026-02-25
   function date10(r){
     const raw = getValue(r, CONFIG.fields.date) || "";
-    return raw.substring(0, 10);
+    // 取前10碼，並將斜線 / 替換為橫線 -
+    return raw.substring(0, 10).replace(/\//g, "-");
   }
 
   function normalizeText(s){
@@ -218,7 +218,6 @@
   }
 
   function parsePersons(raw){
-    // 簡化版解析：逗號分隔 + 清理
     let s = normalizeText(raw);
     if(CONFIG.person.stripNotes) s = s.replace(/\([^)]*\)|（[^）]*）|\[[^\]]*\]/g, "");
     const tokens = s.split(/[,，、/&]/).map(t => {
@@ -237,7 +236,7 @@
     try {
       const params = new URLSearchParams({
         api: "", APIKey: CONFIG.apiKey, naming: "EID", 
-        limit: "2000", reverse: "true" // 抓最近 2000 筆通常夠涵蓋近期
+        limit: "2000", reverse: "true" 
       });
       const data = await jsonp(`${CONFIG.baseUrl}?${params}`);
       ALL_RECORDS = Object.values(data || {}).filter(x => x && x._ragicId);
@@ -286,7 +285,8 @@
     
     // Filter
     const todayRecs = ALL_RECORDS.filter(r => {
-      const d = date10(r);
+      const d = date10(r); // 這邊出來的現在一定是 YYYY-MM-DD
+      
       if(d !== dateVal) return false; // Date Match
       if(personVal){
         const pp = parsePersons(getValue(r, CONFIG.fields.person));
@@ -298,8 +298,6 @@
     // Stats
     let done = 0, total = 0, money = 0;
     
-    // Sort: 已完成在下，未完成在上 (To-Do List 邏輯)
-    // Secondary Sort: 時間/單號 (這裡用 ID 倒序模擬)
     todayRecs.sort((a,b) => {
       const sa = getValue(a, CONFIG.fields.status) === "已完成" ? 1 : 0;
       const sb = getValue(b, CONFIG.fields.status) === "已完成" ? 1 : 0;
@@ -318,7 +316,7 @@
         if(isDone) done++;
       }
 
-      // Money Calc (Split logic)
+      // Money Calc
       const rawAmt = parseAmount(getValue(r, CONFIG.fields.amount));
       const pp = parsePersons(getValue(r, CONFIG.fields.person));
       const splitCount = Math.max(1, pp.length);
@@ -354,7 +352,12 @@
       `;
     });
 
-    if(todayRecs.length === 0) html = `<div class="empty">📅 本日尚無指派單據</div>`;
+    if(todayRecs.length === 0) {
+      html = `<div class="empty">
+        📅 ${dateVal} 無任務<br>
+        <span style="font-size:12px;">(若確認有單，請檢查 Ragic 日期是否填寫)</span>
+      </div>`;
+    }
     
     listArea.innerHTML = html;
     
