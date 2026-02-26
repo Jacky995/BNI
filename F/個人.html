@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>全家福 個人日報表（已修正日期）</title>
+  <title>全家福 當日總覽（分組版）</title>
   <style>
     :root{
       --bg:#f3f4f6; --card:#ffffff; --text:#1f2937; --muted:#6b7280;
@@ -18,11 +18,8 @@
       -webkit-tap-highlight-color: transparent;
     }
     
-    /* === Header Control === */
-    .header{
-      max-width: 600px; margin: 0 auto 16px;
-      display:flex; flex-direction:column; gap:12px;
-    }
+    /* === Header === */
+    .header{ max-width: 600px; margin: 0 auto 16px; display:flex; flex-direction:column; gap:12px; }
     .topRow{ display:flex; justify-content:space-between; align-items:center; }
     h1{ margin:0; font-size:20px; font-weight:900; letter-spacing:.5px; }
     .status{ font-size:12px; color:var(--muted); font-weight:700; }
@@ -37,15 +34,13 @@
       width:100%; padding: 10px; border-radius:10px; border:1px solid #e5e7eb;
       background:#f9fafb; font-size:15px; font-weight:600; outline:none; appearance:none;
     }
-    input[type="date"]:focus, select:focus{ border-color:var(--primary); background:#fff; }
     
     .btn{
       border:0; background:var(--text); color:#fff; padding:10px 16px; border-radius:10px;
       font-weight:700; cursor:pointer; white-space:nowrap; height:42px; align-self:flex-end;
     }
-    .btn:active{ transform:scale(0.98); }
 
-    /* === Dashboard Hero === */
+    /* === Hero Stats === */
     .hero{
       max-width: 600px; margin: 0 auto 16px;
       display:grid; grid-template-columns: 1fr 1fr; gap:12px;
@@ -56,64 +51,64 @@
     }
     .statLabel{ font-size:12px; color:var(--muted); font-weight:800; margin-bottom:4px; }
     .statValue{ font-size:24px; font-weight:1000; color:var(--text); }
-    .statSub{ font-size:12px; font-weight:700; margin-top:4px; display:flex; gap:6px; align-items:center;}
-    .c-green{ color:var(--green); } .c-red{ color:var(--red); } .c-blue{ color:var(--primary); }
+    .statSub{ font-size:12px; font-weight:700; margin-top:4px; color:var(--muted); }
+    .c-green{ color:var(--green); } 
 
-    /* === List === */
+    /* === List Area === */
     #listArea{ max-width: 600px; margin: 0 auto; padding-bottom:40px; }
     .empty{ text-align:center; padding:40px 0; color:var(--muted); font-weight:700; }
-    
+
+    /* Group Header */
+    .group-header{
+      display:flex; justify-content:space-between; align-items:center;
+      margin: 24px 0 12px 0; padding-bottom: 8px;
+      border-bottom: 2px solid #e5e7eb;
+      color: var(--text); font-weight: 1000; font-size: 18px;
+    }
+    .group-header .badge{
+      font-size: 12px; background: #e5e7eb; color: #374151;
+      padding: 4px 10px; border-radius: 99px; font-weight: 800;
+    }
+
+    /* Task Card */
     .taskCard{
       background: var(--card); border-radius: 14px; padding: 14px;
       margin-bottom: 12px; box-shadow: var(--shadow);
       border-left: 5px solid #d1d5db; position:relative;
-      transition: transform 0.2s;
     }
-    .taskCard:active{ transform:scale(0.99); }
     .taskCard.done{ border-left-color: var(--green); background: #f0fdf4; }
     .taskCard.pending{ border-left-color: var(--primary); background: #eff6ff; }
     .taskCard.cancel{ border-left-color: var(--red); opacity:0.7; }
 
     .t-head{ display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px; }
     .t-name{ font-size:16px; font-weight:900; color:#111827; }
-    .t-status{ 
-      font-size:11px; font-weight:800; padding:3px 8px; border-radius:99px; 
-      background:#e5e7eb; color:#374151; white-space:nowrap;
-    }
+    .t-status{ font-size:11px; font-weight:800; padding:3px 8px; border-radius:99px; background:#e5e7eb; white-space:nowrap; }
     .done .t-status{ background:#dcfce7; color:#166534; }
     .pending .t-status{ background:#dbeafe; color:#1e40af; }
     
     .t-body{ font-size:14px; color:#4b5563; line-height:1.5; font-weight:500; }
-    .t-row{ display:flex; gap:6px; align-items:center; margin-top:4px; }
-    .icon{ width:16px; text-align:center; display:inline-block; }
-    
     .money-tag{
       margin-top:8px; display:inline-flex; align-items:center; gap:4px;
       background: #fff; border:1px solid #e5e7eb; 
       padding:4px 10px; border-radius:8px; font-size:12px; font-weight:800; color:#059669;
     }
-
-    /* === Loading === */
+    .hidden{ display:none !important; }
     .loading-overlay{
-      position:fixed; top:0; left:0; right:0; bottom:0;
-      background:rgba(255,255,255,0.9); z-index:999;
-      display:flex; align-items:center; justify-content:center;
+      position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(255,255,255,0.9);
+      z-index:999; display:flex; align-items:center; justify-content:center;
       font-weight:900; color:var(--muted); flex-direction:column; gap:10px;
     }
-    .hidden{ display:none !important; }
-
   </style>
 </head>
 <body>
 
 <div id="loader" class="loading-overlay">
   <div>讀取資料庫中...</div>
-  <div style="font-size:12px; font-weight:500;">Connecting to Ragic</div>
 </div>
 
 <div class="header">
   <div class="topRow">
-    <h1>全家福 個人日報表</h1>
+    <h1>全家福 當日總覽</h1>
     <div class="status" id="updateTime">...</div>
   </div>
   
@@ -123,9 +118,9 @@
       <input type="date" id="datePick">
     </div>
     <div class="input-group">
-      <label>人員 (Who)</label>
+      <label>篩選 (Filter)</label>
       <select id="personPick">
-        <option value="">載入中...</option>
+        <option value="">(顯示全體)</option>
       </select>
     </div>
     <button class="btn" id="btnReload">重刷</button>
@@ -134,91 +129,64 @@
 
 <div class="hero">
   <div class="statCard">
-    <div class="statLabel">今日進度 (Daily Progress)</div>
-    <div class="statValue" id="valCount">0 / 0</div>
+    <div class="statLabel">當日總件數 (Total)</div>
+    <div class="statValue" id="valCount">0</div>
     <div class="statSub" id="valRate">完成率 0%</div>
   </div>
   <div class="statCard">
-    <div class="statLabel">預估產值 (Est. Value)</div>
+    <div class="statLabel">當日總產值 (Value)</div>
     <div class="statValue c-green" id="valMoney">$0</div>
-    <div class="statSub">
-      <span id="valShare">含分潤計算</span>
-    </div>
+    <div class="statSub">不重複計算</div>
   </div>
 </div>
 
-<div id="listArea">
-  </div>
+<div id="listArea"></div>
 
 <script>
-  // ==========================================
-  // ⚙️ CONFIG (請填入與月報表相同的 API Key)
-  // ==========================================
   const CONFIG = {
     apiKey: "UGQ4cGFmNjg2R0J2TXNSMXpZdVVvSlhIUVRLZHo2SmpISXUyMFQrRCtySXFDTUk2T2NCeUY4b0FDcXJ6OENqRA==",
     baseUrl: "https://ap12.ragic.com/89793238/fami/2",
     fields: {
-      status: "1000111",
-      date:   "1000122",
-      person: "1000113",
-      reason: "1000120",
-      addr:   "1000119",
-      name:   "1000116",
-      amount: "1000114" // 金額欄位
+      status: "1000111", date: "1000122", person: "1000113",
+      reason: "1000120", addr: "1000119", name: "1000116", amount: "1000114"
     },
     person: {
-      placeholderName: "未指派",
-      stripNotes: true,
-      removeSuffixes: [/師傅$/g, /師父$/g, /先生$/g, /小姐$/g, /師$/g, /傅$/g],
-      aliases: {} 
+      placeholderName: "未指派", stripNotes: true,
+      removeSuffixes: [/師傅$/g, /師父$/g, /先生$/g, /小姐$/g, /師$/g, /傅$/g]
     }
   };
 
-  // ==========================================
-  // Core Logic
-  // ==========================================
   let ALL_RECORDS = [];
 
-  // 1. JSONP Fetch
   function jsonp(url) {
     return new Promise((resolve, reject) => {
-      const cb = "__ragic_cb_" + Date.now().toString(36);
-      window[cb] = (data) => { cleanup(); resolve(data); };
+      const cb = "__ragic_" + Date.now().toString(36);
+      window[cb] = (data) => { delete window[cb]; s.remove(); resolve(data); };
       const s = document.createElement("script");
-      s.src = url + (url.includes("?") ? "&" : "?") + "callback=" + cb;
-      s.onerror = () => { cleanup(); reject(); };
-      function cleanup(){ try{delete window[cb];}catch(e){} s.remove(); }
+      s.src = url + "&callback=" + cb;
+      s.onerror = () => { delete window[cb]; s.remove(); reject(); };
       document.head.appendChild(s);
     });
   }
 
-  // 2. Data Parsing Helpers
   function getValue(r, id){
     const v = r?.[id];
-    if(v == null) return "";
-    if(typeof v === "object") return String(v.text || v.value || v.name || "");
-    return String(v);
+    if(typeof v === "object") return String(v.text||v.value||v.name||"");
+    return String(v||"");
   }
 
-  // ✅ 核心修正：強制把 2026/02/25 轉成 2026-02-25
+  // ✅ 核心修正：強制格式統一
   function date10(r){
-    const raw = getValue(r, CONFIG.fields.date) || "";
-    // 取前10碼，並將斜線 / 替換為橫線 -
-    return raw.substring(0, 10).replace(/\//g, "-");
-  }
-
-  function normalizeText(s){
-    return String(s||"").normalize("NFKC").trim();
+    return getValue(r, CONFIG.fields.date).substring(0, 10).replace(/\//g, "-");
   }
 
   function parseAmount(v){
-    const s = String(v||"").replace(/[,$\s]/g,"").replace(/NT/i,"");
-    const n = Number(s);
+    const n = Number(String(v||"").replace(/[,$\sNT]/gi,""));
     return isFinite(n) ? n : 0;
   }
 
   function parsePersons(raw){
-    let s = normalizeText(raw);
+    let s = String(raw||"").normalize("NFKC").trim();
     if(CONFIG.person.stripNotes) s = s.replace(/\([^)]*\)|（[^）]*）|\[[^\]]*\]/g, "");
     const tokens = s.split(/[,，、/&]/).map(t => {
       let name = t.trim();
@@ -228,43 +196,28 @@
     return tokens.length ? tokens : ["未指派"];
   }
 
-  // 3. Load Data
   async function loadData(){
     const loader = document.getElementById("loader");
     loader.classList.remove("hidden");
-    
     try {
-      const params = new URLSearchParams({
-        api: "", APIKey: CONFIG.apiKey, naming: "EID", 
-        limit: "2000", reverse: "true" 
-      });
-      const data = await jsonp(`${CONFIG.baseUrl}?${params}`);
+      const data = await jsonp(`${CONFIG.baseUrl}?api=&APIKey=${CONFIG.apiKey}&naming=EID&limit=2000&reverse=true`);
       ALL_RECORDS = Object.values(data || {}).filter(x => x && x._ragicId);
       
-      // Extract Persons for Dropdown
-      const pCounts = {};
-      ALL_RECORDS.forEach(r => {
-        const pp = parsePersons(getValue(r, CONFIG.fields.person));
-        pp.forEach(p => { pCounts[p] = (pCounts[p]||0) + 1; });
-      });
+      // Build Person Dropdown (Optional Filter)
+      const pSet = new Set();
+      ALL_RECORDS.forEach(r => parsePersons(getValue(r, CONFIG.fields.person)).forEach(p => pSet.add(p)));
+      const sortedP = [...pSet].sort();
       
-      const sortedP = Object.keys(pCounts).sort((a,b) => pCounts[b] - pCounts[a]);
       const sel = document.getElementById("personPick");
-      const saved = localStorage.getItem("JOS_PREF_PERSON");
+      sel.innerHTML = `<option value="">(顯示全體 - 按人員分組)</option>` + 
+        sortedP.map(p => `<option value="${p}">${p}</option>`).join("");
       
-      sel.innerHTML = `<option value="">-- 選擇人員 --</option>` + 
-        sortedP.map(p => `<option value="${p}">${p} (${pCounts[p]})</option>`).join("");
-        
-      if(saved && sortedP.includes(saved)) sel.value = saved;
+      // 移除這裡的 LocalStorage 自動選取，確保預設是「顯示全體」
       
       setUpdateTime();
       render();
-    } catch(e) {
-      alert("讀取失敗，請檢查網路或 API Key");
-      console.error(e);
-    } finally {
-      loader.classList.add("hidden");
-    }
+    } catch(e) { alert("讀取失敗"); console.error(e); } 
+    finally { loader.classList.add("hidden"); }
   }
 
   function setUpdateTime(){
@@ -273,118 +226,131 @@
       `Updated ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
   }
 
-  // 4. Render Dashboard
-  function render(){
-    const dateVal = document.getElementById("datePick").value; // YYYY-MM-DD
-    const personVal = document.getElementById("personPick").value;
+  function renderCard(r, highlightPerson){
+    const status = getValue(r, CONFIG.fields.status);
+    const isDone = status === "已完成";
+    const isCancel = status === "取消";
+    const cls = isDone ? "done" : (isCancel ? "cancel" : "pending");
+    const rawAmt = parseAmount(getValue(r, CONFIG.fields.amount));
+    const pp = parsePersons(getValue(r, CONFIG.fields.person));
     
-    // Save preference
-    if(personVal) localStorage.setItem("JOS_PREF_PERSON", personVal);
+    // 如果是分組顯示，標註一下合力的人
+    const otherPeople = highlightPerson ? pp.filter(p => p !== highlightPerson) : pp;
+    const note = otherPeople.length > 0 ? `(與 ${otherPeople.join(", ")} 合力)` : "";
 
+    // 分潤計算 (僅顯示參考)
+    const share = rawAmt > 0 ? Math.round(rawAmt / Math.max(1, pp.length)) : 0;
+
+    return `
+      <div class="taskCard ${cls}">
+        <div class="t-head">
+          <div class="t-name">${getValue(r, CONFIG.fields.name)||"無客名"}</div>
+          <div class="t-status">${status}</div>
+        </div>
+        <div class="t-body">
+          <div style="font-weight:700; color:#1f2937;">${getValue(r, CONFIG.fields.reason)||"無事項"}</div>
+          <div style="margin-top:4px;">📍 ${getValue(r, CONFIG.fields.addr)||"無地址"}</div>
+          ${rawAmt > 0 ? `
+            <div class="money-tag">
+              💰 ${share.toLocaleString()}
+              ${pp.length>1 ? `<span style="color:#6b7280; font-weight:400; margin-left:4px;">(總額 ${rawAmt.toLocaleString()})</span>` : ""}
+            </div>
+          ` : ""}
+          ${note ? `<div style="margin-top:6px; font-size:12px; color:#6b7280;">👥 ${note}</div>` : ""}
+        </div>
+      </div>
+    `;
+  }
+
+  function render(){
+    const dateVal = document.getElementById("datePick").value;
+    const personVal = document.getElementById("personPick").value;
     const listArea = document.getElementById("listArea");
     
-    // Filter
-    const todayRecs = ALL_RECORDS.filter(r => {
-      const d = date10(r); // 這邊出來的現在一定是 YYYY-MM-DD
-      
-      if(d !== dateVal) return false; // Date Match
-      if(personVal){
-        const pp = parsePersons(getValue(r, CONFIG.fields.person));
-        if(!pp.includes(personVal)) return false; // Person Match
-      }
-      return true;
-    });
-
-    // Stats
-    let done = 0, total = 0, money = 0;
+    // 1. 先抓出當天所有單據 (用於上方統計)
+    const todayAllRecs = ALL_RECORDS.filter(r => date10(r) === dateVal);
     
-    todayRecs.sort((a,b) => {
-      const sa = getValue(a, CONFIG.fields.status) === "已完成" ? 1 : 0;
-      const sb = getValue(b, CONFIG.fields.status) === "已完成" ? 1 : 0;
-      return sa - sb || b._ragicId - a._ragicId;
+    // 2. 計算全體統計 (不重複計算)
+    let totalC = 0, doneC = 0, totalM = 0;
+    todayAllRecs.forEach(r => {
+      const st = getValue(r, CONFIG.fields.status);
+      if(st !== "取消"){
+        totalC++;
+        if(st === "已完成") doneC++;
+        totalM += parseAmount(getValue(r, CONFIG.fields.amount));
+      }
     });
+    document.getElementById("valCount").innerText = `${doneC} / ${totalC}`;
+    const rate = totalC ? Math.round(doneC/totalC*100) : 0;
+    document.getElementById("valRate").innerText = `完成率 ${rate}%`;
+    document.getElementById("valMoney").innerText = `$${totalM.toLocaleString()}`;
 
+    // 3. 渲染列表
     let html = "";
     
-    todayRecs.forEach(r => {
-      const status = getValue(r, CONFIG.fields.status);
-      const isDone = status === "已完成";
-      const isCancel = status === "取消";
-      
-      if(!isCancel){
-        total++;
-        if(isDone) done++;
+    if(todayAllRecs.length === 0){
+      listArea.innerHTML = `<div class="empty">📅 ${dateVal} 無資料</div>`;
+      return;
+    }
+
+    if(personVal){
+      // === 單人模式 (過濾顯示) ===
+      const myRecs = todayAllRecs.filter(r => parsePersons(getValue(r, CONFIG.fields.person)).includes(personVal));
+      html += `<div class="group-header">${personVal} <span class="badge">${myRecs.length}</span></div>`;
+      if(myRecs.length === 0) html += `<div class="empty">無指派工作</div>`;
+      else html += myRecs.map(r => renderCard(r, personVal)).join("");
+
+    } else {
+      // === 全體分組模式 (預設) ===
+      // 找出今天有工作的所有人
+      const activePeople = new Set();
+      todayAllRecs.forEach(r => parsePersons(getValue(r, CONFIG.fields.person)).forEach(p => activePeople.add(p)));
+      const sortedActive = [...activePeople].sort();
+
+      if(sortedActive.length === 0){
+         html = `<div class="empty">有單據但未指派人員</div>`;
+      } else {
+        sortedActive.forEach(p => {
+          // 抓出這個人的單
+          const pRecs = todayAllRecs.filter(r => parsePersons(getValue(r, CONFIG.fields.person)).includes(p));
+          
+          // 排序：完成的沉底
+          pRecs.sort((a,b) => {
+            const sa = getValue(a, CONFIG.fields.status)==="已完成"?1:0;
+            const sb = getValue(b, CONFIG.fields.status)==="已完成"?1:0;
+            return sa - sb;
+          });
+
+          html += `
+            <div class="group-header">
+              ${p} <span class="badge">${pRecs.length}</span>
+            </div>
+            ${pRecs.map(r => renderCard(r, p)).join("")}
+          `;
+        });
+        
+        // 檢查是否有「未指派」的單
+        const unassigned = todayAllRecs.filter(r => parsePersons(getValue(r, CONFIG.fields.person))[0] === "未指派");
+        if(unassigned.length > 0){
+          html += `<div class="group-header" style="color:#dc2626;">⚠️ 未指派人員 <span class="badge">${unassigned.length}</span></div>`;
+          html += unassigned.map(r => renderCard(r, null)).join("");
+        }
       }
-
-      // Money Calc
-      const rawAmt = parseAmount(getValue(r, CONFIG.fields.amount));
-      const pp = parsePersons(getValue(r, CONFIG.fields.person));
-      const splitCount = Math.max(1, pp.length);
-      const myShare = (personVal && !isCancel) ? (rawAmt / splitCount) : (isCancel ? 0 : rawAmt);
-      
-      if(!isCancel) money += myShare;
-
-      // Render Card
-      const cls = isDone ? "done" : (isCancel ? "cancel" : "pending");
-      const name = getValue(r, CONFIG.fields.name) || "未填客名";
-      const reason = getValue(r, CONFIG.fields.reason) || "未填事項";
-      const addr = getValue(r, CONFIG.fields.addr) || "未填地址";
-      const note = pp.length > 1 ? ` (與 ${pp.filter(x=>x!==personVal).join(", ")} 合力)` : "";
-
-      html += `
-        <div class="taskCard ${cls}">
-          <div class="t-head">
-            <div class="t-name">${name}</div>
-            <div class="t-status">${status}</div>
-          </div>
-          <div class="t-body">
-            <div style="font-weight:700; color:#1f2937; margin-bottom:4px;">${reason}</div>
-            <div class="t-row"><span class="icon">📍</span> ${addr}</div>
-            ${rawAmt > 0 ? `
-              <div class="money-tag">
-                💰 ${Math.round(myShare).toLocaleString()} 
-                ${pp.length>1 ? `<span style="font-weight:400; color:#6b7280; font-size:10px;">(分潤 ${Math.round(rawAmt).toLocaleString()}/${splitCount})</span>` : ""}
-              </div>
-            ` : ""}
-            ${note ? `<div style="margin-top:6px; font-size:12px; color:#6b7280;">👥 ${note}</div>` : ""}
-          </div>
-        </div>
-      `;
-    });
-
-    if(todayRecs.length === 0) {
-      html = `<div class="empty">
-        📅 ${dateVal} 無任務<br>
-        <span style="font-size:12px;">(若確認有單，請檢查 Ragic 日期是否填寫)</span>
-      </div>`;
     }
     
     listArea.innerHTML = html;
-    
-    // Update Hero Stats
-    document.getElementById("valCount").innerText = `${done} / ${total}`;
-    const rate = total ? Math.round(done/total*100) : 0;
-    document.getElementById("valRate").innerText = `完成率 ${rate}%`;
-    document.getElementById("valMoney").innerText = `$${Math.round(money).toLocaleString()}`;
   }
 
-  // 5. Init
   (function(){
-    // Set Date to Today
     const d = new Date();
-    const yyyy = d.getFullYear();
-    const mm = String(d.getMonth()+1).padStart(2,'0');
-    const dd = String(d.getDate()).padStart(2,'0');
-    document.getElementById("datePick").value = `${yyyy}-${mm}-${dd}`;
-
-    // Events
+    document.getElementById("datePick").value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    
     document.getElementById("btnReload").addEventListener("click", loadData);
     document.getElementById("datePick").addEventListener("change", render);
     document.getElementById("personPick").addEventListener("change", render);
-
+    
     loadData();
   })();
 </script>
-
 </body>
 </html>
