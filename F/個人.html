@@ -3,354 +3,493 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
-  <title>全家福 當日總覽（分組版）</title>
+  <title>全家福 月報表（含個人分析版）</title>
   <style>
     :root{
-      --bg:#f3f4f6; --card:#ffffff; --text:#1f2937; --muted:#6b7280;
-      --primary:#2563eb; --green:#16a34a; --red:#dc2626; --amber:#d97706;
-      --shadow: 0 4px 6px -1px rgba(0,0,0,0.1), 0 2px 4px -1px rgba(0,0,0,0.06);
+      --bg:#eef1f4;
+      --card:#ffffff;
+      --text:#1b1f24;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --shadow: 0 10px 25px rgba(0,0,0,0.08);
+      --shadow2: 0 3px 10px rgba(0,0,0,0.06);
+      --dark:#111827;
+      --chip:#f3f4f6;
+      --chipOn:#e7f1ff;
+      --chipBorder:#3b82f6;
+      --green:#16a34a;
+      --red:#dc2626;
+      --blue:#0891b2;
+      --amber:#f59e0b;
     }
     *{box-sizing:border-box;}
     body{
-      margin:0; font-family:"Microsoft JhengHei", system-ui, sans-serif;
-      background:var(--bg); color:var(--text);
-      padding: max(16px, env(safe-area-inset-top)) 16px max(20px, env(safe-area-inset-bottom));
+      margin:0;
+      font-family:"Microsoft JhengHei", system-ui, -apple-system, "Segoe UI", sans-serif;
+      color:var(--text);
+      background:var(--bg);
+      padding: max(12px, env(safe-area-inset-top)) 12px max(14px, env(safe-area-inset-bottom));
       -webkit-tap-highlight-color: transparent;
     }
-    
-    /* === Header === */
-    .header{ max-width: 600px; margin: 0 auto 16px; display:flex; flex-direction:column; gap:12px; }
-    .topRow{ display:flex; justify-content:space-between; align-items:center; }
-    h1{ margin:0; font-size:20px; font-weight:900; letter-spacing:.5px; }
-    .status{ font-size:12px; color:var(--muted); font-weight:700; }
-
     .controls{
-      background: var(--card); padding: 12px; border-radius: 16px;
-      box-shadow: var(--shadow); display:flex; gap:10px; flex-wrap:wrap; align-items:center;
+      position: sticky;
+      top: 0;
+      z-index: 100;
+      background: rgba(255,255,255,0.92);
+      backdrop-filter: blur(8px);
+      border:1px solid rgba(0,0,0,0.06);
+      box-shadow: var(--shadow2);
+      border-radius: 14px;
+      padding: 12px;
+      margin: 0 auto 12px auto;
+      max-width: 1100px;
     }
-    .input-group{ display:flex; flex-direction:column; gap:4px; flex:1; min-width:140px; }
-    .input-group label{ font-size:11px; color:var(--muted); font-weight:800; text-transform:uppercase; }
-    input[type="date"], select{
-      width:100%; padding: 10px; border-radius:10px; border:1px solid #e5e7eb;
-      background:#f9fafb; font-size:15px; font-weight:600; outline:none; appearance:none;
+    .title{
+      display:flex;
+      align-items:flex-end;
+      justify-content:space-between;
+      gap:10px;
+      margin-bottom:10px;
     }
-    
+    .title h1{ margin:0; font-size:18px; letter-spacing:.2px; }
+    .updated{ font-size:12px; color:var(--muted); white-space:nowrap; }
+    .row{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      align-items:center;
+      justify-content: space-between;
+    }
+    .chip{
+      display:flex; align-items:center; gap:8px;
+      padding: 10px 12px;
+      border-radius: 999px;
+      background: var(--chip);
+      border: 2px solid transparent;
+      user-select:none;
+      cursor:pointer;
+      font-weight: 800;
+      font-size: 14px;
+      line-height: 1;
+      touch-action: manipulation;
+      white-space: nowrap;
+    }
+    .chip input{ transform: scale(1.25); }
+    .chip.on{ background:var(--chipOn); border-color:var(--chipBorder); color:#0b3a82; }
+    .inputs{
+      display:flex; gap:8px; flex-wrap:wrap; align-items:center;
+      flex: 1 1 320px;
+    }
+    .inputs label{
+      font-size:12px; color:var(--muted); font-weight:900;
+      display:flex; flex-direction:column; gap:6px;
+    }
+    .inputs input[type="month"], .inputs select{
+      padding: 11px 12px;
+      border-radius: 12px;
+      border: 1px solid var(--line);
+      outline: none;
+      font-size: 14px;
+      background:#fff;
+      min-width: 160px;
+    }
     .btn{
-      border:0; background:var(--text); color:#fff; padding:10px 16px; border-radius:10px;
-      font-weight:700; cursor:pointer; white-space:nowrap; height:42px; align-self:flex-end;
+      border:0;
+      background: var(--dark);
+      color:#fff;
+      padding: 11px 12px;
+      border-radius: 12px;
+      font-weight: 900;
+      cursor:pointer;
+      touch-action: manipulation;
+      white-space: nowrap;
+    }
+    .btn.secondary{ background: #374151; }
+    .btn:disabled{ opacity:.6; cursor:not-allowed; }
+    .stats{
+      margin-top: 8px;
+      font-size: 12px;
+      color: var(--muted);
+      text-align:left;
+      line-height: 1.55;
+      font-weight: 800;
     }
 
-    /* === Hero Stats === */
-    .hero{
-      max-width: 600px; margin: 0 auto 16px;
-      display:grid; grid-template-columns: 1fr 1fr; gap:12px;
+    #chartsArea{ max-width:1100px; margin:0 auto 12px auto; }
+    .chartsGrid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
     }
-    .statCard{
-      background: var(--card); padding: 16px; border-radius: 16px;
-      box-shadow: var(--shadow); display:flex; flex-direction:column; justify-content:center;
+    @media (min-width: 820px){
+      .title h1{ font-size:22px; }
+      .chartsGrid{ grid-template-columns: 1fr 1fr; }
     }
-    .statLabel{ font-size:12px; color:var(--muted); font-weight:800; margin-bottom:4px; }
-    .statValue{ font-size:24px; font-weight:1000; color:var(--text); }
-    .statSub{ font-size:12px; font-weight:700; margin-top:4px; color:var(--muted); }
-    .c-green{ color:var(--green); } 
+    .chartCard{
+      background: var(--card);
+      border-radius: 16px;
+      border: 1px solid rgba(0,0,0,0.06);
+      box-shadow: var(--shadow);
+      padding: 12px 12px 8px 12px;
+      overflow:hidden;
+    }
+    .chartTitle{
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:8px;
+      margin-bottom: 8px;
+      font-weight: 1000;
+      font-size: 14px;
+      color: #111827;
+    }
+    .chartWrap{
+      position: relative;
+      width: 100%;
+      height: 240px;
+    }
+    @media (min-width: 820px){
+      .chartWrap{ height: 260px; }
+    }
 
-    /* === List Area === */
-    #listArea{ max-width: 600px; margin: 0 auto; padding-bottom:40px; }
-    .empty{ text-align:center; padding:40px 0; color:var(--muted); font-weight:700; }
-
-    /* Group Header */
-    .group-header{
-      display:flex; justify-content:space-between; align-items:center;
-      margin: 24px 0 12px 0; padding-bottom: 8px;
-      border-bottom: 2px solid #e5e7eb;
-      color: var(--text); font-weight: 1000; font-size: 18px;
+    #app{ max-width:1100px; margin:0 auto; }
+    .loading{
+      text-align:center;
+      color: var(--muted);
+      padding: 40px 0;
+      font-size: 16px;
+      font-weight: 800;
     }
-    .group-header .badge{
-      font-size: 12px; background: #e5e7eb; color: #374151;
-      padding: 4px 10px; border-radius: 99px; font-weight: 800;
+    .grid{
+      display:grid;
+      grid-template-columns: 1fr;
+      gap: 12px;
+    }
+    @media (min-width: 820px){
+      .grid{ grid-template-columns: 1fr 1fr; }
+    }
+    @media (min-width: 1120px){
+      .grid{ grid-template-columns: 1fr 1fr 1fr; }
     }
 
-    /* Task Card */
-    .taskCard{
-      background: var(--card); border-radius: 14px; padding: 14px;
-      margin-bottom: 12px; box-shadow: var(--shadow);
-      border-left: 5px solid #d1d5db; position:relative;
+    details.personCard{
+      background: var(--card);
+      border-radius: 16px;
+      border: 1px solid rgba(0,0,0,0.06);
+      box-shadow: var(--shadow);
+      overflow:hidden;
     }
-    .taskCard.done{ border-left-color: var(--green); background: #f0fdf4; }
-    .taskCard.pending{ border-left-color: var(--primary); background: #eff6ff; }
-    .taskCard.cancel{ border-left-color: var(--red); opacity:0.7; }
+    summary.personHead{
+      list-style:none;
+      cursor:pointer;
+      user-select:none;
+      padding: 12px 14px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap:10px;
+      border-top: 6px solid #6c757d;
+    }
+    .name{
+      font-weight: 1000;
+      font-size: 16px;
+      display:flex;
+      align-items:center;
+      gap:10px;
+    }
+    .count{
+      background:#111827;
+      color:#fff;
+      padding: 4px 10px;
+      border-radius: 999px;
+      font-size: 12px;
+      font-weight: 1000;
+      white-space:nowrap;
+    }
+    .body{
+      padding: 10px 12px 12px;
+      border-top: 1px solid var(--line);
+      background:#fff;
+    }
 
-    .t-head{ display:flex; justify-content:space-between; align-items:flex-start; margin-bottom:6px; }
-    .t-name{ font-size:16px; font-weight:900; color:#111827; }
-    .t-status{ font-size:11px; font-weight:800; padding:3px 8px; border-radius:99px; background:#e5e7eb; white-space:nowrap; }
-    .done .t-status{ background:#dcfce7; color:#166534; }
-    .pending .t-status{ background:#dbeafe; color:#1e40af; }
+    .personAnalytics{
+      background: #f8fafc;
+      border: 1px solid #e2e8f0;
+      border-radius: 12px;
+      padding: 10px;
+      margin-bottom: 15px;
+    }
+    .analyticsTitle{
+      font-size: 13px;
+      font-weight: 800;
+      color: #475569;
+      margin-bottom: 8px;
+      display: flex;
+      justify-content: space-between;
+    }
+
+    .task{
+      border: 1px solid var(--line);
+      border-left: 6px solid #c7c7c7;
+      border-radius: 12px;
+      padding: 10px 10px;
+      background:#fff;
+      margin-bottom: 10px;
+    }
+    .task.is-done{ border-left-color: var(--green); background:#ecfdf3; }
+    .task.is-pending{ border-left-color: var(--blue); background:#e6fbff; }
     
-    .t-body{ font-size:14px; color:#4b5563; line-height:1.5; font-weight:500; }
-    .money-tag{
-      margin-top:8px; display:inline-flex; align-items:center; gap:4px;
-      background: #fff; border:1px solid #e5e7eb; 
-      padding:4px 10px; border-radius:8px; font-size:12px; font-weight:800; color:#059669;
+    .rankWrap{
+      margin-top: 12px;
+      overflow:auto;
+      border: 1px solid var(--line);
+      border-radius: 14px;
+      background:#fff;
     }
-    .hidden{ display:none !important; }
-    .loading-overlay{
-      position:fixed; top:0; left:0; right:0; bottom:0; background:rgba(255,255,255,0.9);
-      z-index:999; display:flex; align-items:center; justify-content:center;
-      font-weight:900; color:var(--muted); flex-direction:column; gap:10px;
+    table.rankTable{ width:100%; border-collapse: collapse; min-width: 900px; }
+    .rankTable th, .rankTable td{
+      padding: 10px 10px;
+      border-bottom: 1px solid var(--line);
+      text-align:left;
+      font-size: 13px;
+      font-weight: 900;
     }
+    .badge{
+      font-size: 12px;
+      font-weight: 1100;
+      padding: 2px 8px;
+      border-radius: 999px;
+      color:#fff;
+      display:inline-block;
+    }
+    .badge.g{ background: var(--green); }
+    .badge.b{ background: var(--blue); }
+    .badge.am{ background: var(--amber); color:#111827; }
+    
+    #peopleArea{ max-width:1100px; margin:0 auto 12px auto; }
+    .sectionCard{ background: var(--card); border-radius: 16px; border: 1px solid rgba(0,0,0,0.06); padding: 12px; }
   </style>
 </head>
 <body>
-
-<div id="loader" class="loading-overlay">
-  <div>讀取資料庫中...</div>
-</div>
-
-<div class="header">
-  <div class="topRow">
-    <h1>全家福 當日總覽</h1>
-    <div class="status" id="updateTime">...</div>
-  </div>
-  
   <div class="controls">
-    <div class="input-group">
-      <label>日期 (Date)</label>
-      <input type="date" id="datePick">
+    <div class="title">
+      <h1>全家福 月報表（個人分析強化版）</h1>
+      <div class="updated" id="updatedAt">—</div>
     </div>
-    <div class="input-group">
-      <label>篩選 (Filter)</label>
-      <select id="personPick">
-        <option value="">(顯示全體)</option>
-      </select>
+    <div class="row">
+      <div class="inputs">
+        <label>月份 <input type="month" id="monthPick" /></label>
+        <label>排行 <select id="sortMetric">
+          <option value="score" selected>貢獻</option>
+          <option value="amount">金額</option>
+          <option value="done">已完成</option>
+          <option value="total">件數</option>
+        </select></label>
+        <label class="chip on"><input type="checkbox" id="chkDoneOnly" checked /> 只看完成</label>
+        <label class="chip on"><input type="checkbox" id="chkSplitAmount" checked /> 金額平分</label>
+      </div>
+      <div style="display:flex; gap:8px;">
+        <button class="btn secondary" id="btnToggleAll">全部展開</button>
+        <button class="btn" id="btnReload">重載</button>
+      </div>
     </div>
-    <button class="btn" id="btnReload">重刷</button>
+    <div class="stats" id="stats"></div>
   </div>
-</div>
 
-<div class="hero">
-  <div class="statCard">
-    <div class="statLabel">當日總件數 (Total)</div>
-    <div class="statValue" id="valCount">0</div>
-    <div class="statSub" id="valRate">完成率 0%</div>
-  </div>
-  <div class="statCard">
-    <div class="statLabel">當日總產值 (Value)</div>
-    <div class="statValue c-green" id="valMoney">$0</div>
-    <div class="statSub">不重複計算</div>
-  </div>
-</div>
+  <div id="peopleArea"></div>
+  <div id="chartsArea"></div>
+  <div id="app" class="loading">資料讀取中...</div>
 
-<div id="listArea"></div>
-
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
 <script>
+  // CONFIG
   const CONFIG = {
     apiKey: "UGQ4cGFmNjg2R0J2TXNSMXpZdVVvSlhIUVRLZHo2SmpISXUyMFQrRCtySXFDTUk2T2NCeUY4b0FDcXJ6OENqRA==",
     baseUrl: "https://ap12.ragic.com/89793238/fami/2",
     fields: {
-      status: "1000111", date: "1000122", person: "1000113",
-      reason: "1000120", addr: "1000119", name: "1000116", amount: "1000114"
+      status: "1000111",
+      date: "1000122",
+      person: "1000113",
+      reason: "1000120",
+      addr: "1000119",
+      name: "1000116",
+      amount: "1000114"
     },
-    person: {
-      placeholderName: "未指派", stripNotes: true,
-      removeSuffixes: [/師傅$/g, /師父$/g, /先生$/g, /小姐$/g, /師$/g, /傅$/g]
-    }
+    person: { placeholderName: "待指派", stripNotes: true, aliases: {} }
   };
 
   let ALL_RECORDS = [];
+  const CHARTS = {};
 
-  function jsonp(url) {
-    return new Promise((resolve, reject) => {
-      const cb = "__ragic_" + Date.now().toString(36);
-      window[cb] = (data) => { delete window[cb]; s.remove(); resolve(data); };
+  // Utils
+  function getThisMonthValue(){ const d = new Date(); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,"0")}`; }
+  function getValue(r, id){
+    const v = r?.[id]; if (v == null) return "";
+    if (typeof v === "object") return Array.isArray(v) ? v.map(x=>x.text||"").join(",") : (v.text||"");
+    return String(v);
+  }
+  function escapeHtml(s){ return String(s||"").replace(/&/g,"&amp;").replace(/</g,"&lt;").replace(/>/g,"&gt;"); }
+  function pid(s){ return "p_" + btoa(encodeURIComponent(s||"p")).replace(/=/g,"").slice(-10); }
+
+  async function jsonp(url) {
+    const cb = "cb" + Math.random().toString(16).slice(2);
+    return new Promise((res, rej) => {
+      window[cb] = (d) => { delete window[cb]; s.remove(); res(d); };
       const s = document.createElement("script");
-      s.src = url + "&callback=" + cb;
-      s.onerror = () => { delete window[cb]; s.remove(); reject(); };
+      s.src = url + (url.includes("?") ? "&" : "?") + "callback=" + cb;
       document.head.appendChild(s);
     });
   }
 
-  function getValue(r, id){
-    const v = r?.[id];
-    if(typeof v === "object") return String(v.text||v.value||v.name||"");
-    return String(v||"");
+  // 人員解析
+  function parsePersons(text){
+    let raw = String(text||"").replace(/[，、；;／/\\|+&。．·]/g, ",").trim();
+    if(!raw) return [CONFIG.person.placeholderName];
+    let tokens = raw.split(",").map(t => t.trim()).filter(Boolean);
+    return tokens.map(t => {
+      let x = t.replace(/\([^)]*\)|（[^）]*）|【[^】]*】/g, "").trim();
+      return x || CONFIG.person.placeholderName;
+    });
   }
 
-  // ✅ 核心修正：強制格式統一
-  function date10(r){
-    return getValue(r, CONFIG.fields.date).substring(0, 10).replace(/\//g, "-");
-  }
-
-  function parseAmount(v){
-    const n = Number(String(v||"").replace(/[,$\sNT]/gi,""));
-    return isFinite(n) ? n : 0;
-  }
-
-  function parsePersons(raw){
-    let s = String(raw||"").normalize("NFKC").trim();
-    if(CONFIG.person.stripNotes) s = s.replace(/\([^)]*\)|（[^）]*）|\[[^\]]*\]/g, "");
-    const tokens = s.split(/[,，、/&]/).map(t => {
-      let name = t.trim();
-      for(const re of CONFIG.person.removeSuffixes) name = name.replace(re, "");
-      return name.trim();
-    }).filter(Boolean);
-    return tokens.length ? tokens : ["未指派"];
-  }
-
-  async function loadData(){
-    const loader = document.getElementById("loader");
-    loader.classList.remove("hidden");
-    try {
-      const data = await jsonp(`${CONFIG.baseUrl}?api=&APIKey=${CONFIG.apiKey}&naming=EID&limit=2000&reverse=true`);
-      ALL_RECORDS = Object.values(data || {}).filter(x => x && x._ragicId);
-      
-      // Build Person Dropdown (Optional Filter)
-      const pSet = new Set();
-      ALL_RECORDS.forEach(r => parsePersons(getValue(r, CONFIG.fields.person)).forEach(p => pSet.add(p)));
-      const sortedP = [...pSet].sort();
-      
-      const sel = document.getElementById("personPick");
-      sel.innerHTML = `<option value="">(顯示全體 - 按人員分組)</option>` + 
-        sortedP.map(p => `<option value="${p}">${p}</option>`).join("");
-      
-      // 移除這裡的 LocalStorage 自動選取，確保預設是「顯示全體」
-      
-      setUpdateTime();
+  async function loadFromRagic(){
+    try{
+      document.getElementById("app").innerHTML = `<div class="loading">正在同步 Ragic 數據...</div>`;
+      const url = `${CONFIG.baseUrl}?api=&APIKey=${CONFIG.apiKey}&naming=EID&limit=5000&reverse=true`;
+      const data = await jsonp(url);
+      ALL_RECORDS = Object.values(data || {}).filter(v => v && v._ragicId);
       render();
-    } catch(e) { alert("讀取失敗"); console.error(e); } 
-    finally { loader.classList.add("hidden"); }
-  }
-
-  function setUpdateTime(){
-    const now = new Date();
-    document.getElementById("updateTime").innerText = 
-      `Updated ${now.getHours().toString().padStart(2,'0')}:${now.getMinutes().toString().padStart(2,'0')}`;
-  }
-
-  function renderCard(r, highlightPerson){
-    const status = getValue(r, CONFIG.fields.status);
-    const isDone = status === "已完成";
-    const isCancel = status === "取消";
-    const cls = isDone ? "done" : (isCancel ? "cancel" : "pending");
-    const rawAmt = parseAmount(getValue(r, CONFIG.fields.amount));
-    const pp = parsePersons(getValue(r, CONFIG.fields.person));
-    
-    // 如果是分組顯示，標註一下合力的人
-    const otherPeople = highlightPerson ? pp.filter(p => p !== highlightPerson) : pp;
-    const note = otherPeople.length > 0 ? `(與 ${otherPeople.join(", ")} 合力)` : "";
-
-    // 分潤計算 (僅顯示參考)
-    const share = rawAmt > 0 ? Math.round(rawAmt / Math.max(1, pp.length)) : 0;
-
-    return `
-      <div class="taskCard ${cls}">
-        <div class="t-head">
-          <div class="t-name">${getValue(r, CONFIG.fields.name)||"無客名"}</div>
-          <div class="t-status">${status}</div>
-        </div>
-        <div class="t-body">
-          <div style="font-weight:700; color:#1f2937;">${getValue(r, CONFIG.fields.reason)||"無事項"}</div>
-          <div style="margin-top:4px;">📍 ${getValue(r, CONFIG.fields.addr)||"無地址"}</div>
-          ${rawAmt > 0 ? `
-            <div class="money-tag">
-              💰 ${share.toLocaleString()}
-              ${pp.length>1 ? `<span style="color:#6b7280; font-weight:400; margin-left:4px;">(總額 ${rawAmt.toLocaleString()})</span>` : ""}
-            </div>
-          ` : ""}
-          ${note ? `<div style="margin-top:6px; font-size:12px; color:#6b7280;">👥 ${note}</div>` : ""}
-        </div>
-      </div>
-    `;
+    }catch(e){ document.getElementById("app").innerHTML = `<div class="err">載入失敗，請檢查網路或 API Key</div>`; }
   }
 
   function render(){
-    const dateVal = document.getElementById("datePick").value;
-    const personVal = document.getElementById("personPick").value;
-    const listArea = document.getElementById("listArea");
+    const monthVal = document.getElementById("monthPick").value || getThisMonthValue();
+    const monthKey = monthVal.replace("-", "/");
+    const splitAmt = document.getElementById("chkSplitAmount").checked;
+    const doneOnly = document.getElementById("chkDoneOnly").checked;
+
+    const base = ALL_RECORDS.filter(r => (getValue(r, CONFIG.fields.date)).startsWith(monthKey) && getValue(r, CONFIG.fields.status) !== "取消");
     
-    // 1. 先抓出當天所有單據 (用於上方統計)
-    const todayAllRecs = ALL_RECORDS.filter(r => date10(r) === dateVal);
-    
-    // 2. 計算全體統計 (不重複計算)
-    let totalC = 0, doneC = 0, totalM = 0;
-    todayAllRecs.forEach(r => {
-      const st = getValue(r, CONFIG.fields.status);
-      if(st !== "取消"){
-        totalC++;
-        if(st === "已完成") doneC++;
-        totalM += parseAmount(getValue(r, CONFIG.fields.amount));
-      }
-    });
-    document.getElementById("valCount").innerText = `${doneC} / ${totalC}`;
-    const rate = totalC ? Math.round(doneC/totalC*100) : 0;
-    document.getElementById("valRate").innerText = `完成率 ${rate}%`;
-    document.getElementById("valMoney").innerText = `$${totalM.toLocaleString()}`;
-
-    // 3. 渲染列表
-    let html = "";
-    
-    if(todayAllRecs.length === 0){
-      listArea.innerHTML = `<div class="empty">📅 ${dateVal} 無資料</div>`;
-      return;
-    }
-
-    if(personVal){
-      // === 單人模式 (過濾顯示) ===
-      const myRecs = todayAllRecs.filter(r => parsePersons(getValue(r, CONFIG.fields.person)).includes(personVal));
-      html += `<div class="group-header">${personVal} <span class="badge">${myRecs.length}</span></div>`;
-      if(myRecs.length === 0) html += `<div class="empty">無指派工作</div>`;
-      else html += myRecs.map(r => renderCard(r, personVal)).join("");
-
-    } else {
-      // === 全體分組模式 (預設) ===
-      // 找出今天有工作的所有人
-      const activePeople = new Set();
-      todayAllRecs.forEach(r => parsePersons(getValue(r, CONFIG.fields.person)).forEach(p => activePeople.add(p)));
-      const sortedActive = [...activePeople].sort();
-
-      if(sortedActive.length === 0){
-         html = `<div class="empty">有單據但未指派人員</div>`;
-      } else {
-        sortedActive.forEach(p => {
-          // 抓出這個人的單
-          const pRecs = todayAllRecs.filter(r => parsePersons(getValue(r, CONFIG.fields.person)).includes(p));
-          
-          // 排序：完成的沉底
-          pRecs.sort((a,b) => {
-            const sa = getValue(a, CONFIG.fields.status)==="已完成"?1:0;
-            const sb = getValue(b, CONFIG.fields.status)==="已完成"?1:0;
-            return sa - sb;
-          });
-
-          html += `
-            <div class="group-header">
-              ${p} <span class="badge">${pRecs.length}</span>
-            </div>
-            ${pRecs.map(r => renderCard(r, p)).join("")}
-          `;
-        });
-        
-        // 檢查是否有「未指派」的單
-        const unassigned = todayAllRecs.filter(r => parsePersons(getValue(r, CONFIG.fields.person))[0] === "未指派");
-        if(unassigned.length > 0){
-          html += `<div class="group-header" style="color:#dc2626;">⚠️ 未指派人員 <span class="badge">${unassigned.length}</span></div>`;
-          html += unassigned.map(r => renderCard(r, null)).join("");
+    // 計算邏輯
+    const pMap = new Map();
+    base.forEach(r => {
+      const ps = parsePersons(getValue(r, CONFIG.fields.person));
+      const status = getValue(r, CONFIG.fields.status);
+      const amt = parseFloat(getValue(r, CONFIG.fields.amount).replace(/,/g,"")) || 0;
+      
+      ps.forEach(p => {
+        if(!pMap.has(p)) pMap.set(p, { name: p, total: 0, done: 0, amount: 0, records: [] });
+        const o = pMap.get(p);
+        o.total++;
+        if(status === "已完成") {
+          o.done++;
+          o.amount += (splitAmt ? amt/ps.length : amt);
         }
-      }
-    }
+        o.records.push(r);
+      });
+    });
+
+    const rows = Array.from(pMap.values()).sort((a,b) => b.total - a.total);
+
+    // 渲染總覽表格 (簡略版)
+    document.getElementById("peopleArea").innerHTML = `
+      <div class="sectionCard">
+        <div class="analyticsTitle">🏆 人員戰力榜</div>
+        <div class="rankWrap">
+          <table class="rankTable">
+            <thead><tr><th>人員</th><th>件數</th><th>完成</th><th>金額</th></tr></thead>
+            <tbody>
+              ${rows.slice(0,10).map(r => `<tr><td>${r.name}</td><td>${r.total}</td><td>${r.done}</td><td>${Math.round(r.amount).toLocaleString()}</td></tr>`).join("")}
+            </tbody>
+          </table>
+        </div>
+      </div>`;
+
+    // 渲染下方個人明細與分析
+    let html = `<div class="grid">`;
+    const dim = new Date(monthVal.split("-")[0], monthVal.split("-")[1], 0).getDate();
+    const dayLabels = Array.from({length:dim}, (_,i)=>i+1);
+
+    rows.forEach(r => {
+      const pId = pid(r.name);
+      // 過濾顯示列表
+      const displayRecs = doneOnly ? r.records.filter(x => getValue(x, CONFIG.fields.status) === "已完成") : r.records;
+      if (displayRecs.length === 0) return;
+
+      html += `
+        <details class="personCard" id="${pId}">
+          <summary class="personHead">
+            <div class="name">${escapeHtml(r.name)} <span class="count">${r.total}單</span></div>
+            <div class="badge am">${Math.round(r.done/r.total*100)}%</div>
+          </summary>
+          <div class="body">
+            <div class="personAnalytics">
+              <div class="analyticsTitle"><span>📊 每日作業分佈</span> <span style="font-size:11px">本月累計：${r.total} 件</span></div>
+              <div style="height:100px;"><canvas id="chart_${pId}"></canvas></div>
+            </div>
+            ${displayRecs.map(rec => `
+              <div class="task ${getValue(rec, CONFIG.fields.status)==='已完成'?'is-done':'is-pending'}">
+                <div style="font-weight:bold; font-size:14px;">${escapeHtml(getValue(rec, CONFIG.fields.name))}</div>
+                <div style="font-size:12px; color:#666; margin-top:4px;">
+                  📅 ${getValue(rec, CONFIG.fields.date).slice(5,10)} | ${escapeHtml(getValue(rec, CONFIG.fields.reason))}
+                </div>
+              </div>
+            `).join("")}
+          </div>
+        </details>`;
+    });
+    html += `</div>`;
+    document.getElementById("app").innerHTML = html;
+
+    // 渲染個人 Chart
+    rows.forEach(r => {
+      const pId = pid(r.name);
+      const canvas = document.getElementById(`chart_${pId}`);
+      if(!canvas) return;
+
+      const dayData = Array(dim).fill(0);
+      r.records.forEach(rec => {
+        const d = getValue(rec, CONFIG.fields.date);
+        const day = parseInt(d.split("/")[2] || d.split("-")[2]);
+        if(day > 0 && day <= dim) dayData[day-1]++;
+      });
+
+      new Chart(canvas, {
+        type: 'bar',
+        data: {
+          labels: dayLabels,
+          datasets: [{ data: dayData, backgroundColor: '#3b82f6', borderRadius: 2 }]
+        },
+        options: {
+          responsive: true, maintainAspectRatio: false,
+          plugins: { legend: { display: false } },
+          scales: { 
+            y: { display: false, beginAtZero: true },
+            x: { grid: { display: false }, ticks: { font: { size: 8 } } }
+          }
+        }
+      });
+    });
     
-    listArea.innerHTML = html;
+    document.getElementById("stats").innerText = `${monthKey} 總計處理 ${base.length} 件專案`;
   }
 
-  (function(){
-    const d = new Date();
-    document.getElementById("datePick").value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
-    
-    document.getElementById("btnReload").addEventListener("click", loadData);
-    document.getElementById("datePick").addEventListener("change", render);
-    document.getElementById("personPick").addEventListener("change", render);
-    
-    loadData();
-  })();
+  // UI Events
+  document.getElementById("btnReload").onclick = loadFromRagic;
+  document.getElementById("monthPick").onchange = render;
+  document.getElementById("chkDoneOnly").onchange = render;
+  document.getElementById("chkSplitAmount").onchange = render;
+  document.getElementById("btnToggleAll").onclick = () => {
+    const cards = document.querySelectorAll("details.personCard");
+    const isExpanding = document.getElementById("btnToggleAll").innerText === "全部展開";
+    cards.forEach(c => c.open = isExpanding);
+    document.getElementById("btnToggleAll").innerText = isExpanding ? "全部收合" : "全部展開";
+  };
+
+  window.onload = () => {
+    document.getElementById("monthPick").value = getThisMonthValue();
+    loadFromRagic();
+  };
 </script>
 </body>
 </html>
