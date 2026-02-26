@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no" />
+  <title>全家福 戰情速報 (Excel視圖)</title>
+  <style>
+    :root{
+      --bg:#f8f9fa; --text:#212529; 
+      --green:#198754; --red:#dc3545; --gray:#adb5bd;
+      --border:#dee2e6; --table-head:#e9ecef;
+    }
+    body{
+      font-family: "Segoe UI", "Microsoft JhengHei", sans-serif;
+      margin: 0; padding: 12px; background: var(--bg); color: var(--text);
+      -webkit-text-size-adjust: 100%;
+    }
+    
+    /* Controls */
+    .toolbar{
+      display: flex; gap: 10px; margin-bottom: 12px; align-items: center;
+      background: #fff; padding: 10px; border-radius: 8px; border: 1px solid var(--border);
+      box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+    }
+    input[type="date"]{
+      padding: 6px 10px; border: 1px solid var(--border); border-radius: 4px;
+      font-size: 14px; font-weight: 600;
+    }
+    .btn{
+      background: #212529; color: #fff; border: none; padding: 6px 12px;
+      border-radius: 4px; cursor: pointer; font-weight: 700;
+    }
+
+    /* Table Styles */
+    .table-container {
+      overflow-x: auto; background: #fff; border-radius: 8px;
+      border: 1px solid var(--border); box-shadow: 0 4px 6px rgba(0,0,0,0.05);
+    }
+    table {
+      width: 100%; border-collapse: collapse; min-width: 350px;
+      font-size: 14px;
+    }
+    th, td {
+      padding: 10px 8px; text-align: right;
+      border-bottom: 1px solid var(--border);
+    }
+    th {
+      background: var(--table-head); color: #495057; font-weight: 800;
+      position: sticky; top: 0; z-index: 10;
+      text-transform: uppercase; font-size: 12px;
+    }
+    /* 第一欄 (人名) 置左且固定 */
+    th:first-child, td:first-child {
+      text-align: left; position: sticky; left: 0;
+      background: #fff; z-index: 5;
+      border-right: 2px solid var(--border);
+      font-weight: 700;
+    }
+    th:first-child { z-index: 15; background: var(--table-head); }
+    
+    /* Rows */
+    tr:nth-child(even) td:not(:first-child) { background: #f8f9fa; }
+    tr:hover td { background: #e2e6ea !important; }
+
+    /* Indicators */
+    .trend-up { color: var(--green); font-weight: 700; }
+    .trend-down { color: var(--red); font-weight: 700; }
+    .trend-flat { color: var(--gray); font-weight: 400; }
+    
+    .diff-pill {
+      font-size: 11px; padding: 2px 6px; border-radius: 99px;
+      background: #f1f3f5; margin-left: 4px; display: inline-block;
+      min-width: 32px; text-align: center;
+    }
+    .diff-pill.up { background: #d1e7dd; color: #0f5132; }
+    .diff-pill.down { background: #f8d7da; color: #842029; }
+
+    .money-sub {
+      display: block; font-size: 11px; color: #6c757d; font-weight: 400; margin-top: 2px;
+    }
+
+    .loading { text-align: center; padding: 20px; color: #6c757d; font-weight: 700; }
+    .hidden { display: none; }
+  </style>
+</head>
+<body>
+
+<div class="toolbar">
+  <input type="date" id="datePick">
+  <button class="btn" id="btnReload">↻ 刷新</button>
+  <div style="flex:1; text-align:right; font-size:12px; color:#6c757d;" id="updateTime"></div>
+</div>
+
+<div class="table-container">
+  <table id="dataTable">
+    <thead>
+      <tr>
+        <th width="30%">人員 (Who)</th>
+        <th width="25%">昨天 (Yest)</th>
+        <th width="25%">今天 (Today)</th>
+        <th width="20%">趨勢 (Trend)</th>
+      </tr>
+    </thead>
+    <tbody id="tableBody">
+      </tbody>
+  </table>
+  <div id="loader" class="loading">正在讀取 Ragic 資料庫...</div>
+</div>
+
+<script>
+  // ==========================================
+  // ⚙️ CONFIG
+  // ==========================================
+  const CONFIG = {
+    apiKey: "UGQ4cGFmNjg2R0J2TXNSMXpZdVVvSlhIUVRLZHo2SmpISXUyMFQrRCtySXFDTUk2T2NCeUY4b0FDcXJ6OENqRA==",
+    baseUrl: "https://ap12.ragic.com/89793238/fami/2",
+    fields: {
+      status: "1000111", date: "1000122", person: "1000113",
+      amount: "1000114" // 金額欄位
+    },
+    person: {
+      stripNotes: true,
+      removeSuffixes: [/師傅$/g, /師父$/g, /先生$/g, /小姐$/g, /師$/g, /傅$/g]
+    }
+  };
+
+  // ==========================================
+  // Logic
+  // ==========================================
+  let ALL_RECORDS = [];
+
+  function jsonp(url) {
+    return new Promise((resolve, reject) => {
+      const cb = "cb_" + Math.random().toString(36).slice(2);
+      window[cb] = (data) => { cleanup(); resolve(data); };
+      const s = document.createElement("script");
+      s.src = url + "&callback=" + cb;
+      s.onerror = () => { cleanup(); reject(); };
+      function cleanup(){ try{delete window[cb];}catch(e){} s.remove(); }
+      document.head.appendChild(s);
+    });
+  }
+
+  function getValue(r, id){
+    const v = r?.[id];
+    if(typeof v === "object") return String(v.text||v.value||v.name||"");
+    return String(v||"");
+  }
+
+  // 日期處理：2026/02/25 -> 2026-02-25
+  function date10(r){
+    return getValue(r, CONFIG.fields.date).substring(0, 10).replace(/\//g, "-");
+  }
+
+  function parseAmount(v){
+    const n = Number(String(v||"").replace(/[,$\sNT]/gi,""));
+    return isFinite(n) ? n : 0;
+  }
+
+  function parsePersons(raw){
+    let s = String(raw||"").normalize("NFKC").trim();
+    if(CONFIG.person.stripNotes) s = s.replace(/\([^)]*\)|（[^）]*）|\[[^\]]*\]/g, "");
+    const tokens = s.split(/[,，、/&]/).map(t => {
+      let name = t.trim();
+      for(const re of CONFIG.person.removeSuffixes) name = name.replace(re, "");
+      return name.trim();
+    }).filter(Boolean);
+    return tokens.length ? tokens : ["未指派"];
+  }
+
+  function getPrevDate(dateStr){
+    const d = new Date(dateStr);
+    d.setDate(d.getDate() - 1);
+    const y = d.getFullYear();
+    const m = String(d.getMonth()+1).padStart(2,'0');
+    const day = String(d.getDate()).padStart(2,'0');
+    return `${y}-${m}-${day}`;
+  }
+
+  // ==========================================
+  // Main
+  // ==========================================
+  async function loadData(){
+    const loader = document.getElementById("loader");
+    const tbody = document.getElementById("tableBody");
+    loader.classList.remove("hidden");
+    tbody.innerHTML = "";
+
+    try {
+      const data = await jsonp(`${CONFIG.baseUrl}?api=&APIKey=${CONFIG.apiKey}&naming=EID&limit=3000&reverse=true`);
+      ALL_RECORDS = Object.values(data || {}).filter(x => x && x._ragicId);
+      
+      const now = new Date();
+      document.getElementById("updateTime").innerText = `更新於 ${now.getHours()}:${String(now.getMinutes()).padStart(2,'0')}`;
+      
+      render();
+    } catch(e) { 
+      loader.innerText = "讀取失敗，請檢查網路";
+      console.error(e);
+    } finally { 
+      loader.classList.add("hidden"); 
+    }
+  }
+
+  function render(){
+    const todayStr = document.getElementById("datePick").value;
+    const yestStr = getPrevDate(todayStr);
+    const tbody = document.getElementById("tableBody");
+    
+    // 1. 聚合數據 (Map: Person -> { todayCount, todayAmt, yestCount, yestAmt })
+    const stats = new Map();
+    const ensure = (p) => {
+      if(!stats.has(p)) stats.set(p, { tC:0, tA:0, yC:0, yA:0 });
+      return stats.get(p);
+    };
+
+    ALL_RECORDS.forEach(r => {
+      const d = date10(r);
+      if(d !== todayStr && d !== yestStr) return; // 只看這兩天
+
+      const status = getValue(r, CONFIG.fields.status);
+      if(status === "取消") return; // 忽略取消單
+
+      const amt = parseAmount(getValue(r, CONFIG.fields.amount));
+      const persons = parsePersons(getValue(r, CONFIG.fields.person));
+      
+      // 平分金額邏輯 (可選，這裡用簡單平分)
+      const splitAmt = amt / Math.max(1, persons.length);
+
+      persons.forEach(p => {
+        const s = ensure(p);
+        if(d === todayStr) { s.tC++; s.tA += splitAmt; }
+        if(d === yestStr)  { s.yC++; s.yA += splitAmt; }
+      });
+    });
+
+    // 2. 轉換為 Array 並排序
+    const rows = Array.from(stats.entries()).map(([name, val]) => ({
+      name, ...val
+    }));
+
+    // 排序邏輯：今天件數多 > 昨天件數多 > 名字
+    rows.sort((a,b) => (b.tC - a.tC) || (b.yC - a.yC) || a.name.localeCompare(b.name));
+
+    // 3. 生成 HTML
+    if(rows.length === 0){
+      tbody.innerHTML = `<tr><td colspan="4" style="text-align:center; padding:20px;">📅 這兩天沒有資料</td></tr>`;
+      return;
+    }
+
+    let html = "";
+    // 用來計算總計
+    let sumTC=0, sumTA=0, sumYC=0, sumYA=0;
+
+    rows.forEach(r => {
+      sumTC += r.tC; sumTA += r.tA;
+      sumYC += r.yC; sumYA += r.yA;
+
+      const diff = r.tC - r.yC;
+      let trendIcon = "➖";
+      let diffClass = "";
+      let pillClass = "trend-flat";
+      
+      if(diff > 0) { trendIcon = "🔺"; diffClass = "up"; pillClass = "trend-up"; }
+      if(diff < 0) { trendIcon = "🔻"; diffClass = "down"; pillClass = "trend-down"; }
+
+      html += `
+        <tr>
+          <td>${r.name}</td>
+          <td>
+            <div style="font-weight:700;">${r.yC}</div>
+            <div class="money-sub">$${Math.round(r.yA).toLocaleString()}</div>
+          </td>
+          <td>
+            <div style="font-weight:700; color:#000;">${r.tC}</div>
+            <div class="money-sub">$${Math.round(r.tA).toLocaleString()}</div>
+          </td>
+          <td>
+            <div class="${pillClass}">
+               ${diff > 0 ? "+" : ""}${diff} ${trendIcon}
+            </div>
+          </td>
+        </tr>
+      `;
+    });
+
+    // 加入總計行 (Total Row)
+    const diffTotal = sumTC - sumYC;
+    let totalTrend = diffTotal > 0 ? "🔺" : (diffTotal < 0 ? "🔻" : "➖");
+    
+    const totalRow = `
+      <tr style="background:#e9ecef; border-top:2px solid #adb5bd;">
+        <td><strong>總計</strong></td>
+        <td>
+          <div style="font-weight:900;">${sumYC}</div>
+          <div class="money-sub">$${Math.round(sumYA).toLocaleString()}</div>
+        </td>
+        <td>
+          <div style="font-weight:900;">${sumTC}</div>
+          <div class="money-sub">$${Math.round(sumTA).toLocaleString()}</div>
+        </td>
+        <td style="font-weight:900;">
+           ${diffTotal > 0 ? "+" : ""}${diffTotal} ${totalTrend}
+        </td>
+      </tr>
+    `;
+
+    tbody.innerHTML = totalRow + html;
+  }
+
+  // Init
+  (function(){
+    const d = new Date();
+    document.getElementById("datePick").value = `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`;
+    
+    document.getElementById("btnReload").addEventListener("click", loadData);
+    document.getElementById("datePick").addEventListener("change", render);
+    
+    loadData();
+  })();
+</script>
+
+</body>
+</html>
