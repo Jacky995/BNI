@@ -3,255 +3,229 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>短宣隊宣傳海報 - 專業版</title>
+    <title>DTS短宣隊海報 - 終極視覺版</title>
+    <!-- 引入專業字體：Noto Sans TC -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;700;900&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@300;500;700;900&display=swap" rel="stylesheet">
     
     <style>
         :root {
-            /* 定義配色：從照片中汲取棕色，搭配溫暖亮色 */
-            --primary-color: #5d4037; /* 深棕色 - 來自連帽衫 */
-            --accent-color: #ff9800;  /* 亮橘色 - 強調「光」 */
-            --bg-color: #fefdfa;      /* 米白色 */
-            --text-color: #333333;
-            --secondary-bg: #ece0d1;   /* 淺棕色 */
+            /* 品牌色彩定義 */
+            --gold: #F5A623;
+            --gold-light: #FFD166;
+            --text-main: #F8F9FA;
+            --text-muted: #CED4DA;
+            --dark-overlay: #0b0c10;
         }
 
         body {
             margin: 0;
-            padding: 0;
+            padding: 20px;
+            background-color: #1a1a1d;
             display: flex;
             justify-content: center;
             align-items: center;
-            background-color: #f0f0f0;
+            min-height: 100vh;
             font-family: 'Noto Sans TC', sans-serif;
-            color: var(--text-color);
         }
 
-        .poster-container {
+        /* 畫布設定：嚴格A4比例 */
+        .artboard {
             width: 800px;
-            height: 1131px; /* A4 比例 */
-            background-color: var(--bg-color);
-            box-shadow: 0 15px 40px rgba(0,0,0,0.15);
-            position: relative;
-            overflow: hidden;
-            display: flex;
-            flex-direction: column;
-        }
-
-        .image-section {
-            width: 100%;
-            height: 50%;
-            background-image: url('dts.jpg'); /* 你的照片檔名 */
+            height: 1131px;
+            background-color: #222;
+            background-image: url('dts.jpg'); /* 你的照片 */
             background-size: cover;
-            background-position: center top;
+            background-position: center 15%; /* 微調人臉位置 */
             position: relative;
+            box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+            overflow: hidden;
         }
 
-        /* 漸層遮罩，讓照片過渡到下方文字 */
-        .image-section::after {
-            content: '';
+        /* 電影級多段漸層遮罩 */
+        .cinematic-overlay {
             position: absolute;
-            bottom: 0;
+            top: 0;
             left: 0;
             width: 100%;
-            height: 30%;
-            background: linear-gradient(to top, var(--bg-color) 0%, rgba(254, 253, 250, 0) 100%);
-        }
-
-        .content-section {
-            padding: 40px 60px;
-            height: 50%;
+            height: 100%;
+            background: linear-gradient(
+                to bottom,
+                rgba(11, 12, 16, 0) 0%,
+                rgba(11, 12, 16, 0.2) 30%,
+                rgba(11, 12, 16, 0.85) 60%,
+                rgba(11, 12, 16, 0.98) 85%,
+                rgba(11, 12, 16, 1) 100%
+            );
             display: flex;
             flex-direction: column;
-            justify-content: space-between;
+            justify-content: flex-end;
+            align-items: center;
+            padding-bottom: 70px;
+            box-sizing: border-box;
         }
 
-        .header-group {
+        /* 標題區塊 */
+        .title-group {
             text-align: center;
-            margin-bottom: 25px;
+            margin-bottom: 35px;
+            transform: translateY(-10px);
         }
 
         .main-title {
-            font-size: 56px;
+            font-size: 64px;
             font-weight: 900;
-            color: var(--primary-color);
+            color: var(--text-main);
             margin: 0;
+            letter-spacing: 8px;
+            /* 模擬光的發散 */
+            text-shadow: 0 0 20px rgba(255, 255, 255, 0.3), 0 0 40px rgba(245, 166, 35, 0.4);
+            line-height: 1.2;
+        }
+
+        .sub-title {
+            font-size: 26px;
+            font-weight: 700;
+            color: var(--gold);
+            margin: 15px 0 0 0;
             letter-spacing: 4px;
-            /* 輕微文字陰影增加立體感 */
-            text-shadow: 2px 2px 4px rgba(0,0,0,0.1);
+            text-transform: uppercase;
         }
 
-        .subtitle {
-            font-size: 28px;
-            color: var(--accent-color);
-            font-weight: 700;
-            margin: 10px 0 0 0;
-            letter-spacing: 1.5px;
-        }
-
-        .info-cards {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 25px;
+        /* 資訊膠囊：時間 */
+        .date-capsule {
+            background: linear-gradient(135deg, rgba(245, 166, 35, 0.15) 0%, rgba(245, 166, 35, 0.05) 100%);
+            border: 1px solid rgba(245, 166, 35, 0.3);
+            border-radius: 16px;
+            padding: 20px 40px;
+            text-align: center;
             margin-bottom: 30px;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.5);
         }
 
-        .info-card {
-            background: white;
-            padding: 20px 25px;
-            border-radius: 12px;
-            box-shadow: 0 5px 15px rgba(0,0,0,0.06);
-            display: flex;
-            align-items: start;
+        .date-text {
+            font-size: 54px;
+            font-weight: 900;
+            color: var(--gold-light);
+            margin: 0 0 5px 0;
+            letter-spacing: 2px;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.5);
         }
 
-        .icon {
-            font-size: 32px;
-            margin-right: 15px;
-            color: var(--accent-color);
-            width: 40px;
+        .time-text {
+            font-size: 24px;
+            font-weight: 500;
+            color: var(--text-main);
+            letter-spacing: 3px;
+        }
+
+        /* 資訊區塊：地點 */
+        .location-group {
             text-align: center;
+            margin-bottom: 40px;
+            position: relative;
         }
-
-        .info-details {
-            display: flex;
-            flex-direction: column;
+        
+        /* 裝飾線 */
+        .location-group::before, .location-group::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            width: 60px;
+            height: 1px;
+            background-color: rgba(255,255,255,0.2);
         }
+        .location-group::before { left: -80px; }
+        .location-group::after { right: -80px; }
 
-        .card-title {
+        .loc-name {
+            font-size: 28px;
             font-weight: 700;
-            font-size: 18px;
-            color: var(--primary-color);
+            color: var(--text-main);
             margin-bottom: 8px;
+            letter-spacing: 2px;
         }
 
-        .card-text {
-            font-size: 19px;
-            line-height: 1.6;
-            color: #555;
-        }
-
-        .highlight {
-            color: var(--accent-color);
-            font-weight: 700;
-        }
-
-        .activity-section {
-            background-color: var(--secondary-bg);
-            padding: 20px 30px;
-            border-radius: 12px;
-            text-align: center;
-        }
-
-        .activity-title {
-            font-size: 22px;
-            font-weight: 700;
-            color: var(--primary-color);
-            margin-bottom: 15px;
+        .loc-address {
+            font-size: 18px;
+            font-weight: 300;
+            color: var(--text-muted);
             letter-spacing: 1px;
         }
 
-        .activity-tags {
+        /* 活動內容標籤 */
+        .activities {
             display: flex;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 10px;
+            gap: 25px;
+            margin-bottom: 20px;
         }
 
-        .activity-tag {
-            background-color: white;
-            color: var(--text-color);
-            font-size: 18px;
-            padding: 10px 20px;
-            border-radius: 30px;
-            box-shadow: 0 3px 8px rgba(0,0,0,0.04);
-            font-weight: 700;
-            flex-grow: 1;
-            max-width: 45%; /* 每行兩個 */
-        }
-
-        .footer {
-            text-align: center;
-            margin-top: 30px;
-            border-top: 2px solid #ddd;
-            padding-top: 15px;
-        }
-
-        .call-to-action {
+        .act-item {
             font-size: 20px;
             font-weight: 700;
-            color: var(--primary-color);
-            margin: 0;
+            color: var(--text-main);
+            display: flex;
+            align-items: center;
+            gap: 8px;
             letter-spacing: 1px;
         }
 
-        /* 裝飾性的小圓圈圖案 */
-        .decor-circle {
-            position: absolute;
-            background: rgba(236, 224, 209, 0.4);
-            border-radius: 50%;
-            z-index: -1;
+        .act-icon {
+            color: var(--gold);
+            font-size: 22px;
         }
-        .circle-1 { width: 150px; height: 150px; top: -50px; left: -50px; }
-        .circle-2 { width: 100px; height: 100px; bottom: 100px; right: -30px; }
+
+        /* 質感免費標籤 */
+        .premium-free-tag {
+            position: absolute;
+            top: 40px;
+            right: -50px;
+            background: linear-gradient(90deg, #d32f2f, #f44336);
+            color: white;
+            padding: 10px 60px;
+            font-size: 20px;
+            font-weight: 900;
+            transform: rotate(45deg);
+            box-shadow: 0 5px 15px rgba(0,0,0,0.5), inset 0 0 10px rgba(255,255,255,0.2);
+            letter-spacing: 4px;
+            z-index: 10;
+            border-bottom: 2px solid rgba(0,0,0,0.3);
+            text-align: center;
+        }
 
     </style>
 </head>
 <body>
 
-<div class="poster-container">
-    <div class="decor-circle circle-1"></div>
-    <div class="decor-circle circle-2"></div>
-
-    <div class="image-section"></div>
+<div class="artboard">
+    <div class="premium-free-tag">完全免費</div>
     
-    <div class="content-section">
-        <div>
-            <div class="header-group">
-                <h1 class="main-title">遇見生命的光</h1>
-                <h2 class="subtitle">美國 DTS 短宣隊來了！</h2>
-            </div>
-            
-            <div class="info-cards">
-                <div class="info-card">
-                    <div class="icon">🗓️</div>
-                    <div class="info-details">
-                        <div class="card-title">活動時間</div>
-                        <div class="card-text">
-                            <strong>4月4日(四) - 4月5日(五)</strong><br>
-                            晚上 7:00 - 9:00
-                        </div>
-                    </div>
-                </div>
-                
-                <div class="info-card">
-                    <div class="icon">📍</div>
-                    <div class="info-details">
-                        <div class="card-title">地點與費用</div>
-                        <div class="card-text">
-                            <strong>我們家教會</strong><br>
-                            <span class="highlight">完全免費！</span>
-                        </div>
-                    </div>
-                </div>
-            </div>
-            
-            <div class="activity-section">
-                <div class="activity-title">🔥 活動精彩內容 🔥</div>
-                <div class="activity-tags">
-                    <div class="activity-tag">✨ 生命見證</div>
-                    <div class="activity-tag">🎭 生動話劇</div>
-                    <div class="activity-tag">🎶 讚美詩歌</div>
-                    <div class="activity-tag">🎲 互動遊戲</div>
-                </div>
-            </div>
+    <div class="cinematic-overlay">
+        
+        <div class="title-group">
+            <h1 class="main-title">遇見生命的光</h1>
+            <h2 class="sub-title">美國 DTS 短宣隊來了！</h2>
         </div>
         
-        <div class="footer">
-            <p class="call-to-action">今晚，給自己一個經歷翻轉的機會！</p>
+        <div class="date-capsule">
+            <div class="date-text">4/4 (四) - 4/5 (五)</div>
+            <div class="time-text">晚上 7:00 - 9:00</div>
         </div>
+        
+        <div class="location-group">
+            <div class="loc-name">📍 我們家教會</div>
+            <div class="loc-address">臺中市龍井區遠東街179巷16號</div>
+        </div>
+        
+        <div class="activities">
+            <span class="act-item"><span class="act-icon">✨</span> 見證</span>
+            <span class="act-item"><span class="act-icon">🎭</span> 話劇</span>
+            <span class="act-item"><span class="act-icon">🎶</span> 詩歌</span>
+            <span class="act-item"><span class="act-icon">🎲</span> 遊戲</span>
+        </div>
+
     </div>
 </div>
 
