@@ -1,0 +1,699 @@
+<!DOCTYPE html>
+<html lang="zh-TW">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover" />
+  <title>FAMI 早會看板（純HTML版）</title>
+  <style>
+    :root{
+      --bg:#eef1f4;
+      --card:#ffffff;
+      --text:#111827;
+      --muted:#6b7280;
+      --line:#e5e7eb;
+      --shadow:0 10px 25px rgba(0,0,0,.08);
+      --blue:#2563eb;
+      --green:#16a34a;
+      --amber:#d97706;
+      --red:#dc2626;
+      --navy1:#0f172a;
+      --navy2:#1e293b;
+      --chip:#f3f4f6;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      background:var(--bg);
+      color:var(--text);
+      font-family:-apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,"Noto Sans TC",sans-serif;
+      padding:14px;
+    }
+    .wrap{max-width:1200px;margin:0 auto}
+    .top{
+      background:linear-gradient(135deg,var(--navy1),var(--navy2));
+      color:#fff;
+      border-radius:22px;
+      padding:22px;
+      box-shadow:var(--shadow);
+      margin-bottom:16px;
+    }
+    .title{font-size:34px;font-weight:900;line-height:1.15}
+    .sub{margin-top:8px;font-size:15px;color:rgba(255,255,255,.82)}
+    .toolbar{
+      display:flex;
+      gap:10px;
+      flex-wrap:wrap;
+      margin-top:16px;
+      align-items:center;
+    }
+    .btn{
+      appearance:none;
+      border:none;
+      border-radius:999px;
+      padding:13px 18px;
+      font-size:15px;
+      font-weight:900;
+      cursor:pointer;
+    }
+    .btn.dark{background:#0b1220;color:#fff}
+    .btn.light{background:#fff;color:#111827}
+    .input{
+      appearance:none;
+      border:1px solid rgba(255,255,255,.25);
+      background:rgba(255,255,255,.08);
+      color:#fff;
+      border-radius:999px;
+      padding:12px 14px;
+      font-size:14px;
+      font-weight:700;
+      outline:none;
+      min-width:150px;
+    }
+    .input::placeholder{color:rgba(255,255,255,.65)}
+    .summary{
+      display:grid;
+      grid-template-columns:repeat(2,minmax(0,1fr));
+      gap:12px;
+      margin:16px 0 22px;
+    }
+    .stat{
+      background:var(--card);
+      border-radius:18px;
+      padding:18px 14px;
+      box-shadow:0 4px 12px rgba(0,0,0,.06);
+      border:1px solid var(--line);
+      text-align:center;
+    }
+    .stat .k{font-size:13px;color:var(--muted);font-weight:700}
+    .stat .v{font-size:40px;font-weight:900;margin-top:6px;line-height:1}
+    .section{margin:22px 0}
+    .section-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:flex-end;
+      gap:8px;
+      margin-bottom:10px;
+    }
+    .section-title{font-size:24px;font-weight:900}
+    .hint{font-size:13px;color:var(--muted);font-weight:700}
+    .group{
+      background:var(--card);
+      border:1px solid var(--line);
+      border-radius:20px;
+      padding:14px;
+      box-shadow:0 4px 12px rgba(0,0,0,.05);
+      margin-bottom:14px;
+    }
+    .group-head{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap:8px;
+      margin-bottom:12px;
+    }
+    .group-name{font-size:20px;font-weight:900}
+    .badge{
+      background:var(--chip);
+      padding:7px 12px;
+      border-radius:999px;
+      font-size:13px;
+      font-weight:900;
+      color:#475569;
+    }
+    .cards{display:grid;gap:12px}
+    .card{
+      border:1px solid var(--line);
+      border-radius:18px;
+      padding:14px;
+      background:#fff;
+    }
+    .card-top{
+      display:flex;
+      justify-content:space-between;
+      gap:10px;
+      align-items:flex-start;
+      margin-bottom:10px;
+    }
+    .order{font-weight:900;font-size:18px;line-height:1.35}
+    .time{font-size:14px;color:var(--muted);font-weight:700;margin-top:4px}
+    .status{
+      padding:6px 10px;
+      border-radius:999px;
+      font-size:12px;
+      font-weight:900;
+      white-space:nowrap;
+      background:var(--chip);
+    }
+    .status.done{background:#ecfdf5;color:#166534}
+    .status.fail{background:#eff6ff;color:#1d4ed8}
+    .status.delay{background:#fffbeb;color:#b45309}
+    .status.cancel{background:#fef2f2;color:#b91c1c}
+    .status.pending{background:#f3f4f6;color:#374151}
+    .meta{
+      display:grid;
+      grid-template-columns:88px 1fr;
+      gap:7px 10px;
+      font-size:15px;
+      line-height:1.5;
+    }
+    .meta .k{color:var(--muted);font-weight:700}
+    .meta a{
+      color:var(--blue);
+      text-decoration:underline;
+      word-break:break-word;
+    }
+    .empty,.loading,.error{
+      background:var(--card);
+      border-radius:18px;
+      padding:22px;
+      text-align:center;
+      font-size:16px;
+      font-weight:700;
+      border:1px solid var(--line);
+      color:var(--muted);
+    }
+    .error{color:#b91c1c}
+    .person-links{
+      display:flex;
+      gap:8px;
+      flex-wrap:wrap;
+      margin-top:10px;
+    }
+    .person-link{
+      display:inline-flex;
+      align-items:center;
+      justify-content:center;
+      text-decoration:none;
+      background:#f8fafc;
+      color:#0f172a;
+      padding:10px 12px;
+      border-radius:999px;
+      font-size:13px;
+      font-weight:900;
+      border:1px solid #e2e8f0;
+    }
+    @media (min-width:900px){
+      .summary{grid-template-columns:repeat(5,minmax(0,1fr))}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <div class="top">
+      <div class="title" id="pageTitle">FAMI 早會看板</div>
+      <div class="sub" id="pageSub">資料讀取中...</div>
+
+      <div class="toolbar">
+        <button class="btn dark" onclick="loadBoard()">重新整理</button>
+        <button class="btn light" onclick="goBoard()">回總覽</button>
+        <input id="personInput" class="input" placeholder="人員，例如：徐" />
+        <input id="dateInput" class="input" placeholder="日期，例如：2026-03-25" />
+        <button class="btn light" onclick="applyFilters()">套用</button>
+      </div>
+    </div>
+
+    <div id="main" class="loading">載入中...</div>
+  </div>
+
+  <script>
+    /* ========= 你只要改這裡 ========= */
+    const CONFIG = {
+      API_KEY: 'UGQ4cGFmNjg2R0J2TXNSMXpZdVVvSlhIUVRLZHo2SmpISXUyMFQrRCtySXFDTUk2T2NCeUY4b0FDcXJ6OENqRA==',
+      BASE_READ: 'https://ap12.ragic.com/89793238/fami/2?api&v=3&naming=EID&subtables=0&limit=100',
+      TZ: 'Asia/Taipei',
+      FID: {
+        STATUS: '1000111',
+        DATE:   '1000112',
+        ADDR:   '1000119',
+        PERSON: '1000113',
+        REASON: '1000120',
+        FEE:    '1000114',
+        RESULT: '1000121',
+        NO:     '1000115',
+        APPT:   '1000122',
+        NAME:   '1000116',
+        TEL:    '1000117',
+        TYPE:   '1000124',
+        MOB:    '1000118',
+        PAYWAY: '1000125',
+        MODEL:  '1000145',
+        REMARK: '1000166',
+        SOURCE: '1000366'
+      }
+    };
+
+    /* ========= 基本工具 ========= */
+    function qs(name){ return new URL(location.href).searchParams.get(name) || ''; }
+
+    function escapeHtml(s){
+      return String(s || '').replace(/[&<>"']/g, ch => ({
+        '&':'&amp;',
+        '<':'&lt;',
+        '>':'&gt;',
+        '"':'&quot;',
+        "'":'&#39;'
+      }[ch]));
+    }
+
+    function mapsUrl(addr){
+      return 'https://www.google.com/maps/search/?api=1&query=' + encodeURIComponent(addr || '');
+    }
+
+    function statusClass(s){
+      if (s === '已完成') return 'done';
+      if (s === '未完成') return 'fail';
+      if (s === '延期') return 'delay';
+      if (s === '取消') return 'cancel';
+      if (s === '待處理') return 'pending';
+      return '';
+    }
+
+    function cellToText(v){
+      if (v == null) return '';
+
+      if (typeof v === 'string' || typeof v === 'number' || typeof v === 'boolean'){
+        return String(v).trim();
+      }
+
+      if (Array.isArray(v)){
+        return v.map(cellToText).filter(Boolean).join('、');
+      }
+
+      if (typeof v === 'object'){
+        const preferKeys = ['displayValue','display','value','raw','text','label','name'];
+        for (const k of preferKeys){
+          if (Object.prototype.hasOwnProperty.call(v, k)){
+            const s = cellToText(v[k]);
+            if (s) return s;
+          }
+        }
+        const vals = Object.values(v).map(cellToText).filter(Boolean);
+        if (vals.length) return vals.join('、');
+      }
+
+      return '';
+    }
+
+    function getDisplayValue(rec, id){
+      return cellToText(rec ? rec[id] : '');
+    }
+
+    function splitPersons(raw){
+      return cellToText(raw)
+        .replace(/[．。]/g, '.')
+        .split(/[、,，\/\s]+/)
+        .map(s => s.replace(/師傅|師父|先生|小姐/g, '').trim())
+        .filter(Boolean);
+    }
+
+    function normalizeDateKey(raw){
+      const s = cellToText(raw)
+        .replace(/年/g, '/')
+        .replace(/月/g, '/')
+        .replace(/日/g, '')
+        .replace(/\./g, '/')
+        .trim();
+
+      const m = s.match(/(20\d{2})[\/\-](\d{1,2})[\/\-](\d{1,2})/);
+      if (!m) return '';
+
+      const y = m[1];
+      const mo = ('0' + Number(m[2])).slice(-2);
+      const d = ('0' + Number(m[3])).slice(-2);
+      return `${y}/${mo}/${d}`;
+    }
+
+    function normalizeTimeHM(raw){
+      const s = cellToText(raw).trim();
+      const m = s.match(/(\d{1,2}):(\d{2})/);
+      if (!m) return '';
+      return ('0' + Number(m[1])).slice(-2) + ':' + m[2];
+    }
+
+    function timeToMin(hhmm){
+      if (!hhmm) return 9999;
+      const m = String(hhmm).match(/^(\d{2}):(\d{2})$/);
+      if (!m) return 9999;
+      return Number(m[1]) * 60 + Number(m[2]);
+    }
+
+    function personMatch(rowPeople, targetPerson){
+      const t = String(targetPerson || '').trim();
+      if (!t) return true;
+      const list = Array.isArray(rowPeople) ? rowPeople : [];
+      return list.some(p => {
+        const x = String(p || '').trim();
+        return x === t || x.includes(t) || t.includes(x);
+      });
+    }
+
+    function getTaipeiDateParts(){
+      const now = new Date();
+      const fmt = new Intl.DateTimeFormat('en-CA', {
+        timeZone: CONFIG.TZ,
+        year: 'numeric',
+        month: '2-digit',
+        day: '2-digit'
+      });
+      const parts = fmt.formatToParts(now).reduce((acc,p)=>{acc[p.type]=p.value; return acc;}, {});
+      return {
+        y: Number(parts.year),
+        m: Number(parts.month),
+        d: Number(parts.day)
+      };
+    }
+
+    function formatDateKey(dateObj){
+      const y = dateObj.getFullYear();
+      const m = ('0' + (dateObj.getMonth()+1)).slice(-2);
+      const d = ('0' + dateObj.getDate()).slice(-2);
+      return `${y}/${m}/${d}`;
+    }
+
+    function dateKeyToInput(dateKey){
+      return String(dateKey || '').replace(/\//g, '-');
+    }
+
+    function inputDateToKey(s){
+      const m = String(s || '').trim().match(/(20\d{2})[-\/](\d{1,2})[-\/](\d{1,2})/);
+      if (!m) return '';
+      return `${m[1]}/${('0'+Number(m[2])).slice(-2)}/${('0'+Number(m[3])).slice(-2)}`;
+    }
+
+    function getTargetDates(){
+      const qDate = inputDateToKey(qs('date'));
+      if (qDate){
+        const d = new Date(qDate.replace(/\//g, '-') + 'T00:00:00');
+        const y = new Date(d.getTime() - 86400000);
+        return { todayKey: formatDateKey(d), yesterdayKey: formatDateKey(y) };
+      }
+
+      const t = getTaipeiDateParts();
+      const today = new Date(t.y, t.m - 1, t.d);
+      const yesterday = new Date(today.getTime() - 86400000);
+      return { todayKey: formatDateKey(today), yesterdayKey: formatDateKey(yesterday) };
+    }
+
+    function countByStatus(rows){
+      const out = { '已完成':0, '未完成':0, '延期':0, '取消':0, '待處理':0, '未填':0 };
+      rows.forEach(r => {
+        const k = r.status || '未填';
+        if (!(k in out)) out[k] = 0;
+        out[k] += 1;
+      });
+      return out;
+    }
+
+    function groupTodayByPerson(rows){
+      const map = {};
+      rows.forEach(r => {
+        const people = r.people.length ? r.people : ['(未指派)'];
+        people.forEach(p => {
+          if (!map[p]) map[p] = [];
+          map[p].push(r);
+        });
+      });
+
+      return Object.keys(map)
+        .sort((a, b) => String(a).localeCompare(String(b), 'zh-Hant'))
+        .map(name => ({
+          person: name,
+          count: map[name].length,
+          rows: map[name].sort((a, b) => a.timeMin - b.timeMin || String(a.no).localeCompare(String(b.no)))
+        }));
+    }
+
+    function mapBoardRow(rec){
+      const apptRaw = getDisplayValue(rec, CONFIG.FID.APPT) || getDisplayValue(rec, CONFIG.FID.DATE);
+      const personText = getDisplayValue(rec, CONFIG.FID.PERSON);
+      const tel = getDisplayValue(rec, CONFIG.FID.TEL);
+      const mob = getDisplayValue(rec, CONFIG.FID.MOB);
+
+      return {
+        ragicId: rec._ragicId || '',
+        no: getDisplayValue(rec, CONFIG.FID.NO),
+        appt: apptRaw,
+        dateKey: normalizeDateKey(apptRaw),
+        time: normalizeTimeHM(apptRaw),
+        timeMin: timeToMin(normalizeTimeHM(apptRaw)),
+        name: getDisplayValue(rec, CONFIG.FID.NAME),
+        tel: tel,
+        mob: mob,
+        phone: [tel, mob].filter(Boolean).join(' / '),
+        addr: getDisplayValue(rec, CONFIG.FID.ADDR),
+        reason: getDisplayValue(rec, CONFIG.FID.REASON),
+        remark: getDisplayValue(rec, CONFIG.FID.REMARK),
+        status: getDisplayValue(rec, CONFIG.FID.STATUS),
+        payway: getDisplayValue(rec, CONFIG.FID.PAYWAY),
+        type: getDisplayValue(rec, CONFIG.FID.TYPE),
+        fee: getDisplayValue(rec, CONFIG.FID.FEE),
+        result: String(getDisplayValue(rec, CONFIG.FID.RESULT) || '').replace(/[\u200B-\u200D\uFEFF]/g, ''),
+        model: getDisplayValue(rec, CONFIG.FID.MODEL),
+        person: personText,
+        people: splitPersons(personText),
+        source: getDisplayValue(rec, CONFIG.FID.SOURCE)
+      };
+    }
+
+    function buildPersonUrl(name){
+      const u = new URL(location.href);
+      u.searchParams.set('person', name);
+      return u.toString();
+    }
+
+    function goBoard(){
+      const u = new URL(location.href);
+      u.searchParams.delete('person');
+      location.href = u.toString();
+    }
+
+    function applyFilters(){
+      const u = new URL(location.href);
+      const person = document.getElementById('personInput').value.trim();
+      const dateVal = document.getElementById('dateInput').value.trim();
+
+      if (person) u.searchParams.set('person', person);
+      else u.searchParams.delete('person');
+
+      if (dateVal) u.searchParams.set('date', dateVal);
+      else u.searchParams.delete('date');
+
+      location.href = u.toString();
+    }
+
+    /* ========= JSONP 讀 Ragic ========= */
+    function getLimit(url){
+      const m = String(url || '').match(/[?&]limit=(\d+)/i);
+      return m ? Number(m[1]) : 100;
+    }
+
+    function jsonp(url){
+      return new Promise((resolve, reject) => {
+        const cb = '__jsonp_cb_' + Date.now() + '_' + Math.random().toString(36).slice(2);
+        const script = document.createElement('script');
+        const sep = url.includes('?') ? '&' : '?';
+        const timer = setTimeout(() => {
+          cleanup();
+          reject(new Error('JSONP timeout'));
+        }, 15000);
+
+        function cleanup(){
+          clearTimeout(timer);
+          try { delete window[cb]; } catch(_) {}
+          if (script.parentNode) script.parentNode.removeChild(script);
+        }
+
+        window[cb] = function(data){
+          cleanup();
+          resolve(data);
+        };
+
+        script.onerror = function(){
+          cleanup();
+          reject(new Error('JSONP load failed'));
+        };
+
+        script.src = url + sep + 'callback=' + cb;
+        document.body.appendChild(script);
+      });
+    }
+
+    async function fetchRagicAllRows(){
+      if (!CONFIG.API_KEY || CONFIG.API_KEY === '__RAGIC_API_KEY__'){
+        throw new Error('請先把 HTML 裡的 __RAGIC_API_KEY__ 換成你的 Ragic API Key');
+      }
+
+      const all = [];
+      let start = 0;
+      const limit = getLimit(CONFIG.BASE_READ);
+
+      while (true) {
+        const url = `${CONFIG.BASE_READ}&APIKey=${encodeURIComponent(CONFIG.API_KEY)}&start=${start}&reverse=true`;
+        const parsed = await jsonp(url);
+
+        if (parsed && parsed.status === 'ERROR') {
+          throw new Error(parsed.msg || 'Ragic API error');
+        }
+
+        let rows = Array.isArray(parsed)
+          ? parsed
+          : (parsed && typeof parsed === 'object' ? Object.values(parsed) : []);
+
+        rows = rows.filter(r => r && typeof r === 'object' && r._ragicId);
+
+        if (!rows.length) break;
+
+        all.push(...rows);
+
+        if (rows.length < limit) break;
+        start += rows.length;
+      }
+
+      return all;
+    }
+
+    /* ========= 畫面 ========= */
+    function renderCard(r){
+      const addrHtml = r.addr
+        ? `<a href="${mapsUrl(r.addr)}" target="_blank">${escapeHtml(r.addr)}</a>`
+        : '—';
+
+      return `
+        <div class="card">
+          <div class="card-top">
+            <div>
+              <div class="order">${escapeHtml(r.no || '無單號')}｜${escapeHtml(r.name || '未填客戶')}</div>
+              <div class="time">${escapeHtml(r.appt || '未填預約時間')}</div>
+            </div>
+            <div class="status ${statusClass(r.status)}">${escapeHtml(r.status || '未填狀態')}</div>
+          </div>
+          <div class="meta">
+            <div class="k">服務人員</div><div>${escapeHtml(r.person || '(未指派)')}</div>
+            <div class="k">電話</div><div>${escapeHtml(r.phone || '—')}</div>
+            <div class="k">內容</div><div>${escapeHtml(r.reason || '—')}</div>
+            <div class="k">地址</div><div>${addrHtml}</div>
+            <div class="k">結果</div><div>${escapeHtml(r.result || '—')}</div>
+            <div class="k">金額</div><div>${escapeHtml(r.fee || '—')}</div>
+          </div>
+        </div>`;
+    }
+
+    function renderSummary(data){
+      const s = data.yesterdaySummary || {};
+      return `
+        <div class="summary">
+          <div class="stat"><div class="k">昨天已完成</div><div class="v">${s['已完成'] || 0}</div></div>
+          <div class="stat"><div class="k">昨天未完成</div><div class="v">${s['未完成'] || 0}</div></div>
+          <div class="stat"><div class="k">昨天延期</div><div class="v">${s['延期'] || 0}</div></div>
+          <div class="stat"><div class="k">昨天取消</div><div class="v">${s['取消'] || 0}</div></div>
+          <div class="stat"><div class="k">今天案件數</div><div class="v">${(data.todayRows || []).length}</div></div>
+        </div>`;
+    }
+
+    function renderYesterday(rows){
+      if (!rows || !rows.length) {
+        return '<div class="empty">昨天沒有符合條件的案件</div>';
+      }
+      return `<div class="cards">${rows.map(renderCard).join('')}</div>`;
+    }
+
+    function renderTodayGroups(groups){
+      if (!groups || !groups.length) {
+        return '<div class="empty">今天沒有案件</div>';
+      }
+
+      return groups.map(g => {
+        const link = g.person && g.person !== '(未指派)'
+          ? `<a class="person-link" href="${buildPersonUrl(g.person)}" target="_blank">開啟 ${escapeHtml(g.person)} 個人頁</a>`
+          : '';
+
+        return `
+          <div class="group">
+            <div class="group-head">
+              <div class="group-name">${escapeHtml(g.person || '(未指派)')}</div>
+              <div class="badge">${g.count || 0} 筆</div>
+            </div>
+            ${link ? `<div class="person-links">${link}</div>` : ''}
+            <div class="cards" style="margin-top:12px;">${(g.rows || []).map(renderCard).join('')}</div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    function render(data){
+      document.getElementById('pageTitle').textContent =
+        data.person ? `今日案件｜${data.person}` : 'FAMI 早會看板';
+
+      document.getElementById('pageSub').textContent =
+        `昨天：${data.yesterdayKey} ｜ 今天：${data.todayKey} ｜ 更新：${data.generatedAt}`;
+
+      document.getElementById('personInput').value = data.person || '';
+      document.getElementById('dateInput').value = dateKeyToInput(data.todayKey);
+
+      document.getElementById('main').innerHTML = `
+        ${renderSummary(data)}
+
+        <section class="section">
+          <div class="section-head">
+            <div class="section-title">昨天施工結果</div>
+            <div class="hint">早會先看這區</div>
+          </div>
+          ${renderYesterday(data.yesterdayRows || [])}
+        </section>
+
+        <section class="section">
+          <div class="section-head">
+            <div class="section-title">今天案件分配</div>
+            <div class="hint">${data.person ? '這是個人頁，可釘選桌面' : '總覽頁，現場直接分派'}</div>
+          </div>
+          ${renderTodayGroups(data.todayGroups || [])}
+        </section>
+      `;
+    }
+
+    async function loadBoard(){
+      const main = document.getElementById('main');
+      main.className = 'loading';
+      main.innerHTML = '載入中...';
+
+      try{
+        const person = String(qs('person') || '').trim();
+        const { todayKey, yesterdayKey } = getTargetDates();
+
+        const rows = (await fetchRagicAllRows()).map(mapBoardRow);
+
+        const yesterdayRows = rows
+          .filter(r => r.dateKey === yesterdayKey)
+          .filter(r => personMatch(r.people, person))
+          .sort((a, b) => a.timeMin - b.timeMin || String(a.no).localeCompare(String(b.no)));
+
+        const todayRows = rows
+          .filter(r => r.dateKey === todayKey)
+          .filter(r => personMatch(r.people, person))
+          .sort((a, b) => a.timeMin - b.timeMin || String(a.no).localeCompare(String(b.no)));
+
+        const data = {
+          generatedAt: new Date().toLocaleString('zh-TW', { hour12:false }),
+          todayKey,
+          yesterdayKey,
+          person,
+          yesterdaySummary: countByStatus(yesterdayRows),
+          yesterdayRows,
+          todayRows,
+          todayGroups: person
+            ? [{ person, count: todayRows.length, rows: todayRows }]
+            : groupTodayByPerson(todayRows)
+        };
+
+        render(data);
+      }catch(err){
+        main.className = 'error';
+        main.innerHTML = '讀取失敗：' + escapeHtml(err && err.message ? err.message : String(err));
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadBoard);
+  </script>
+</body>
+</html>
