@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>無人寄售櫃系統 · 規格書 v1.2 — J·KEY</title>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@500;600&family=Noto+Sans+TC:wght@400;500;700&display=swap" rel="stylesheet">
+<style>
+:root{
+  --bg:#F7F3EC; --ink:#2B2620; --muted:#8A8072; --line:#E4DCCE;
+  --gold:#B08A3C; --goldsoft:#F0E6CF; --spark:#C4432B; --card:#FFFDF8;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--bg);color:var(--ink);font-family:'Noto Sans TC',sans-serif;line-height:1.75;font-size:15.5px;padding:36px 18px 56px}
+.wrap{max-width:820px;margin:0 auto}
+header{text-align:center;margin-bottom:8px}
+.mark{font-family:'Cormorant Garamond','Noto Sans TC',serif;font-size:32px;font-weight:600;letter-spacing:.04em}
+.mark .dot{color:var(--gold);margin:0 .3em}
+.sub{font-size:13px;color:var(--muted);letter-spacing:.14em;margin-top:2px}
+.meta{display:flex;flex-wrap:wrap;gap:8px 22px;justify-content:center;font-size:13px;color:var(--muted);margin:14px 0 30px;border-top:1px solid var(--line);border-bottom:1px solid var(--line);padding:10px 0}
+.meta b{color:var(--ink);font-weight:500}
+h2{font-family:'Cormorant Garamond','Noto Sans TC',serif;font-size:24px;font-weight:600;margin:44px 0 6px;display:flex;align-items:baseline;gap:10px}
+h2 .no{color:var(--gold);font-size:18px;letter-spacing:.06em}
+h3{font-size:16.5px;font-weight:700;margin:22px 0 6px}
+p{margin:8px 0}
+.lead{color:var(--muted)}
+ul{margin:6px 0 10px 1.3em}
+li{margin:3px 0}
+table{width:100%;border-collapse:collapse;margin:12px 0;background:var(--card);font-size:14.5px}
+th,td{border:1px solid var(--line);padding:9px 12px;text-align:left;vertical-align:top}
+th{background:var(--goldsoft);font-weight:700;white-space:nowrap}
+td.num,th.num{text-align:right;white-space:nowrap;font-variant-numeric:tabular-nums}
+.tag{display:inline-block;font-size:12px;padding:1px 10px;border-radius:999px;border:1px solid var(--gold);color:var(--gold);margin-left:8px;vertical-align:middle}
+.box{background:var(--card);border:1px solid var(--line);border-radius:14px;padding:16px 20px;margin:14px 0}
+.box.warn{border-left:4px solid var(--spark);border-radius:0 14px 14px 0}
+.box.key{border-left:4px solid var(--gold);border-radius:0 14px 14px 0}
+.cols{display:grid;grid-template-columns:1fr 1fr;gap:14px;margin:12px 0}
+.cols .box{margin:0}
+.cols h4{font-size:14.5px;font-weight:700;margin-bottom:6px}
+.ok h4{color:#1D7A5F}.no h4{color:var(--spark)}
+.small{font-size:13px;color:var(--muted)}
+.price{font-family:'Cormorant Garamond','Noto Sans TC',serif;font-size:30px;font-weight:600;color:var(--gold);font-variant-numeric:tabular-nums}
+.strike{color:var(--muted);text-decoration:line-through;font-size:14px}
+.qa dt{font-weight:700;margin-top:14px}
+.qa dd{margin:4px 0 0 0;color:var(--ink)}
+.sign{display:grid;grid-template-columns:1fr 1fr;gap:30px;margin-top:18px}
+.sign div{border-top:1px solid var(--ink);padding-top:6px;font-size:13.5px;color:var(--muted)}
+footer{margin-top:46px;text-align:center;font-size:12px;letter-spacing:.18em;color:var(--muted)}
+footer b{color:var(--gold);font-weight:500}
+@media (max-width:560px){.cols{grid-template-columns:1fr}body{font-size:15px}}
+@media print{body{background:#fff;padding:0}.box,.card,table{background:#fff}}
+</style>
+</head>
+<body>
+<div class="wrap">
+
+<header>
+  <div class="mark">無人寄售櫃系統<span class="dot">·</span>規格書</div>
+  <div class="sub">行動駐點市集 — 對內確認用</div>
+</header>
+<div class="meta">
+  <span>版本 <b>v1.2</b></span>
+  <span>日期 <b>2026-07-02</b></span>
+  <span>提供方 <b>J·KEY（洋賢）</b></span>
+  <span>文件性質 <b>規格與責任約定</b></span>
+</div>
+
+<div class="box key">
+<b>這份文件怎麼讀：</b>系統分三層——<b>第一層 MVP</b> 是試營運要用的最小可行版本，刻意不碰金流、能簡單就簡單；<b>第二層</b>是可以單點加購的模組；<b>第三層</b>是超過三個據點後的完整版。每一項都附「夥伴價」與「市場行情」對照。文件後半是維護範圍、責任分工與資安條款——先把界線講清楚，是為了合作走得久。全文採「<b>未寫明即不包含</b>」原則：凡未於本文件明列的功能與服務，均不在提供範圍內。
+</div>
+
+<h2><span class="no">〇</span>價格總覽</h2>
+<table>
+<tr><th>項目</th><th>內容</th><th class="num">夥伴價</th><th class="num">市場行情</th></tr>
+<tr><td><b>第一層 MVP</b></td><td>不碰錢的紀錄與對帳系統（試營運用）</td><td class="num"><b>$25,000</b></td><td class="num">$55,000–65,000</td></tr>
+<tr><td>第二層 可選模組</td><td>六個模組，需要哪個買哪個</td><td class="num">$6,000–10,000／個</td><td class="num">$15,000–25,000／個</td></tr>
+<tr><td>第三層 完整版升級</td><td>正式金流、電子發票、多據點營運（第4點前後）</td><td class="num">$40,000</td><td class="num">約 $90,000</td></tr>
+<tr><td>新據點上線費</td><td>每開一個新點的部署與設定</td><td class="num">$10,000／點</td><td class="num">$20,000+／點</td></tr>
+<tr><td>系統月維護</td><td>前 3 個據點；含每月 2 小時內微調</td><td class="num">$2,700／月</td><td class="num">$5,000–8,000／月</td></tr>
+<tr><td>規模授權費</td><td>第 4 個據點起</td><td class="num">+$700／點／月</td><td class="num">—</td></tr>
+</table>
+<p class="small">市場行情依據：台灣接案市場「LINE 官方帳號 × 客製資料庫系統」行情（小型工作室整案 $100,000–300,000、單一模組 $15,000–30,000），以及工時 × 時薪回推（MVP 約 50–70 小時 × 行情時薪 $1,000–1,200）。夥伴價能壓到四折上下，是因為 J·KEY 以既有系統框架大量複用，並將折讓列為對本團隊的無形出資。</p>
+
+<div class="box key">
+<b>三層之間的關係（先講清楚，避免日後「我不是買了嗎」的爭議）：</b>三層是「<b>地基 → 加購 → 升級</b>」，<b>不是</b>一層全包一層的俄羅斯娃娃。
+<ul>
+<li><b>第一層（地基）</b>：必買，$25,000。所有功能都蓋在它上面。</li>
+<li><b>第二層（加購）</b>：在第一層之上，要哪個買哪個。買過的模組<b>永久屬於團隊</b>，升級到第三層照樣能用、不作廢。</li>
+<li><b>第三層（升級）</b>：$40,000 是「<b>已經有第一層、再往上升級</b>」的價格，<b>不重複收第一層的錢</b>。V2 內建功能已涵蓋 <b>模組 C（廠商自助）</b> 與 <b>模組 F（多據點）</b>；<b>模組 A（付款回報）</b> 因 V2 有正式金流而不再需要。未被涵蓋的 <b>模組 B（場地分潤）、D（優惠碼）、E（損耗盤點）</b> 仍為獨立加購。</li>
+</ul>
+</div>
+
+<h2><span class="no">一</span>第一層：MVP 最簡版<span class="tag">$25,000 · 試營運必備</span></h2>
+<p class="lead">定位一句話：<b>系統不經手任何一塊錢</b>。它只做三件事——記錄誰買了什麼、提醒廠商補貨、月底自動把帳算清楚。付款靠櫃上的靜態轉帳碼，錢直接進團隊帳戶，系統只留紀錄。</p>
+
+<h3>包含功能（共 7 項）</h3>
+<table>
+<tr><th>功能</th><th>白話說明</th><th>對誰有用</th></tr>
+<tr><td>1. 商品與格位管理</td><td>每個櫃、每一格放什麼商品、價格多少，後台一目了然（Ragic 資料庫）</td><td>營運</td></tr>
+<tr><td>2. 消費者購買回報</td><td>掃櫃上 QR → 手機網頁選商品 → 按「我已轉帳」→ 訂單自動成立</td><td>消費者</td></tr>
+<tr><td>3. 低庫存自動提醒</td><td>某格快賣完，LINE 自動通知該廠商來補貨</td><td>廠商</td></tr>
+<tr><td>4. 補貨拍照回報</td><td>廠商補完貨拍張照回報，庫存自動重置</td><td>廠商</td></tr>
+<tr><td>5. 每日營運速報</td><td>每天固定時間，LINE 群組收到「今日幾筆、金額多少」卡片</td><td>四人</td></tr>
+<tr><td>6. 月結對帳單</td><td>月底自動產出每家廠商的銷售明細與應付金額，分潤（70／池／場地）自動試算</td><td>仁易・廠商</td></tr>
+<tr><td>7. 管理後台</td><td>當日訂單、各格銷量、待補貨清單；歷史報表用 Ragic 內建功能查</td><td>四人</td></tr>
+</table>
+
+<div class="cols">
+<div class="box ok"><h4>✓ 一併包含</h4><ul>
+<li>上線部署與 QR 物料檔（櫃貼、格位標）</li>
+<li>廠商端使用說明一頁（新人看得懂）</li>
+<li>首月調校：上線後 30 天內依實際使用微調</li>
+<li>30 天保固：功能異常免費修復</li>
+</ul></div>
+<div class="box no"><h4>✕ 明確不包含</h4><ul>
+<li>任何金流串接（LINE Pay 商家、刷卡、超商代收）</li>
+<li>付款截圖核對介面（可選模組 A）</li>
+<li>電子發票（第三層）</li>
+<li>損耗盤點、優惠活動、多據點比較（可選／第三層）</li>
+<li>資料人工代輸、代營運</li>
+</ul></div>
+</div>
+<p class="small">交付時程：合約與訂金確認後 <b>21 個工作天</b>內上線第一櫃。付款方式：訂金 50% 動工、驗收通過付尾款 50%。</p>
+
+<h2><span class="no">二</span>第二層：可選模組<span class="tag">要哪個買哪個</span></h2>
+<table>
+<tr><th>模組</th><th>白話說明</th><th>什麼時候需要</th><th class="num">夥伴價</th><th class="num">市場行情</th></tr>
+<tr><td>A. 付款回報確認</td><td>消費者上傳轉帳截圖，後台一鍵核對入帳，漏單一眼看出</td><td>人工對帳開始吃不消時</td><td class="num">$8,000</td><td class="num">$18,000</td></tr>
+<tr><td>B. 場地方分潤報表</td><td>每月自動產出場地方的分潤明細並 LINE 送達</td><td>據點 ≥ 2 或場地方常問帳</td><td class="num">$6,000</td><td class="num">$15,000</td></tr>
+<tr><td>C. 廠商自助查詢</td><td>廠商自己在 LINE 查即時銷量、庫存、對帳單，不用再問人</td><td>廠商 ≥ 6 家</td><td class="num">$10,000</td><td class="num">$22,000</td></tr>
+<tr><td>D. 活動優惠碼</td><td>檔期折扣碼、滿額贈的設定與核銷</td><td>要開始辦活動衝營收時</td><td class="num">$8,000</td><td class="num">$18,000</td></tr>
+<tr><td>E. 損耗盤點</td><td>定期盤點差異紀錄，支撐「季度汰換冷門格」的決策</td><td>營運滿 2 個月後</td><td class="num">$8,000</td><td class="num">$18,000</td></tr>
+<tr><td>F. 多據點比較儀表板</td><td>各點營收、格位效率一頁比較</td><td>據點 ≥ 2</td><td class="num">$10,000</td><td class="num">$25,000</td></tr>
+<tr><td colspan="3"><b>六模組全選</b></td><td class="num"><b>$50,000</b></td><td class="num"><span class="strike">$116,000</span></td></tr>
+</table>
+
+<h2><span class="no">三</span>第三層：完整版 V2<span class="tag">第 4 個據點前後</span></h2>
+<p class="lead">超過三個據點會同時撞到三面牆：平台推播與執行配額、人工對帳量、以及最硬的一面——<b>正式金流與發票在法規上需要營業登記</b>。完整版就是為了跨過這三面牆。</p>
+<ul>
+<li><b>正式金流串接</b>（LINE Pay 商家或綠界）：消費者直接線上付款，不再靠轉帳回報</li>
+<li><b>電子發票介接</b>：每筆交易自動開立</li>
+<li><b>多據點營運中心</b>：跨點庫存、營收、分潤一站管理</li>
+<li><b>穩定度強化</b>：訊息佇列與防重機制，量大不掉單</li>
+<li><b>廠商自助後台完整版</b></li>
+</ul>
+<div class="box warn"><b>前提條件（團隊責任）：</b>申請金流商家帳號與開立發票，法規上須有營業登記主體。登記與稅務規劃屬團隊決策（建議由仁易主導），完成前 V2 的金流與發票功能無法啟用——這是法律限制，不是技術限制。</div>
+<p>升級價 <span class="price">$40,000</span>　<span class="strike">市場行情約 $90,000</span>　＋ 新據點上線費 $10,000／點　＋ 第 4 點起系統授權 $700／點／月。</p>
+
+<h2><span class="no">四</span>維護合約：$2,700／月 到底包含什麼</h2>
+<p class="lead">一句話原則：<b>維護＝讓「已交付的功能」持續正常運作；新功能、平台改版導致的改動＝變更單另計。</b>就像房子的保固包含修漏水，但不包含加蓋一間房，也不包含因為市政道路改建而重接的水電管線。</p>
+<div class="cols">
+<div class="box ok"><h4>✓ 維護費包含</h4><ul>
+<li>系統運作監控與故障排除</li>
+<li>已交付功能的錯誤修復（免費、不限次數）</li>
+<li>每月 <b>2 小時內</b>的微調（改文字、調欄位、改通知時間等）</li>
+</ul></div>
+<div class="box no"><h4>✕ 維護費不包含</h4><ul>
+<li>新功能、新模組開發 → 走變更單</li>
+<li><b>平台改版（LINE／Google／Ragic）導致需改動程式 → 一律走變更單</b></li>
+<li>非系統原因的問題（手機、網路、人為誤操作）</li>
+<li>資料人工代輸、替廠商操作</li>
+<li>第二次以後的教育訓練（首次已含）</li>
+<li>因團隊未升級 V2 而在量大後產生的配額問題</li>
+</ul></div>
+</div>
+<p class="small">關於「平台改版」的說明：LINE／Google／Ragic 屬第三方平台，其 API 或政策更新的時機與幅度非 J·KEY 所能控制。小至欄位微調、大至破壞性改版都可能發生，故一律以變更單估工報價後施作，不含在月維護時數內——這樣維護費才守得住、報價才算得清。</p>
+
+<h3>服務時間與回應承諾（SLA）</h3>
+<table>
+<tr><th>狀況</th><th>回應時間</th><th>處理原則</th></tr>
+<tr><td>一般問題、微調需求</td><td>1 個工作天內回應</td><td>排入當月維護時數</td></tr>
+<tr><td>影響交易紀錄的故障</td><td>服務時間內 4 小時回應</td><td>優先處理，盡力 24 小時內修復或給替代方案</td></tr>
+<tr><td>平台商故障（LINE／Google／Ragic 掛掉）</td><td>—</td><td>非 J·KEY 責任範圍，協助追蹤官方公告</td></tr>
+<tr><td>平台改版導致需改動程式</td><td>1 個工作天內回應</td><td>非維護範圍，估工報價後施作（變更單）</td></tr>
+</table>
+<p class="small">服務時間：週一至週五 10:00–19:00。非約定時間之緊急處理 $1,500／次起。<b>暫停預告條款：</b>乙方（J·KEY）得於 14 天前預告連續離線期間（如兵役、長期進修），期間維護費減半、僅處理影響交易的緊急故障，並預先交付應變手冊與備援聯絡方式。</p>
+
+<h3>變更單流程</h3>
+<p>任何新需求（含平台改版的因應改動）：提出 → J·KEY 估工時報價（夥伴時薪 <b>$700／小時</b>，市場行情 $1,000–1,500；0.5 小時起計）→ 書面確認 → 動工。口頭「順便幫我加一下」恕不受理，不是不近人情，是保護四個人的帳都算得清。</p>
+
+<h2><span class="no">五</span>責任分工表</h2>
+<table>
+<tr><th>項目</th><th>J·KEY 負責</th><th>團隊負責</th><th>平台商負責</th></tr>
+<tr><td>系統功能瑕疵</td><td>✓ 免費修復</td><td></td><td></td></tr>
+<tr><td>資料保存與備份</td><td></td><td>✓ 團隊自理（資料存於團隊自有 Ragic，可隨時匯出）</td><td></td></tr>
+<tr><td>帳號密碼與權限管理</td><td>提供權限分層設定</td><td>✓ 保管、離職即通知移除</td><td></td></tr>
+<tr><td>管理後台網址保密</td><td>技術端存取控管</td><td>✓ 不外流、只在自有裝置使用</td><td></td></tr>
+<tr><td>LINE 官方帳號月費・訊息量費</td><td></td><td>✓ 營運成本</td><td></td></tr>
+<tr><td>Ragic 資料庫訂閱費</td><td></td><td>✓ 營運成本</td><td></td></tr>
+<tr><td>營業登記、發票、稅務</td><td></td><td>✓（建議仁易主導）</td><td></td></tr>
+<tr><td>消費者未付款、商品損耗</td><td></td><td>✓ 營運風險（系統提供紀錄佐證）</td><td></td></tr>
+<tr><td>平台本身故障或遭入侵</td><td>協助回報與追蹤</td><td></td><td>✓ LINE／Google／Ragic</td></tr>
+<tr><td>平台政策・配額・API 改版的因應改動</td><td>估工報價後施作</td><td>✓ 費用（屬變更範圍，不含在月維護）</td><td></td></tr>
+</table>
+
+<h2><span class="no">六</span>資安條款</h2>
+<h3>基礎資安（MVP 已包含，不另收費）</h3>
+<ul>
+<li>全程 HTTPS 加密傳輸（LINE／Google／Ragic 平台原生）</li>
+<li>API 金鑰集中保管於加密設定區，不寫死在程式中</li>
+<li>後台權限分層：管理者／廠商看到的東西不一樣</li>
+<li><b>系統不儲存任何信用卡號、銀行帳密</b>——MVP 不碰金流，這本身就是最大的資安保護</li>
+</ul>
+<div class="box warn">
+<b>明確不承諾的範圍：</b>滲透測試、7×24 資安監控、金融等級防護、<b>資料備份與異地備援</b>、雙因子驗證、操作日誌——凡未列於上方「基礎資安」者，均不在本案提供範圍內。<b>資料的保存與備份屬團隊責任：</b>所有營運資料存於團隊自有的 Ragic 帳號，團隊可隨時自行匯出留存。<br><br>
+<b>資安事件的處理原則：</b>若屬<b>系統程式漏洞</b>造成的入侵，維護期內由 J·KEY 免費修補並協助止血；若肇因於<b>帳號密碼外洩、管理網址外流、或平台商本身被入侵</b>，J·KEY 協助處理但不負賠償責任。<b>賠償上限：</b>無論何種情況，J·KEY 之賠償責任以「已收之最近三個月維護費」為上限。本條款請四人簽名確認。
+</div>
+
+<h2><span class="no">七</span>智慧財產與資料歸屬</h2>
+<ul>
+<li><b>程式著作權歸 J·KEY 所有</b>。本團隊取得「自有據點」永久使用授權，不含轉售或轉授權第三方。</li>
+<li><b>營運資料（訂單、廠商、庫存）所有權歸團隊</b>，儲存於團隊自己的 Ragic 帳號，合作終止隨時可完整匯出。</li>
+<li>本規格書記載之夥伴價與市價差額（MVP 一項即 $35,000），列為 J·KEY 對本團隊之<b>無形出資</b>，於合作協議中認列。</li>
+<li>維護合約終止：J·KEY 交付部署文件與應變手冊，系統可繼續運作，但後續維護與平台改版因應由團隊自理或另行委託。</li>
+</ul>
+<div class="box warn">
+<b>範圍界定（避免日後爭議）：本規格書採「未寫明即不包含」原則。</b>任何未於本文件明列的功能、模組、備份、保固或資安措施，均不在 J·KEY 的提供範圍內；<b>口頭或訊息中的額外要求，一律須以變更單書面確認後方生效</b>。本文件之書面記載，為雙方權責的唯一依據。
+</div>
+
+<h2><span class="no">八</span>三個大家一定會問的問題</h2>
+<dl class="qa">
+<dt>Q1：「維護費不是本來就應該包新功能嗎？」</dt>
+<dd>不是，而且任何一家系統商都不是。維護費買的是「已交付功能的持續正常」＋每月 2 小時微調；新功能、以及平台改版導致的程式改動，都是新的工時，走變更單。界線寫在第四節，簽了大家照走，不用每次靠交情。</dd>
+<dt>Q2：「如果資料被駭客入侵了怎麼辦？」</dt>
+<dd>先看第六節的切分：系統漏洞→J·KEY 維護期內免費修補；帳密外洩或網址外流→責任在保管方；平台被駭→平台商責任。MVP 不碰金流、不存卡號，就算最壞情況，外洩的是商品與訂單紀錄，不是任何人的錢。本案採基礎資安等級，未列於本文件的防護措施（如異地備援、雙因子、滲透測試）一律不在範圍內；資料備份由團隊在自有 Ragic 帳號自理。</dd>
+<dt>Q3：「為什麼系統要這個價？」</dt>
+<dd>每一項都附了市場行情欄。MVP 市價 $55,000–65,000，夥伴價 $25,000 是四折——不是市價灌水，是 J·KEY 用既有框架複用換來的，而且折掉的 $35,000 已列為無形出資進了合夥的帳。真要驗證，拿這份規格書找任何一家接案公司報價即可。</dd>
+</dl>
+
+<h2><span class="no">九</span>確認簽署</h2>
+<p class="small">本規格書為「行動駐點市集」合作協議之附件，四人簽署後生效；後續增修以變更單為準。</p>
+<div class="sign">
+  <div>坤原（發起・業務）　日期</div>
+  <div>仁易（帳務・稅務）　日期</div>
+  <div>洋賢（系統・J·KEY）　日期</div>
+  <div>威伸（櫃體・工務）　日期</div>
+</div>
+
+<footer>規格與系統 <b>J·KEY</b> · 鑰匙開鎖，帳目分明</footer>
+</div>
+</body>
+</html>
