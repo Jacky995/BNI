@@ -1,0 +1,93 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>生日快樂</title>
+<meta name="robots" content="noindex">
+
+<!-- ══════════════════════════════════════════════════════════
+     ↓↓↓ 只要改這一行：貼上你的 GAS /exec 網址，結尾保留 ?page=wall
+     ══════════════════════════════════════════════════════════ -->
+<script>
+  var WALL = "https://script.google.com/macros/s/請貼上你的部署ID/exec?page=wall";
+</script>
+
+<!-- 沒有 JS 也能走（極少數情況） -->
+<noscript>
+  <meta http-equiv="refresh" content="0; url=https://script.google.com/macros/s/請貼上你的部署ID/exec?page=wall">
+</noscript>
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Noto+Serif+TC:wght@200;300&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --porcelain:#FBFCFD;
+    --mist:#E8F0F5;
+    --haze:#C9DCE7;
+    --slate:#6F93AB;
+    --ink:#26404F;
+    --serif:'Noto Serif TC', serif;
+  }
+  *{box-sizing:border-box}
+  html,body{height:100%;margin:0}
+  body{
+    background:linear-gradient(180deg,var(--porcelain) 0%,var(--mist) 100%);
+    color:var(--ink);
+    font-family:var(--serif);font-weight:200;
+    -webkit-font-smoothing:antialiased;
+    display:flex;align-items:center;justify-content:center;
+    padding:32px;text-align:center;
+  }
+  .box{animation:in 1.1s ease both}
+  .rule{width:28px;height:1px;background:var(--haze);margin:0 auto 30px}
+  .eyebrow{
+    font-size:12px;font-weight:300;letter-spacing:.55em;text-indent:.55em;
+    color:var(--slate);margin:0 0 20px;
+  }
+  h1{
+    font-size:clamp(30px,8vw,42px);font-weight:200;line-height:1.5;
+    letter-spacing:.22em;text-indent:.22em;margin:0 0 40px;
+  }
+  .pulse{
+    width:46px;height:1px;background:var(--haze);margin:0 auto;
+    position:relative;overflow:hidden;
+  }
+  .pulse:after{
+    content:'';position:absolute;inset:0;background:var(--slate);
+    animation:sweep 1.9s ease-in-out infinite;
+  }
+  .fallback{
+    display:block;margin-top:40px;font-size:12.5px;font-weight:300;
+    letter-spacing:.16em;color:var(--slate);
+    text-decoration:none;border-bottom:1px solid var(--haze);
+    padding-bottom:4px;opacity:0;animation:in .9s ease 2.6s both;
+  }
+  @keyframes in{from{opacity:0;transform:translateY(10px)}to{opacity:1;transform:none}}
+  @keyframes sweep{
+    0%{transform:translateX(-100%)}
+    55%{transform:translateX(0)}
+    100%{transform:translateX(100%)}
+  }
+  @media (prefers-reduced-motion:reduce){*{animation:none!important}.pulse:after{transform:none}}
+</style>
+</head>
+<body>
+
+<div class="box">
+  <div class="rule"></div>
+  <p class="eyebrow">尤小姐</p>
+  <h1>生日快樂</h1>
+  <div class="pulse"></div>
+  <a class="fallback" id="manual" href="#">沒有自動跳轉？點這裡</a>
+</div>
+
+<script>
+  document.getElementById('manual').href = WALL;
+  // 先讓畫面畫出來再導頁，避免白閃；用 replace 讓「上一頁」不會彈回這裡
+  setTimeout(function(){ location.replace(WALL); }, 700);
+</script>
+
+</body>
+</html>
