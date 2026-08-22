@@ -1,0 +1,1387 @@
+<!DOCTYPE html>
+<html lang="zh-Hant" data-theme="light">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>J·KEY — 把 LINE 群組裡的流程，變成有紀錄的系統</title>
+<meta name="description" content="J·KEY 為中小企業建置 LINE 生態的自動化系統：接單分流、派工、現場回報、資料分析、自動回訪。不換工具，資料自己進後台。">
+<meta property="og:title" content="J·KEY — 系統整合">
+<meta property="og:description" content="把原本靠 LINE 群組口頭喊的流程，變成有紀錄、可回溯、不用追問的系統。">
+<meta property="og:type" content="website">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:wght@400;500;600&family=Noto+Sans+TC:wght@300;400;500;700&family=Noto+Serif+TC:wght@400;600;700&display=swap" rel="stylesheet">
+<style>
+/* ══════════ tokens ══════════ */
+:root{
+  --paper:#F6F2EA; --paper-deep:#EFE9DD; --card:#FFFFFF;
+  --ink:#1C1A17; --ink-soft:#6B655C; --ink-faint:#9C958A;
+  --gold:#A8823C; --gold-soft:#D9C79E; --rule:#E2DACB;
+  --alert:#A6402C; --chat-bg:#8CA7B8; --line-green:#06C755;
+  --shadow:0 18px 40px -22px rgba(28,26,23,.5);
+  --f-display:"Cormorant Garamond",Georgia,serif;
+  --f-serif:"Noto Serif TC",serif;
+  --f-sans:"Noto Sans TC",system-ui,sans-serif;
+  --f-mono:ui-monospace,"SFMono-Regular","Roboto Mono",monospace;
+  --pad:clamp(20px,5vw,40px); --maxw:1080px;
+}
+[data-theme="dark"]{
+  --paper:#141310; --paper-deep:#1E1B16; --card:#1A1815;
+  --ink:#F1ECE1; --ink-soft:#A8A093; --ink-faint:#6E685E;
+  --gold:#CBA43F; --gold-soft:#5C4C24; --rule:#2E2A24;
+  --alert:#D06A52; --chat-bg:#243039;
+  --shadow:0 18px 44px -24px rgba(0,0,0,.9);
+}
+
+*{box-sizing:border-box;}
+html{scroll-behavior:smooth;-webkit-text-size-adjust:100%;}
+body{
+  margin:0;background:var(--paper);color:var(--ink);
+  font-family:var(--f-sans);font-weight:300;font-size:16px;line-height:1.85;
+  letter-spacing:.01em;-webkit-font-smoothing:antialiased;
+  transition:background .4s ease,color .4s ease;
+}
+a{color:inherit;}
+:focus-visible{outline:2px solid var(--gold);outline-offset:3px;border-radius:2px;}
+.wrap{max-width:var(--maxw);margin:0 auto;padding-left:var(--pad);padding-right:var(--pad);}
+
+/* ══════════ chrome ══════════ */
+.progress{position:fixed;top:0;left:0;height:2px;width:0;background:var(--gold);z-index:60;transition:width .1s linear;}
+.top{
+  position:sticky;top:0;z-index:50;
+  background:color-mix(in srgb,var(--paper) 88%,transparent);
+  backdrop-filter:blur(12px);border-bottom:1px solid var(--rule);
+}
+.top .wrap{display:flex;align-items:center;gap:16px;padding-top:13px;padding-bottom:13px;}
+.mark{font-family:var(--f-display);font-weight:500;letter-spacing:.24em;text-transform:uppercase;font-size:1.05rem;white-space:nowrap;}
+.mark i{font-style:normal;color:var(--gold);padding:0 .12em;}
+.top nav{display:flex;gap:20px;font-size:.78rem;letter-spacing:.08em;color:var(--ink-soft);margin-left:auto;}
+.top nav a{text-decoration:none;padding-bottom:2px;border-bottom:1px solid transparent;}
+.top nav a:hover{color:var(--ink);border-bottom-color:var(--gold);}
+@media(max-width:760px){.top nav{display:none;}}
+.themebtn{
+  margin-left:auto;appearance:none;cursor:pointer;background:none;
+  border:1px solid var(--rule);border-radius:999px;
+  width:34px;height:34px;color:var(--ink-soft);font-size:.82rem;line-height:1;
+  display:grid;place-items:center;transition:border-color .2s ease,color .2s ease;
+}
+@media(min-width:761px){.themebtn{margin-left:20px;}}
+.themebtn:hover{border-color:var(--gold);color:var(--gold);}
+
+.dots{position:fixed;right:22px;top:50%;transform:translateY(-50%);z-index:45;display:none;flex-direction:column;gap:13px;}
+@media(min-width:1180px){.dots{display:flex;}}
+.dots a{
+  width:8px;height:8px;border-radius:50%;background:var(--rule);
+  position:relative;transition:background .25s ease,transform .25s ease;
+}
+.dots a:hover,.dots a.on{background:var(--gold);transform:scale(1.35);}
+.dots a span{
+  position:absolute;right:18px;top:50%;transform:translateY(-50%);
+  font-family:var(--f-mono);font-size:.64rem;letter-spacing:.1em;color:var(--ink-faint);
+  white-space:nowrap;opacity:0;pointer-events:none;transition:opacity .2s ease;
+}
+.dots a:hover span{opacity:1;}
+
+/* ══════════ type ══════════ */
+.eyebrow{
+  font-family:var(--f-mono);font-size:.68rem;letter-spacing:.2em;text-transform:uppercase;
+  color:var(--gold);display:flex;align-items:center;gap:10px;margin:0 0 18px;
+}
+.eyebrow::after{content:"";flex:1;height:1px;background:var(--rule);}
+h1{font-family:var(--f-serif);font-weight:700;font-size:clamp(1.85rem,5.2vw,3rem);line-height:1.38;letter-spacing:-.01em;margin:0 0 22px;}
+h2{font-family:var(--f-serif);font-weight:700;font-size:clamp(1.35rem,3.4vw,1.9rem);line-height:1.5;margin:0 0 16px;}
+h3{font-family:var(--f-sans);font-weight:500;font-size:.95rem;letter-spacing:.04em;margin:0 0 8px;color:var(--gold);}
+p{margin:0 0 18px;}
+.lead{font-size:clamp(1rem,2.4vw,1.1rem);color:var(--ink-soft);max-width:46ch;}
+section{padding:clamp(56px,9vw,104px) 0;border-top:1px solid var(--rule);}
+section:first-of-type{border-top:none;}
+
+/* ══════════ hero ══════════ */
+.hero{padding-top:clamp(40px,6vw,72px);}
+.hero-grid{display:grid;grid-template-columns:1fr;gap:clamp(36px,6vw,56px);align-items:start;}
+@media(min-width:920px){.hero-grid{grid-template-columns:1.05fr .95fr;}}
+.hero h1 em{font-style:normal;box-shadow:inset 0 -.42em 0 var(--gold-soft);}
+.hero-note{font-family:var(--f-mono);font-size:.7rem;color:var(--ink-faint);letter-spacing:.05em;line-height:1.8;}
+
+.stats{display:grid;grid-template-columns:repeat(2,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:9px;overflow:hidden;margin:30px 0 26px;}
+@media(min-width:560px){.stats{grid-template-columns:repeat(4,1fr);}}
+.stats div{background:var(--paper);padding:15px 14px;}
+.stats b{display:block;font-family:var(--f-display);font-size:1.85rem;line-height:1;color:var(--gold);font-weight:600;}
+.stats span{display:block;font-size:.68rem;color:var(--ink-faint);font-family:var(--f-mono);letter-spacing:.06em;margin-top:7px;line-height:1.5;}
+
+/* ══════════ phone / chat ══════════ */
+.demo{display:flex;flex-direction:column;gap:15px;}
+.demo-tag{
+  display:inline-flex;align-items:center;gap:8px;align-self:flex-start;
+  font-family:var(--f-mono);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;
+  color:var(--gold);border:1px solid var(--gold-soft);border-radius:999px;padding:5px 12px;
+}
+.dot-live{width:6px;height:6px;border-radius:50%;background:var(--gold);animation:pulse 2.4s ease-in-out infinite;}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.25;}}
+
+.phone{background:var(--chat-bg);border-radius:20px;padding:12px 12px 14px;box-shadow:var(--shadow);max-width:380px;width:100%;}
+.phone-bar{display:flex;align-items:center;gap:8px;color:#fff;font-size:.78rem;font-weight:500;padding:2px 4px 12px;opacity:.95;}
+.phone-bar .back{opacity:.8;font-size:.9rem;}
+.chat{display:flex;flex-direction:column;gap:10px;min-height:330px;}
+.sys{align-self:center;background:rgba(0,0,0,.24);color:#fff;font-size:.68rem;padding:3px 12px;border-radius:999px;}
+.msg{display:flex;gap:8px;align-items:flex-end;max-width:88%;}
+.msg .who{width:28px;height:28px;border-radius:50%;flex:0 0 28px;background:#fff;color:#6B655C;font-size:.6rem;display:grid;place-items:center;font-weight:500;}
+.bubble{background:#fff;border-radius:4px 14px 14px 14px;padding:9px 12px;font-size:.82rem;line-height:1.6;color:#1C1A17;}
+.msg.me{align-self:flex-end;flex-direction:row-reverse;}
+.msg.me .bubble{background:#B7E36B;border-radius:14px 4px 14px 14px;}
+
+.flexcard{background:#fff;border-radius:12px;overflow:hidden;width:100%;max-width:268px;box-shadow:0 2px 6px rgba(0,0,0,.15);}
+.fc-head{background:#1C1A17;color:#fff;padding:9px 13px;font-size:.68rem;letter-spacing:.12em;font-family:var(--f-mono);display:flex;justify-content:space-between;}
+.fc-body{padding:12px 13px 4px;}
+.fc-row{display:flex;gap:10px;font-size:.76rem;margin-bottom:7px;line-height:1.5;}
+.fc-row dt{color:#9C958A;flex:0 0 46px;margin:0;}
+.fc-row dd{margin:0;color:#1C1A17;}
+.fc-status{margin:6px 0 12px;font-size:.72rem;font-weight:500;padding:5px 10px;border-radius:6px;background:#EFE9DD;color:#6B655C;display:flex;align-items:center;gap:7px;}
+.fc-status .pip{width:7px;height:7px;border-radius:50%;background:#9C958A;}
+.fc-status.taken{background:#E7F6EC;color:#137A3E;} .fc-status.taken .pip{background:var(--line-green);}
+.fc-status.done{background:#F2EDE1;color:#A8823C;} .fc-status.done .pip{background:#A8823C;}
+.fc-foot{border-top:1px solid #EEE;padding:9px 13px 12px;}
+.fc-btn{width:100%;border:0;border-radius:8px;padding:10px;cursor:pointer;background:var(--line-green);color:#fff;font-family:var(--f-sans);font-size:.82rem;font-weight:500;letter-spacing:.05em;transition:filter .16s ease,transform .16s ease;}
+.fc-btn:hover{filter:brightness(1.06);} .fc-btn:active{transform:scale(.985);}
+.fc-btn[data-mode="reset"]{background:#EFE9DD;color:#6B655C;}
+.photos{display:flex;gap:5px;margin-top:8px;}
+.photos span{flex:1;height:34px;border-radius:5px;background:#EFE9DD;display:grid;place-items:center;font-size:.6rem;color:#9C958A;font-family:var(--f-mono);}
+
+.console{background:var(--card);border:1px solid var(--rule);border-radius:10px;overflow:hidden;max-width:380px;width:100%;}
+.console-head{padding:10px 14px;border-bottom:1px solid var(--rule);font-family:var(--f-mono);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);display:flex;justify-content:space-between;}
+table{width:100%;border-collapse:collapse;font-size:.72rem;}
+thead th{text-align:left;padding:8px 10px;font-weight:400;color:var(--ink-faint);font-family:var(--f-mono);font-size:.62rem;letter-spacing:.08em;border-bottom:1px solid var(--rule);}
+tbody td{padding:9px 10px;border-bottom:1px solid var(--paper-deep);color:var(--ink-soft);}
+tbody tr:last-child td{border-bottom:none;}
+tbody td:first-child{font-family:var(--f-mono);color:var(--ink);}
+.empty td{color:var(--ink-faint);text-align:center;padding:26px 10px;font-size:.72rem;}
+.pill{display:inline-block;padding:2px 8px;border-radius:999px;font-size:.64rem;}
+.pill.wip{background:#E7F6EC;color:#137A3E;} .pill.fin{background:var(--paper-deep);color:var(--gold);}
+
+/* ══════════ flow stepper ══════════ */
+.flowbar{position:relative;margin:36px 0 0;overflow-x:auto;-webkit-overflow-scrolling:touch;padding-bottom:4px;}
+.flowbar ol{display:flex;list-style:none;margin:0;padding:0;min-width:660px;}
+.flowbar li{flex:1;position:relative;}
+.flowbar li::before{content:"";position:absolute;top:17px;left:0;right:0;height:1px;background:var(--rule);}
+.flowbar li:first-child::before{left:50%;} .flowbar li:last-child::before{right:50%;}
+.step{
+  position:relative;width:100%;appearance:none;background:none;border:0;cursor:pointer;
+  display:flex;flex-direction:column;align-items:center;gap:9px;padding:8px 4px 0;
+  font-family:var(--f-sans);color:var(--ink-faint);transition:color .2s ease;
+}
+.step i{
+  width:20px;height:20px;border-radius:50%;background:var(--paper);border:1px solid var(--rule);
+  display:grid;place-items:center;font-style:normal;font-family:var(--f-mono);font-size:.6rem;
+  color:var(--ink-faint);transition:all .25s ease;
+}
+.step b{font-weight:400;font-size:.82rem;letter-spacing:.03em;}
+.step:hover{color:var(--ink-soft);} .step:hover i{border-color:var(--gold-soft);}
+.step[aria-selected="true"]{color:var(--ink);}
+.step[aria-selected="true"] b{font-weight:500;}
+.step[aria-selected="true"] i{background:var(--gold);border-color:var(--gold);color:#fff;transform:scale(1.15);}
+
+.panel{padding-top:30px;} .panel[hidden]{display:none;}
+.panel-note{font-family:var(--f-mono);font-size:.7rem;color:var(--ink-faint);letter-spacing:.05em;line-height:1.8;margin:18px 0 0;}
+.two{display:grid;grid-template-columns:1fr;gap:22px;align-items:start;}
+@media(min-width:840px){.two{grid-template-columns:1fr 1fr;gap:32px;}}
+.panelcard{background:var(--card);border:1px solid var(--rule);border-radius:10px;overflow:hidden;}
+.panelcard > header{padding:11px 16px;border-bottom:1px solid var(--rule);font-family:var(--f-mono);font-size:.66rem;letter-spacing:.14em;text-transform:uppercase;color:var(--ink-faint);display:flex;justify-content:space-between;gap:10px;}
+.panelbody{padding:18px 16px;}
+
+/* ══════════ rich menu ══════════ */
+.rich{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--rule);border:1px solid var(--rule);border-radius:9px;overflow:hidden;}
+.rich button{
+  appearance:none;cursor:pointer;background:var(--paper);border:0;padding:18px 8px;
+  font-family:var(--f-sans);font-size:.78rem;color:var(--ink-soft);
+  display:flex;flex-direction:column;align-items:center;gap:7px;transition:background .18s ease,color .18s ease;
+}
+.rich button:hover{background:var(--paper-deep);color:var(--ink);}
+.rich button[aria-pressed="true"]{background:var(--ink);color:var(--paper);}
+.rich s{font-style:normal;text-decoration:none;font-size:1.05rem;line-height:1;}
+.route{margin-top:16px;font-size:.8rem;line-height:1.8;color:var(--ink-soft);padding-left:14px;border-left:2px solid var(--gold);min-height:3.4em;}
+.route b{color:var(--ink);font-weight:500;}
+.route .flag{font-family:var(--f-mono);font-size:.66rem;letter-spacing:.1em;padding:1px 8px;border-radius:999px;background:var(--paper-deep);color:var(--gold);margin-left:6px;}
+
+/* ══════════ assign demo ══════════ */
+.cand{display:flex;flex-direction:column;gap:9px;}
+.who-row{
+  display:grid;grid-template-columns:1fr auto;gap:6px 12px;align-items:center;
+  border:1px solid var(--rule);border-radius:9px;padding:12px 14px;
+  cursor:pointer;background:var(--paper);transition:border-color .18s ease,transform .18s ease;
+}
+.who-row:hover{border-color:var(--gold-soft);transform:translateX(2px);}
+.who-row[data-block="1"]{opacity:.5;cursor:not-allowed;}
+.who-row[data-block="1"]:hover{transform:none;border-color:var(--rule);}
+.who-row.pick{border-color:var(--gold);background:var(--paper-deep);}
+.who-row h4{margin:0;font-size:.92rem;font-weight:500;}
+.who-row .score{font-family:var(--f-mono);font-size:1.15rem;color:var(--gold);line-height:1;}
+.who-row .score s{display:block;font-size:.58rem;color:var(--ink-faint);text-decoration:none;letter-spacing:.1em;margin-top:3px;}
+.who-row .meta{grid-column:1/-1;font-family:var(--f-mono);font-size:.66rem;color:var(--ink-faint);letter-spacing:.04em;}
+.load{grid-column:1/-1;height:4px;border-radius:2px;background:var(--paper-deep);overflow:hidden;}
+.load i{display:block;height:100%;background:var(--gold-soft);transition:width .5s ease;}
+.load i.full{background:var(--alert);}
+.formula{font-family:var(--f-mono);font-size:.66rem;color:var(--ink-faint);letter-spacing:.04em;line-height:1.8;margin-top:14px;padding-top:12px;border-top:1px solid var(--rule);}
+
+/* ══════════ form ══════════ */
+.field{margin-bottom:17px;}
+.field > label{display:block;font-size:.72rem;letter-spacing:.06em;color:var(--ink-faint);margin-bottom:7px;font-family:var(--f-mono);text-transform:uppercase;}
+.field select,.field input[type="text"],.field input[type="date"]{
+  width:100%;font-family:var(--f-sans);font-size:.88rem;font-weight:300;color:var(--ink);
+  background:var(--paper);border:1px solid var(--rule);border-radius:7px;padding:9px 11px;appearance:none;
+}
+.field select:focus,.field input:focus{border-color:var(--gold-soft);}
+.chips{display:flex;flex-wrap:wrap;gap:7px;}
+.chip{appearance:none;cursor:pointer;font-family:var(--f-sans);font-size:.8rem;font-weight:300;background:var(--paper);border:1px solid var(--rule);color:var(--ink-soft);border-radius:999px;padding:6px 14px;transition:all .16s ease;}
+.chip:hover{border-color:var(--gold-soft);}
+.chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper);}
+.stepper{display:flex;align-items:center;gap:14px;}
+.stepper button{width:32px;height:32px;border-radius:50%;cursor:pointer;border:1px solid var(--rule);background:var(--paper);color:var(--ink);font-size:1rem;line-height:1;}
+.stepper button:hover{border-color:var(--gold-soft);}
+.stepper output{font-family:var(--f-mono);font-size:1rem;min-width:52px;text-align:center;}
+.shots{display:flex;gap:6px;flex-wrap:wrap;margin-top:9px;}
+.shots span{width:52px;height:52px;border-radius:6px;background:var(--paper-deep);display:grid;place-items:center;font-size:.58rem;color:var(--ink-faint);font-family:var(--f-mono);}
+.btn-ghost{appearance:none;cursor:pointer;background:none;border:1px dashed var(--rule);border-radius:7px;padding:9px 14px;font-family:var(--f-sans);font-size:.8rem;color:var(--ink-soft);width:100%;}
+.btn-ghost:hover{border-color:var(--gold-soft);color:var(--ink);}
+.btn-gold{appearance:none;cursor:pointer;width:100%;border:0;border-radius:8px;background:var(--ink);color:var(--paper);padding:12px;font-family:var(--f-sans);font-size:.88rem;letter-spacing:.08em;transition:background .18s ease;}
+.btn-gold:hover{background:var(--gold);color:#fff;}
+.err{color:var(--alert);font-size:.76rem;margin-top:9px;min-height:1.2em;}
+.receipt{display:flex;flex-direction:column;gap:12px;}
+.receipt .msg{max-width:100%;}
+.receipt .who{background:var(--paper-deep);color:var(--ink-soft);}
+.receipt .bubble{background:var(--paper);border:1px solid var(--rule);color:var(--ink);}
+.receipt .bubble b{color:var(--gold);font-weight:500;}
+.blank{color:var(--ink-faint);font-size:.8rem;text-align:center;padding:38px 14px;line-height:1.9;}
+
+/* ══════════ charts ══════════ */
+.seg{display:flex;border:1px solid var(--rule);border-radius:7px;overflow:hidden;flex-wrap:wrap;width:fit-content;max-width:100%;}
+.seg button{appearance:none;cursor:pointer;background:var(--paper);border:0;border-right:1px solid var(--rule);font-family:var(--f-sans);font-size:.76rem;color:var(--ink-soft);padding:7px 14px;transition:background .16s ease,color .16s ease;}
+.seg button:last-child{border-right:0;}
+.seg button:hover{color:var(--ink);}
+.seg button[aria-pressed="true"]{background:var(--ink);color:var(--paper);}
+.qline{font-size:.84rem;color:var(--ink-soft);line-height:1.7;margin:18px 0 20px;padding:2px 0 2px 14px;border-left:2px solid var(--gold);}
+.qline b{color:var(--ink);font-weight:500;}
+.chart{width:100%;height:auto;display:block;overflow:visible;}
+.chart text{font-family:ui-monospace,monospace;font-size:8px;fill:var(--ink-faint);}
+.cell{cursor:pointer;transition:opacity .15s ease;} .cell:hover{opacity:.68;}
+.pt{cursor:pointer;transition:r .15s ease;} .pt:hover{r:7;}
+.tip{font-family:var(--f-mono);font-size:.72rem;color:var(--ink-soft);min-height:2.6em;line-height:1.7;margin:12px 0 0;padding-top:11px;border-top:1px solid var(--paper-deep);}
+.tip b{color:var(--ink);font-weight:500;}
+.legend{display:flex;flex-wrap:wrap;gap:12px;margin-top:13px;font-family:var(--f-mono);font-size:.66rem;color:var(--ink-faint);}
+.legend i{width:9px;height:9px;border-radius:2px;display:inline-block;margin-right:5px;vertical-align:-1px;}
+
+/* ══════════ timeline ══════════ */
+.track{position:relative;height:64px;margin:26px 0 6px;}
+.track .rail{position:absolute;left:0;right:0;top:26px;height:2px;background:var(--paper-deep);}
+.track .fill{position:absolute;left:6%;top:26px;height:2px;background:var(--gold-soft);transition:width .4s ease;}
+.node{position:absolute;top:20px;transform:translateX(-50%);text-align:center;transition:left .4s ease;}
+.node i{display:block;width:13px;height:13px;border-radius:50%;margin:0 auto 8px;background:var(--paper);border:2px solid var(--gold);}
+.node.solid i{background:var(--gold);} .node.ink i{border-color:var(--ink);background:var(--ink);}
+.node b{display:block;font-family:var(--f-mono);font-size:.62rem;color:var(--ink);font-weight:500;white-space:nowrap;}
+.node span{display:block;font-size:.6rem;color:var(--ink-faint);white-space:nowrap;font-family:var(--f-mono);}
+
+/* ══════════ architecture ══════════ */
+.arch{background:var(--paper-deep);}
+.archbox{background:var(--card);border:1px solid var(--rule);border-radius:12px;padding:clamp(16px,3vw,26px);margin-top:30px;}
+.archsvg{width:100%;height:auto;display:block;}
+.archsvg .box{fill:var(--paper);stroke:var(--rule);stroke-width:1;cursor:pointer;transition:stroke .2s ease;}
+.archsvg .box:hover{stroke:var(--gold);}
+.archsvg .box.hot{fill:var(--paper-deep);}
+.archsvg .lbl{font-family:var(--f-sans);font-size:9px;fill:var(--ink);font-weight:400;pointer-events:none;}
+.archsvg .sub{font-family:ui-monospace,monospace;font-size:6.5px;fill:var(--ink-faint);pointer-events:none;}
+.archsvg .wire{stroke:var(--rule);stroke-width:1.2;fill:none;}
+.archsvg .flow{stroke:var(--gold);stroke-width:1.4;fill:none;stroke-dasharray:4 10;animation:dash 1.6s linear infinite;opacity:.85;}
+@keyframes dash{to{stroke-dashoffset:-28;}}
+.archsvg .st{fill:var(--paper);stroke:var(--ink);stroke-width:1.2;cursor:pointer;transition:fill .18s ease;}
+.archsvg .st:hover,.archsvg .st.hot{fill:var(--paper-deep);}
+.archsvg .st.ex{stroke:var(--alert);stroke-dasharray:3 3;}
+.archsvg .arw{stroke:var(--ink-faint);stroke-width:1.1;fill:none;}
+.archsvg .arw.ex{stroke:var(--alert);stroke-dasharray:3 3;}
+.archsvg .tr{font-family:ui-monospace,monospace;font-size:6px;fill:var(--ink-faint);pointer-events:none;}
+.archseg{margin-bottom:20px;}
+.archtip{font-family:var(--f-mono);font-size:.72rem;color:var(--ink-soft);min-height:2.6em;line-height:1.7;margin:16px 0 0;padding-top:12px;border-top:1px solid var(--rule);}
+.archtip b{color:var(--ink);font-weight:500;}
+.why{display:grid;grid-template-columns:1fr;gap:18px;margin-top:32px;}
+@media(min-width:720px){.why{grid-template-columns:repeat(3,1fr);gap:26px;}}
+.why div{border-top:2px solid var(--ink);padding-top:13px;}
+.why p{font-size:.9rem;color:var(--ink-soft);margin:0;}
+
+/* ══════════ lists ══════════ */
+.case-head{display:flex;flex-wrap:wrap;align-items:baseline;gap:12px;margin-bottom:8px;}
+.badge{font-family:var(--f-mono);font-size:.64rem;letter-spacing:.12em;text-transform:uppercase;color:var(--gold);border:1px solid var(--gold-soft);border-radius:999px;padding:3px 10px;}
+.case-grid{display:grid;grid-template-columns:1fr;gap:26px;margin-top:34px;}
+@media(min-width:760px){.case-grid{grid-template-columns:repeat(3,1fr);gap:32px;}}
+.case-grid > div{border-top:2px solid var(--ink);padding-top:14px;}
+.case-grid p{font-size:.92rem;margin:0;color:var(--ink-soft);}
+.stack{margin-top:34px;padding-top:18px;border-top:1px solid var(--rule);font-family:var(--f-mono);font-size:.7rem;letter-spacing:.05em;color:var(--ink-faint);line-height:1.9;}
+.works{list-style:none;padding:0;margin:0;}
+.works li{display:grid;grid-template-columns:1fr;gap:2px;padding:20px 0;border-bottom:1px solid var(--rule);}
+@media(min-width:720px){.works li{grid-template-columns:200px 1fr;gap:28px;align-items:baseline;}}
+.works b{font-weight:500;font-size:.88rem;color:var(--ink);}
+.works span{color:var(--ink-soft);font-size:.93rem;}
+.works em{font-style:normal;color:var(--ink-faint);font-size:.8rem;}
+.cols{display:grid;grid-template-columns:1fr;gap:30px;}
+@media(min-width:760px){.cols{grid-template-columns:1fr 1fr;gap:54px;}}
+.kv{list-style:none;padding:0;margin:0;}
+.kv li{padding:11px 0;border-bottom:1px solid var(--rule);font-size:.9rem;color:var(--ink-soft);}
+.kv li b{display:block;font-weight:500;color:var(--ink);font-size:.86rem;margin-bottom:1px;}
+
+.next ol{padding-left:0;list-style:none;counter-reset:n;margin:26px 0 0;max-width:56ch;}
+.next li{counter-increment:n;position:relative;padding:0 0 20px 42px;font-size:.95rem;color:var(--ink-soft);}
+.next li::before{content:counter(n,decimal-leading-zero);position:absolute;left:0;top:1px;font-family:var(--f-mono);font-size:.7rem;color:var(--gold);}
+.ask{margin-top:30px;padding:20px 22px;background:var(--card);border-left:2px solid var(--gold);font-size:.95rem;color:var(--ink);max-width:56ch;}
+.contact-grid{display:flex;flex-wrap:wrap;gap:12px 40px;margin-top:26px;}
+.contact-grid a,.contact-grid span{font-family:var(--f-mono);font-size:.88rem;text-decoration:none;border-bottom:1px solid var(--gold-soft);padding-bottom:2px;}
+.contact-grid a:hover{border-bottom-color:var(--gold);}
+footer{border-top:1px solid var(--rule);padding:34px 0 46px;}
+footer .wrap{display:flex;flex-wrap:wrap;justify-content:space-between;gap:14px;align-items:center;}
+footer small{color:var(--ink-faint);font-size:.7rem;font-family:var(--f-mono);letter-spacing:.06em;}
+
+/* ══════════ motion ══════════ */
+.reveal{opacity:0;transform:translateY(14px);transition:opacity .7s ease,transform .7s ease;}
+.reveal.in{opacity:1;transform:none;}
+.pop{animation:pop .34s ease both;}
+@keyframes pop{from{opacity:0;transform:translateY(8px);}to{opacity:1;transform:none;}}
+.flash{animation:flash 1.1s ease;}
+@keyframes flash{0%{background:var(--paper-deep);}100%{background:transparent;}}
+@media(prefers-reduced-motion:reduce){
+  *{animation:none!important;transition:none!important;}
+  .reveal{opacity:1;transform:none;} html{scroll-behavior:auto;}
+}
+</style>
+</head>
+<body>
+
+<div class="progress" id="prog"></div>
+
+<nav class="dots" id="dots" aria-label="章節導覽">
+  <a href="#top" data-t="開頭"><span>開頭</span></a>
+  <a href="#flow" data-t="流程"><span>流程</span></a>
+  <a href="#case" data-t="案例"><span>案例</span></a>
+  <a href="#works" data-t="其他"><span>其他</span></a>
+  <a href="#arch" data-t="架構"><span>架構</span></a>
+  <a href="#skills" data-t="技術"><span>技術</span></a>
+  <a href="#next" data-t="下一步"><span>下一步</span></a>
+  <a href="#contact" data-t="聯絡"><span>聯絡</span></a>
+</nav>
+
+<header class="top">
+  <div class="wrap">
+    <span class="mark">J<i>·</i>KEY</span>
+    <nav>
+      <a href="#flow">流程</a><a href="#case">案例</a><a href="#works">其他交付</a>
+      <a href="#arch">架構</a><a href="#skills">技術</a><a href="#next">下一步</a><a href="#contact">聯絡</a>
+    </nav>
+    <button class="themebtn" id="theme" aria-label="切換深淺色">◑</button>
+  </div>
+</header>
+
+<main id="top">
+
+<!-- ══ HERO ══ -->
+<section class="hero">
+  <div class="wrap hero-grid">
+    <div>
+      <p class="eyebrow">系統整合 · 台中</p>
+      <h1>讓老闆知道現在<em>誰在做什麼、做到哪、有沒有漏掉</em>。</h1>
+      <p class="lead">
+        很多中小企業的流程其實跑在 LINE 群組裡：口頭喊一聲、有人回一句「我去」，
+        然後就沒有然後了。漏單靠記憶防守，進度靠一個一個問。
+      </p>
+      <p class="lead">
+        J·KEY 把這件事變成有紀錄的系統。現場的人繼續用 LINE，不學新軟體、不換工具，
+        資料自己落進後台——你隨時查得到，而且查得回去。
+      </p>
+
+      <div class="stats" id="stats">
+        <div><b data-n="1">0</b><span>套系統<br>在客戶那跑</span></div>
+        <div><b data-n="2">0</b><span>套<br>進行中</span></div>
+        <div><b data-n="3">0</b><span>個<br>不同行業</span></div>
+        <div><b data-n="0">0</b><span>台伺服器<br>需要維護</span></div>
+      </div>
+
+      <p class="hero-note">
+        右邊是簡化過的互動示範。<br>
+        流程與畫面比照實際運作的系統，資料為虛擬。
+      </p>
+    </div>
+
+    <div class="demo">
+      <span class="demo-tag"><span class="dot-live"></span>互動示範 · 可直接點</span>
+      <div class="phone">
+        <div class="phone-bar"><span class="back">‹</span> 安裝工班群組 <span style="opacity:.6;font-weight:300">(6)</span></div>
+        <div class="chat" id="chat">
+          <div class="sys">今天</div>
+          <div class="msg"><span class="who">陳</span><div class="bubble">明天烏日那間的廚具到了，誰有空？</div></div>
+          <div class="msg">
+            <span class="who">系統</span>
+            <div class="flexcard">
+              <div class="fc-head"><span id="fcNo">#A-2418</span><span>派工單</span></div>
+              <div class="fc-body">
+                <dl style="margin:0">
+                  <div class="fc-row"><dt>客戶</dt><dd>王小姐</dd></div>
+                  <div class="fc-row"><dt>地點</dt><dd>台中烏日 · 中山路</dd></div>
+                  <div class="fc-row"><dt>品項</dt><dd>三機安裝 + 水槽</dd></div>
+                  <div class="fc-row"><dt>時間</dt><dd>明天 09:00</dd></div>
+                </dl>
+                <div class="fc-status" id="fcStatus"><span class="pip"></span>等待接單</div>
+                <div id="fcPhotos"></div>
+              </div>
+              <div class="fc-foot"><button class="fc-btn" id="fcBtn" data-mode="take">我接這單</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="console">
+        <div class="console-head"><span>後台 · 今日派工</span><span id="cnt">0 筆</span></div>
+        <table>
+          <thead><tr><th>單號</th><th>師傅</th><th>狀態</th><th>時間</th></tr></thead>
+          <tbody id="tbody"><tr class="empty"><td colspan="4">還沒有人接單。點上面那張卡片試試。</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ FLOW ══ -->
+<section id="flow">
+  <div class="wrap reveal">
+    <p class="eyebrow">一張單子的一生</p>
+    <h2>從客戶問第一句，到半年後主動找回他</h2>
+    <p class="lead" style="max-width:52ch">
+      這五段是同一條線，不是五個功能。每一段的資料都留給下一段用——
+      這也是為什麼分開買五套工具通常接不起來。點編號可以逐段看。
+    </p>
+
+    <div class="flowbar">
+      <ol role="tablist" aria-label="流程階段">
+        <li><button class="step" role="tab" id="s1" aria-controls="p1" aria-selected="true"><i>01</i><b>接單分流</b></button></li>
+        <li><button class="step" role="tab" id="s2" aria-controls="p2" aria-selected="false"><i>02</i><b>派工指派</b></button></li>
+        <li><button class="step" role="tab" id="s3" aria-controls="p3" aria-selected="false"><i>03</i><b>現場回報</b></button></li>
+        <li><button class="step" role="tab" id="s4" aria-controls="p4" aria-selected="false"><i>04</i><b>分析</b></button></li>
+        <li><button class="step" role="tab" id="s5" aria-controls="p5" aria-selected="false"><i>05</i><b>自動回訪</b></button></li>
+      </ol>
+    </div>
+
+    <!-- 01 接單分流 -->
+    <div class="panel" id="p1" role="tabpanel" aria-labelledby="s1">
+      <div class="two">
+        <div class="panelcard">
+          <header><span>客戶端 · 官方帳號選單</span><span>Rich Menu</span></header>
+          <div class="panelbody">
+            <div class="rich" id="rich">
+              <button type="button" aria-pressed="false" data-k="progress"><s>◷</s>查詢進度</button>
+              <button type="button" aria-pressed="false" data-k="book"><s>▤</s>預約安裝</button>
+              <button type="button" aria-pressed="false" data-k="fix"><s>▲</s>報修</button>
+              <button type="button" aria-pressed="false" data-k="cat"><s>▣</s>產品型錄</button>
+              <button type="button" aria-pressed="false" data-k="filter"><s>◇</s>濾心提醒</button>
+              <button type="button" aria-pressed="false" data-k="human"><s>☏</s>聯絡專人</button>
+            </div>
+            <p class="route" id="route">點一個看看客戶會收到什麼，以及系統怎麼決定要不要找真人。</p>
+          </div>
+        </div>
+        <div class="panelcard">
+          <header><span>客戶那頭</span><span id="rState">待選擇</span></header>
+          <div class="panelbody">
+            <div class="phone" style="max-width:100%;box-shadow:none">
+              <div class="phone-bar"><span class="back">‹</span> 全家福廚具</div>
+              <div class="chat" id="rChat" style="min-height:230px">
+                <div class="sys">官方帳號</div>
+                <div class="msg"><span class="who">店</span><div class="bubble">您好，下面選單有六個常用功能，也可以直接打字問我。</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="panel-note">
+        六件事裡有四件系統自己就能回答。老闆的手機只有在真的需要人的時候才會響——這是省時間的關鍵，不是回覆得快。
+      </p>
+    </div>
+
+    <!-- 02 派工指派 -->
+    <div class="panel" id="p2" role="tabpanel" aria-labelledby="s2" hidden>
+      <div class="two">
+        <div class="panelcard">
+          <header><span>新案件 #A-2431</span><span>待指派</span></header>
+          <div class="panelbody">
+            <dl style="margin:0 0 18px">
+              <div class="fc-row" style="color:var(--ink)"><dt style="color:var(--ink-faint)">地點</dt><dd style="color:var(--ink)">台中大雅 · 學府路</dd></div>
+              <div class="fc-row"><dt style="color:var(--ink-faint)">品項</dt><dd style="color:var(--ink)">三機安裝</dd></div>
+              <div class="fc-row"><dt style="color:var(--ink-faint)">預估</dt><dd style="color:var(--ink)">2.5 小時</dd></div>
+              <div class="fc-row"><dt style="color:var(--ink-faint)">時段</dt><dd style="color:var(--ink)">明天 13:00</dd></div>
+            </dl>
+            <div class="cand" id="cand"></div>
+            <p class="formula">
+              建議度 ＝ 當日剩餘工時 40％ ＋ 路線距離 35％ ＋ 技能符合 25％<br>
+              已滿檔或時段重疊者直接排除，不列入選擇。
+            </p>
+          </div>
+        </div>
+        <div class="panelcard">
+          <header><span>指派結果</span><span id="aState">未指派</span></header>
+          <div class="panelbody" id="aOut">
+            <p class="blank">左邊挑一位師傅。<br>系統已經先算過負載、距離、技能，<br>但最後拍板的還是人。</p>
+          </div>
+        </div>
+      </div>
+      <p class="panel-note">
+        重點不是自動派工，是<b>把明顯不該派的選項先拿掉</b>。老闆一天要做幾十個這種判斷，系統負責讓他每次只需要在兩三個合理選項裡挑。
+      </p>
+    </div>
+
+    <!-- 03 現場回報 -->
+    <div class="panel" id="p3" role="tabpanel" aria-labelledby="s3" hidden>
+      <div class="two">
+        <div class="panelcard">
+          <header><span>師傅端 · 完工回報</span><span>LIFF 表單</span></header>
+          <div class="panelbody">
+            <div class="field">
+              <label for="fOrder">派工單</label>
+              <select id="fOrder">
+                <option value="A-2418">#A-2418 · 王小姐 · 烏日</option>
+                <option value="A-2419">#A-2419 · 林先生 · 南屯</option>
+                <option value="A-2421">#A-2421 · 張太太 · 大里</option>
+              </select>
+            </div>
+            <div class="field">
+              <label>完成品項（可複選）</label>
+              <div class="chips" id="fItems">
+                <button type="button" class="chip" aria-pressed="false">抽油煙機</button>
+                <button type="button" class="chip" aria-pressed="false">瓦斯爐</button>
+                <button type="button" class="chip" aria-pressed="false">烘碗機</button>
+                <button type="button" class="chip" aria-pressed="false">水槽</button>
+              </div>
+            </div>
+            <div class="field">
+              <label for="fHours">施工時數</label>
+              <div class="stepper">
+                <button type="button" id="fMinus" aria-label="減少">−</button>
+                <output id="fHours">2.0 h</output>
+                <button type="button" id="fPlus" aria-label="增加">＋</button>
+              </div>
+            </div>
+            <div class="field">
+              <label>現場照片</label>
+              <button type="button" class="btn-ghost" id="fShot">＋ 拍照上傳</button>
+              <div class="shots" id="fShots"></div>
+            </div>
+            <div class="field">
+              <label for="fNote">備註</label>
+              <input type="text" id="fNote" placeholder="例：客戶要求下次順便換濾心">
+            </div>
+            <button class="btn-gold" id="fSend">送出回報</button>
+            <p class="err" id="fErr"></p>
+          </div>
+        </div>
+        <div class="panelcard">
+          <header><span>送出之後</span><span id="fState">待送出</span></header>
+          <div class="panelbody receipt" id="fOut">
+            <p class="blank">左邊填完按送出。<br>照片、時數、備註會同時進到後台，<br>老闆的 LINE 也會收到通知。</p>
+          </div>
+        </div>
+      </div>
+      <p class="panel-note">
+        表單開在 LINE 內建瀏覽器，師傅不用裝 App、不用登入。沒選品項或沒拍照會被擋下來——現場最常漏的就是這兩樣。
+      </p>
+    </div>
+
+    <!-- 04 分析 -->
+    <div class="panel" id="p4" role="tabpanel" aria-labelledby="s4" hidden>
+      <div class="panelcard">
+        <header><span>後台 · 分析儀表板</span><span>虛擬資料</span></header>
+        <div class="panelbody">
+          <div class="seg" id="seg" role="group" aria-label="切換圖表">
+            <button type="button" data-v="G" aria-pressed="true">工班排程</button>
+            <button type="button" data-v="H" aria-pressed="false">接案熱區</button>
+            <button type="button" data-v="T" aria-pressed="false">工時趨勢</button>
+            <button type="button" data-v="A" aria-pressed="false">出勤矩陣</button>
+            <button type="button" data-v="B" aria-pressed="false">互惠關係</button>
+          </div>
+          <p class="qline" id="qline"></p>
+
+          <div class="view" id="vG">
+            <svg class="chart" viewBox="0 0 360 190" role="img" aria-label="工班當日排程甘特圖"></svg>
+            <div class="legend">
+              <span><i style="background:var(--ink)"></i>已排定</span>
+              <span><i style="background:var(--alert)"></i>時段重疊</span>
+              <span>橫軸 08:00 – 18:00</span>
+            </div>
+          </div>
+          <div class="view" id="vH" hidden>
+            <svg class="chart" viewBox="0 0 340 160" role="img" aria-label="一週各時段接案量熱力圖"></svg>
+            <div class="legend" id="hLegend"><span>件數：少</span></div>
+          </div>
+          <div class="view" id="vT" hidden>
+            <svg class="chart" viewBox="0 0 360 180" role="img" aria-label="每月件數與平均工時趨勢"></svg>
+            <div class="legend">
+              <span><i style="background:var(--gold-soft)"></i>當月件數</span>
+              <span><i style="background:var(--ink)"></i>平均工時（小時／件）</span>
+            </div>
+          </div>
+          <div class="view" id="vA" hidden>
+            <svg class="chart" viewBox="0 0 340 150" role="img" aria-label="成員近八週出勤矩陣"></svg>
+            <div class="legend">
+              <span><i style="background:var(--ink)"></i>出席</span>
+              <span><i style="background:var(--gold-soft)"></i>請假（有代理）</span>
+              <span><i style="background:var(--paper-deep)"></i>缺席</span>
+            </div>
+          </div>
+          <div class="view" id="vB" hidden>
+            <svg class="chart" viewBox="0 0 340 200" role="img" aria-label="成員引薦互惠散點圖"></svg>
+            <div class="legend">
+              <span><i style="background:var(--gold)"></i>給出多於收到</span>
+              <span><i style="background:var(--chat-bg)"></i>收到多於給出</span>
+              <span>虛線為平衡線</span>
+            </div>
+          </div>
+          <p class="tip" id="chartTip"></p>
+        </div>
+      </div>
+      <p class="panel-note">
+        圖直接由前面三段留下來的資料算出來，不用手動整理。做圖表不難，難的是決定要畫哪一張——每一張都對著一個當下要做的決定。
+      </p>
+    </div>
+
+    <!-- 05 自動回訪 -->
+    <div class="panel" id="p5" role="tabpanel" aria-labelledby="s5" hidden>
+      <div class="two">
+        <div class="panelcard">
+          <header><span>設定一次，之後自己跑</span><span>排程</span></header>
+          <div class="panelbody">
+            <div class="field"><label for="rDate">安裝／上次更換日</label><input type="date" id="rDate"></div>
+            <div class="field">
+              <label>更換週期</label>
+              <div class="chips" id="rCycle">
+                <button type="button" class="chip" aria-pressed="false" data-m="3">3 個月</button>
+                <button type="button" class="chip" aria-pressed="true" data-m="6">6 個月</button>
+                <button type="button" class="chip" aria-pressed="false" data-m="12">12 個月</button>
+              </div>
+            </div>
+            <div class="field">
+              <label>提前幾天通知</label>
+              <div class="chips" id="rLead">
+                <button type="button" class="chip" aria-pressed="false" data-d="3">3 天</button>
+                <button type="button" class="chip" aria-pressed="true" data-d="7">7 天</button>
+                <button type="button" class="chip" aria-pressed="false" data-d="14">14 天</button>
+              </div>
+            </div>
+            <div class="track" id="rTrack">
+              <div class="rail"></div><div class="fill" id="rFill"></div>
+              <div class="node ink" id="nA" style="left:6%"><i></i><b>安裝</b><span id="dA"></span></div>
+              <div class="node" id="nB" style="left:50%"><i></i><b>提醒</b><span id="dB"></span></div>
+              <div class="node solid" id="nC" style="left:94%"><i></i><b>更換</b><span id="dC"></span></div>
+            </div>
+          </div>
+        </div>
+        <div class="panelcard">
+          <header><span>客戶那天會收到</span><span>LINE 推播</span></header>
+          <div class="panelbody">
+            <div class="phone" style="max-width:100%;box-shadow:none">
+              <div class="phone-bar"><span class="back">‹</span> 全家福廚具</div>
+              <div class="chat" style="min-height:190px">
+                <div class="msg"><span class="who">店</span><div class="bubble" id="rMsg"></div></div>
+                <div class="msg me"><div class="bubble">好，幫我約週六</div></div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+      <p class="panel-note">
+        安裝當下設一次，之後系統自己記得。舊客戶不會因為沒人想起來就流失掉——而這通訊息的成本，是零。
+      </p>
+    </div>
+  </div>
+</section>
+
+<!-- ══ CASE ══ -->
+<section id="case">
+  <div class="wrap reveal">
+    <p class="eyebrow">主要案例</p>
+    <div class="case-head">
+      <h2 style="margin:0">廚具安裝業 · 工班派工與現場回報</h2>
+      <span class="badge">在跑</span>
+    </div>
+    <p class="lead" style="max-width:52ch">一間有自己安裝工班的廚具公司。案子每天在跑，人在外面，老闆在店裡。</p>
+    <div class="case-grid">
+      <div>
+        <h3>原本的問題</h3>
+        <p>派工靠 LINE 群組口頭喊。誰接了、做到哪、完成沒有，老闆得一個一個問。漏單和重複派工全靠記憶防守，出錯就是師傅白跑一趟。</p>
+      </div>
+      <div>
+        <h3>我做的事</h3>
+        <p>把派工變成一張 LINE 卡片。師傅在原本就在用的群組裡接單、現場拍照回報，資料自動落進後台；老闆隨時查得到當日進度與出勤。沒有人需要學新軟體。</p>
+      </div>
+      <div>
+        <h3>結果</h3>
+        <p>進度不用再追問。每一單都有紀錄可回溯，後續排班與工時估算第一次有了依據。系統目前仍在使用。</p>
+      </div>
+    </div>
+    <p class="stack">
+      LINE Messaging API（Flex Message／推播配額控管）　·　Google Apps Script（Web App／排程）　·　Ragic（REST 讀寫／檔案上傳）<br>
+      客戶名稱可當面說明。
+    </p>
+  </div>
+</section>
+
+<!-- ══ WORKS ══ -->
+<section id="works">
+  <div class="wrap reveal">
+    <p class="eyebrow">其他交付</p>
+    <h2>同一套做法，換個行業一樣成立</h2>
+    <ul class="works">
+      <li><b>商會組織</b><span>分會的出勤與活動管理。報名、簽到、缺席補位在 LINE 完成，另外在做一套互惠關係的分析儀表板，讓幹部看得到誰跟誰真的有在合作。 <em>進行中</em></span></li>
+      <li><b>婚禮宴會服務業</b><span>官網重建與線上詢問整合，把詢問單直接接進後台與 LINE 通知。 <em>進行中</em></span></li>
+      <li><b>企業教育訓練</b><span>LINE 功能操作訓練模擬器，讓不熟系統的員工先在模擬環境把流程走過一遍再上線。</span></li>
+    </ul>
+  </div>
+</section>
+
+<!-- ══ ARCH ══ -->
+<section id="arch" class="arch">
+  <div class="wrap reveal">
+    <p class="eyebrow">架構</p>
+    <h2>四個零件，沒有一台伺服器</h2>
+    <p class="lead" style="max-width:52ch">
+      兩個視角：資料怎麼流，以及一張單子會經過哪些狀態。滑過任一個方塊看它負責什麼。
+    </p>
+
+    <div class="archbox">
+      <div class="seg archseg" id="archSeg" role="group" aria-label="切換視角">
+        <button type="button" data-a="flow" aria-pressed="true">資料流（誰跟誰講話）</button>
+        <button type="button" data-a="state" aria-pressed="false">單據狀態（一張單的一生）</button>
+      </div>
+      <svg class="archsvg" viewBox="0 0 700 250" role="img" aria-label="系統架構與資料流示意圖" id="archSvg"></svg>
+      <svg class="archsvg" viewBox="0 0 700 258" role="img" aria-label="派工單狀態機" id="smSvg" hidden></svg>
+      <p class="archtip" id="archTip">把游標移到方塊上。</p>
+    </div>
+
+    <div class="why">
+      <div><h3>客戶不用養機器</h3><p>整條線跑在 LINE、Google 與 Ragic 上，沒有主機要顧、沒有更新要推、沒有半夜掛掉要爬起來。</p></div>
+      <div><h3>月成本接近零</h3><p>多數中小企業的用量都落在免費額度內。系統活得下去，因為它不燒錢。</p></div>
+      <div><h3>我離開他們也接得手</h3><p>資料在客戶自己的 Google 與 Ragic 帳號裡。這件事我一開始就跟客戶講清楚——不綁人，才有人敢用。</p></div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ SKILLS ══ -->
+<section id="skills">
+  <div class="wrap reveal">
+    <p class="eyebrow">怎麼做出來的</p>
+    <div class="cols">
+      <div>
+        <h2>技術範圍</h2>
+        <ul class="kv">
+          <li><b>LINE Messaging API</b>Flex Message、Rich Menu、Webhook、推播配額控管、LIFF 表單</li>
+          <li><b>Google Apps Script</b>Web App 路由、定時排程、權限與憑證管理</li>
+          <li><b>Ragic</b>REST 讀寫、檔案上傳、欄位結構設計</li>
+          <li><b>前端</b>後台介面、資料視覺化圖表、行動裝置優先</li>
+          <li><b>硬體</b>ESP32、NFC 感應標籤——需要實體入口或現場裝置時自己做</li>
+        </ul>
+      </div>
+      <div>
+        <h2>怎麼接案</h2>
+        <ul class="kv">
+          <li><b>一個人跑完整條線</b>需求訪談、報價、建置、上線、後續調整，不轉手、不外包。</li>
+          <li><b>從最小可用的版本開始</b>先讓一個流程真的在跑，再依實際使用長出下一版。不做用不到的功能。</li>
+          <li><b>不叫客戶換工具</b>能長期活下來的系統，是接在他們原本的習慣上，不是要他們改習慣。</li>
+          <li><b>底子</b>電子電機出身，軟體端自學。硬體與軟體之間不用找第二個人溝通。</li>
+        </ul>
+      </div>
+    </div>
+  </div>
+</section>
+
+<!-- ══ NEXT ══ -->
+<section id="next" style="background:var(--paper-deep)">
+  <div class="wrap reveal">
+    <p class="eyebrow">下一步</p>
+    <h2>接下來想把 AI 放進這些流程裡</h2>
+    <p class="lead" style="max-width:52ch">目前在想的方向有三個，都還在成形階段：</p>
+    <ol>
+      <li>現場師傅用講的回報，系統自己整理成結構化紀錄，不用打字。</li>
+      <li>客戶在 LINE 問的問題，先由 AI 分類與初步回答，處理不了才轉真人。</li>
+      <li>散在各個群組裡的訊息自動歸集，變成查得到、問得動的知識庫。</li>
+    </ol>
+    <div class="ask">這幾條哪一條最有機會、哪一條是坑，我還沒有答案。<br>如果你做過類似的東西，很想聽你的看法。</div>
+  </div>
+</section>
+
+<!-- ══ CONTACT ══ -->
+<section id="contact">
+  <div class="wrap reveal">
+    <p class="eyebrow">聯絡</p>
+    <h2>有流程一直在漏，或想找人接這類案子，都可以找我。</h2>
+    <div class="contact-grid">
+      <a href="https://line.me/ti/p/kmYph4FjRl">LINE ID：0909605227jacky</a>
+      <span>台中</span>
+    </div>
+  </div>
+</section>
+
+</main>
+
+<footer>
+  <div class="wrap">
+    <span class="mark">J<i>·</i>KEY</span>
+    <small>SYSTEMS INTEGRATION · TAICHUNG</small>
+  </div>
+</footer>
+
+<script>
+/* ══════ 全站：主題、進度、導覽、進場、數字 ══════ */
+(function(){
+  "use strict";
+  var root=document.documentElement, tbtn=document.getElementById("theme");
+  tbtn.addEventListener("click",function(){
+    root.setAttribute("data-theme",root.getAttribute("data-theme")==="dark"?"light":"dark");
+  });
+
+  var prog=document.getElementById("prog");
+  function onScroll(){
+    var h=document.documentElement.scrollHeight-window.innerHeight;
+    prog.style.width=(h>0?(window.scrollY/h)*100:0)+"%";
+  }
+  window.addEventListener("scroll",onScroll,{passive:true}); onScroll();
+
+  var links=[].slice.call(document.querySelectorAll(".dots a")),
+      secs=links.map(function(a){ return document.querySelector(a.getAttribute("href")); });
+  var so=new IntersectionObserver(function(es){
+    es.forEach(function(e){
+      if(!e.isIntersecting) return;
+      var i=secs.indexOf(e.target);
+      links.forEach(function(a,j){ a.classList.toggle("on",i===j); });
+    });
+  },{rootMargin:"-45% 0px -50% 0px"});
+  secs.forEach(function(s){ if(s) so.observe(s); });
+
+  var io=new IntersectionObserver(function(es){
+    es.forEach(function(e){ if(e.isIntersecting){ e.target.classList.add("in"); io.unobserve(e.target); } });
+  },{threshold:.12});
+  document.querySelectorAll(".reveal").forEach(function(el){ io.observe(el); });
+
+  var counted=false, box=document.getElementById("stats");
+  var co=new IntersectionObserver(function(es){
+    if(counted||!es[0].isIntersecting) return; counted=true;
+    box.querySelectorAll("b").forEach(function(b){
+      var target=parseInt(b.dataset.n,10), i=0;
+      if(target===0){ b.textContent="0"; return; }
+      var id=setInterval(function(){ b.textContent=(++i); if(i>=target) clearInterval(id); },170);
+    });
+  },{threshold:.5});
+  co.observe(box);
+})();
+
+/* ══════ HERO：派工卡片 ══════ */
+(function(){
+  "use strict";
+  var chat=document.getElementById("chat"), btn=document.getElementById("fcBtn"),
+      status=document.getElementById("fcStatus"), photos=document.getElementById("fcPhotos"),
+      tbody=document.getElementById("tbody"), cnt=document.getElementById("cnt"),
+      fcNo=document.getElementById("fcNo");
+  var WORKER="阿凱", added=[], row=null, serial=2418;
+
+  function now(){ var d=new Date(); return String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0"); }
+  function push(html,mine){
+    var m=document.createElement("div");
+    m.className="msg pop"+(mine?" me":"");
+    m.innerHTML=(mine?"":'<span class="who">系統</span>')+'<div class="bubble">'+html+"</div>";
+    chat.appendChild(m); added.push(m); chat.scrollTop=chat.scrollHeight;
+  }
+  function setStatus(cls,text){ status.className="fc-status "+cls; status.innerHTML='<span class="pip"></span>'+text; }
+
+  btn.addEventListener("click",function(){
+    var m=btn.dataset.mode, t=now();
+    if(m==="take"){
+      setStatus("taken","已接單 · "+WORKER);
+      push(WORKER+" 已接單　"+t,true);
+      tbody.innerHTML="";
+      row=document.createElement("tr"); row.className="flash";
+      row.innerHTML="<td>#A-"+serial+"</td><td>"+WORKER+'</td><td><span class="pill wip">進行中</span></td><td>'+t+"</td>";
+      tbody.appendChild(row); cnt.textContent="1 筆";
+      btn.textContent="回報完成"; btn.dataset.mode="done";
+    }else if(m==="done"){
+      setStatus("done","已完成 · "+t);
+      photos.innerHTML='<div class="photos"><span>現場照 1</span><span>現場照 2</span></div>';
+      push("完成回報已收到，附照片 2 張");
+      if(row){ row.className="flash"; row.children[2].innerHTML='<span class="pill fin">已完成</span>'; row.children[3].textContent=t; }
+      btn.textContent="再示範一次"; btn.dataset.mode="reset";
+    }else{
+      added.forEach(function(m){ m.remove(); }); added=[];
+      serial++; fcNo.textContent="#A-"+serial;
+      setStatus("","等待接單"); photos.innerHTML="";
+      tbody.innerHTML='<tr class="empty"><td colspan="4">還沒有人接單。點上面那張卡片試試。</td></tr>';
+      cnt.textContent="0 筆"; row=null;
+      btn.textContent="我接這單"; btn.dataset.mode="take";
+    }
+  });
+})();
+
+/* ══════ 流程分頁 ══════ */
+(function(){
+  "use strict";
+  var steps=[].slice.call(document.querySelectorAll(".step"));
+  function open(s){
+    steps.forEach(function(t){
+      var on=(t===s);
+      t.setAttribute("aria-selected",on?"true":"false");
+      document.getElementById(t.getAttribute("aria-controls")).hidden=!on;
+    });
+  }
+  steps.forEach(function(s){
+    s.addEventListener("click",function(){ open(s); });
+    s.addEventListener("keydown",function(e){
+      var i=steps.indexOf(s), n=null;
+      if(e.key==="ArrowRight") n=steps[(i+1)%steps.length];
+      if(e.key==="ArrowLeft")  n=steps[(i-1+steps.length)%steps.length];
+      if(n){ e.preventDefault(); n.focus(); open(n); }
+    });
+  });
+})();
+
+/* ══════ 01 接單分流 ══════ */
+(function(){
+  "use strict";
+  var rich=document.getElementById("rich"), route=document.getElementById("route"),
+      chat=document.getElementById("rChat"), state=document.getElementById("rState");
+
+  var MAP={
+    progress:{r:"您的訂單 #A-2418 目前狀態：<b>師傅已接單</b>，預計明天 09:00 到府。<br>需要改時間可以直接回覆我。",
+              a:1,why:"查後台就有答案，系統直接回，不用驚動任何人。"},
+    book:{r:"好的，請問方便的日期是？<br>（下週三、四、六上午還有名額）",
+          a:1,why:"讀行事曆的空檔直接報給客戶，客戶選完才寫進系統。"},
+    fix:{r:"了解，我先幫您登記報修單。<br>方便拍一張故障處的照片嗎？收到照片後會有專人與您聯繫。",
+         a:0,why:"報修一定會變成人的工作，但系統先把單號、照片、地址收齊，人接手時不用重問。"},
+    cat:{r:"這是最新的型錄與價目表 📎<br>有想看的品項也可以直接跟我說。",
+         a:1,why:"靜態資料，回幾次都一樣，完全不需要人。"},
+    filter:{r:"您上次更換濾心是 3 月 12 日，<br>依 6 個月週期，下次建議在 <b>9 月 12 日</b> 前更換。<br>要幫您預約嗎？",
+            a:1,why:"日期是系統自己算的。這種訊息以前根本沒人有空發。"},
+    human:{r:"好的，已經通知店長，稍後會直接與您聯繫。<br>（目前是營業時間，通常 10 分鐘內回覆）",
+           a:0,why:"客戶明確要找人，就不要硬擋。系統做的是把對話紀錄一併推給店長。"}
+  };
+
+  rich.addEventListener("click",function(e){
+    var b=e.target.closest("button"); if(!b) return;
+    [].slice.call(rich.children).forEach(function(x){ x.setAttribute("aria-pressed","false"); });
+    b.setAttribute("aria-pressed","true");
+
+    var d=MAP[b.dataset.k], t=new Date(),
+        hm=String(t.getHours()).padStart(2,"0")+":"+String(t.getMinutes()).padStart(2,"0");
+
+    var me=document.createElement("div");
+    me.className="msg me pop";
+    me.innerHTML='<div class="bubble">'+b.textContent.trim()+"</div>";
+    var it=document.createElement("div");
+    it.className="msg pop";
+    it.innerHTML='<span class="who">店</span><div class="bubble">'+d.r+"</div>";
+    chat.appendChild(me); chat.appendChild(it);
+    while(chat.children.length>7) chat.removeChild(chat.children[1]);
+    chat.scrollTop=chat.scrollHeight;
+
+    state.textContent=hm;
+    route.innerHTML=(d.a
+      ? '<b>系統可自行處理</b><span class="flag">不通知人</span>'
+      : '<b>需要真人接手</b><span class="flag">推播給店長</span>')+"<br>"+d.why;
+  });
+})();
+
+/* ══════ 02 派工指派 ══════ */
+(function(){
+  "use strict";
+  var box=document.getElementById("cand"), out=document.getElementById("aOut"), state=document.getElementById("aState");
+  var MEN=[
+    {n:"小陳",load:2.5,km:18,skill:"三機 ✓",score:81,block:0,note:"今天最空，但路程遠一點"},
+    {n:"阿凱",load:6.5,km:12,skill:"三機 ✓",score:72,block:0,note:"下午還排得下 1.5 小時"},
+    {n:"阿明",load:8.0,km:5,skill:"三機 ✓",score:0,block:1,note:"已滿檔 8/8 小時，系統排除"}
+  ];
+
+  MEN.forEach(function(m){
+    var pct=Math.min(100,(m.load/8)*100);
+    var row=document.createElement("div");
+    row.className="who-row"; row.dataset.block=m.block; row.tabIndex=m.block?-1:0;
+    row.innerHTML=
+      "<h4>"+m.n+(m.block?"":(m.score>=80?"　<span style='color:var(--gold);font-size:.7rem;font-family:var(--f-mono)'>建議</span>":""))+"</h4>"+
+      '<div class="score">'+(m.block?"—":m.score)+"<s>建議度</s></div>"+
+      '<div class="load"><i class="'+(m.block?"full":"")+'" style="width:'+pct+'%"></i></div>'+
+      '<div class="meta">負載 '+m.load.toFixed(1)+"/8 h　·　距離 "+m.km+" km　·　"+m.skill+"　·　"+m.note+"</div>";
+    if(!m.block){
+      row.addEventListener("click",function(){ pick(m,row,pct); });
+      row.addEventListener("keydown",function(e){ if(e.key==="Enter"||e.key===" "){ e.preventDefault(); pick(m,row,pct); } });
+    }
+    box.appendChild(row);
+  });
+
+  function pick(m,row,pct){
+    [].slice.call(box.children).forEach(function(r){ r.classList.remove("pick"); });
+    row.classList.add("pick");
+    var after=Math.min(100,((m.load+2.5)/8)*100), t=new Date(),
+        hm=String(t.getHours()).padStart(2,"0")+":"+String(t.getMinutes()).padStart(2,"0");
+    state.textContent="已指派 "+hm;
+    out.innerHTML=
+      '<div class="msg pop" style="max-width:100%"><span class="who" style="background:var(--paper-deep);color:var(--ink-soft)">系統</span>'+
+      '<div class="bubble" style="background:var(--paper);border:1px solid var(--rule);color:var(--ink)">'+
+        "<b style='color:var(--gold)'>#A-2431 已指派給 "+m.n+"</b><br>派工卡片已送到工班群組，等待對方按下接單。</div></div>"+
+      '<div style="margin-top:16px">'+
+        '<div class="meta" style="font-family:var(--f-mono);font-size:.66rem;color:var(--ink-faint);margin-bottom:6px">'+
+          m.n+" 明日負載　"+m.load.toFixed(1)+" h → "+(m.load+2.5).toFixed(1)+" h</div>"+
+        '<div class="load"><i style="width:'+after+'%"></i></div>'+
+      "</div>"+
+      '<p class="panel-note" style="margin-top:16px">另外兩位的建議度會即時重算——負載變了，下一單的排序就不一樣。</p>';
+  }
+})();
+
+/* ══════ 03 現場回報 ══════ */
+(function(){
+  "use strict";
+  var items=document.getElementById("fItems"), hours=document.getElementById("fHours"),
+      shots=document.getElementById("fShots"), out=document.getElementById("fOut"),
+      err=document.getElementById("fErr"), state=document.getElementById("fState");
+  var h=2.0, n=0;
+
+  items.addEventListener("click",function(e){
+    var c=e.target.closest(".chip"); if(!c) return;
+    c.setAttribute("aria-pressed",c.getAttribute("aria-pressed")==="true"?"false":"true"); err.textContent="";
+  });
+  function setH(v){ h=Math.min(12,Math.max(0.5,Math.round(v*2)/2)); hours.textContent=h.toFixed(1)+" h"; }
+  document.getElementById("fPlus").addEventListener("click",function(){ setH(h+0.5); });
+  document.getElementById("fMinus").addEventListener("click",function(){ setH(h-0.5); });
+  document.getElementById("fShot").addEventListener("click",function(){
+    if(n>=4){ err.textContent="示範最多 4 張。"; return; }
+    n++; var s=document.createElement("span"); s.className="pop"; s.textContent="IMG_"+(1200+n);
+    shots.appendChild(s); err.textContent="";
+  });
+
+  document.getElementById("fSend").addEventListener("click",function(){
+    var list=[].slice.call(items.querySelectorAll('[aria-pressed="true"]')).map(function(c){ return c.textContent; });
+    if(!list.length){ err.textContent="請至少選一個完成品項——實際系統也會擋，避免回報缺資料。"; return; }
+    if(!n){ err.textContent="請至少上傳一張現場照片。"; return; }
+    err.textContent="";
+    var no=document.getElementById("fOrder").value,
+        note=document.getElementById("fNote").value.trim(),
+        d=new Date(), t=String(d.getHours()).padStart(2,"0")+":"+String(d.getMinutes()).padStart(2,"0");
+    state.textContent="已送出 "+t;
+    out.innerHTML=
+      '<div class="msg pop"><span class="who">系統</span><div class="bubble">'+
+        "<b>#"+no+" 完工回報</b><br>品項："+list.join("、")+"<br>時數："+h.toFixed(1)+" 小時<br>照片："+n+" 張"+
+        (note?"<br>備註："+note.replace(/</g,"&lt;"):"")+"</div></div>"+
+      '<div class="panelcard pop" style="border-radius:8px">'+
+        '<header><span>Ragic · 施工紀錄</span><span>+1 筆</span></header>'+
+        '<table><thead><tr><th>單號</th><th>時數</th><th>照片</th><th>登錄</th></tr></thead>'+
+        '<tbody><tr class="flash"><td>#'+no+"</td><td>"+h.toFixed(1)+"</td><td>"+n+"</td><td>"+t+"</td></tr></tbody></table></div>"+
+      '<p class="panel-note" style="margin:0">同一筆資料同時進了三個地方：老闆的 LINE、後台資料庫、當月的工時統計——也就是下一段那些圖的來源。</p>';
+  });
+})();
+
+/* ══════ 04 分析儀表板 ══════ */
+(function(){
+  "use strict";
+  var NS="http://www.w3.org/2000/svg", tip=document.getElementById("chartTip");
+  function el(n,a){ var e=document.createElementNS(NS,n); for(var k in a) e.setAttribute(k,a[k]); return e; }
+  function txt(a,s){ var t=el("text",a); t.textContent=s; return t; }
+  function hh(v){ var x=Math.floor(v); return String(x).padStart(2,"0")+":"+String((v-x)*60).padStart(2,"0"); }
+
+  /* 甘特 */
+  var G=document.querySelector("#vG .chart"),
+      MEN=["阿凱","阿明","小陳","老吳"],
+      JOBS=[
+        {w:0,s:9,e:11.5,no:"A-2418",c:"王小姐 · 烏日"},{w:0,s:13,e:15,no:"A-2425",c:"李先生 · 南屯"},
+        {w:1,s:8.5,e:12,no:"A-2419",c:"林先生 · 南屯"},{w:1,s:14,e:17.5,no:"A-2427",c:"陳太太 · 太平"},
+        {w:2,s:10,e:12.5,no:"A-2421",c:"張太太 · 大里"},
+        {w:3,s:9.5,e:13,no:"A-2422",c:"黃小姐 · 西屯",clash:1},{w:3,s:12.5,e:16,no:"A-2429",c:"吳先生 · 北屯",clash:1}
+      ];
+  function gx(t){ return 52+((t-8)/10)*292; }
+  for(var h=8;h<=18;h+=2){
+    G.appendChild(el("line",{x1:gx(h),y1:26,x2:gx(h),y2:170,style:"stroke:var(--paper-deep)","stroke-width":1}));
+    G.appendChild(txt({x:gx(h),y:20,"text-anchor":"middle"},h+":00"));
+  }
+  MEN.forEach(function(m,i){ G.appendChild(txt({x:44,y:45+i*32,"text-anchor":"end"},m)); });
+  JOBS.forEach(function(j){
+    var x=gx(j.s), w=gx(j.e)-gx(j.s), y=32+j.w*32,
+        bar=el("rect",{x:x,y:y,width:w,height:16,rx:3,class:"cell",
+          style:"fill:"+(j.clash?"var(--alert)":"var(--ink)")+";fill-opacity:"+(j.clash?.9:.86)});
+    bar.addEventListener("mouseenter",function(){
+      tip.innerHTML="<b>#"+j.no+" · "+j.c+"</b>　"+hh(j.s)+"–"+hh(j.e)+"　"+MEN[j.w]+
+        (j.clash?"　<span style='color:var(--alert)'>與同一人的另一單重疊</span>":"");
+    });
+    G.appendChild(bar);
+    if(w>46) G.appendChild(txt({x:x+6,y:y+11,style:"fill:var(--paper);font-size:7px"},"#"+j.no));
+  });
+  G.appendChild(txt({x:52,y:184,style:"fill:var(--alert)"},"老吳這兩單重疊 30 分鐘 — 實際系統在派工當下就擋下來"));
+
+  /* 熱力圖 */
+  var HM=document.querySelector("#vH .chart"),
+      DAYS=["一","二","三","四","五","六","日"],
+      SLOT=["上午 09–12","午後 12–15","傍晚 15–18","晚間 18–21"],
+      DATA=[[2,3,2,4,3,6,1],[3,4,5,4,4,6,2],[2,2,3,3,5,4,1],[0,1,1,0,2,3,0]], MAXV=6;
+  DAYS.forEach(function(d,c){ HM.appendChild(txt({x:54+c*40+19,y:24,"text-anchor":"middle"},"週"+d)); });
+  DATA.forEach(function(row,r){
+    HM.appendChild(txt({x:48,y:32+r*28+17,"text-anchor":"end"},SLOT[r]));
+    row.forEach(function(v,c){
+      var x=54+c*40, y=32+r*28,
+          cell=el("rect",{x:x,y:y,width:38,height:26,rx:3,class:"cell",
+            style:"fill:"+(v?"var(--gold)":"var(--paper-deep)")+";fill-opacity:"+(v?(0.16+0.84*(v/MAXV)):1)});
+      cell.addEventListener("mouseenter",function(){
+        tip.innerHTML="<b>週"+DAYS[c]+" · "+SLOT[r]+"</b>　"+v+" 件"+
+          (v===MAXV?"　全週最滿":v===0?"　完全沒案，可以排保養回訪":"");
+      });
+      HM.appendChild(cell);
+      if(v) HM.appendChild(txt({x:x+19,y:y+17,"text-anchor":"middle",
+        style:"fill:"+(v/MAXV>.55?"var(--paper)":"var(--ink-soft)")+";font-size:8px"},v));
+    });
+  });
+  HM.appendChild(txt({x:54,y:154,style:"fill:var(--gold)"},"週六全天與平日午後最滿；週一、週四晚間空著 — 那是回訪的時段"));
+  var lg=document.getElementById("hLegend");
+  [1,2,3,4,6].forEach(function(v){
+    var s=document.createElement("span");
+    s.innerHTML='<i style="background:var(--gold);opacity:'+(0.16+0.84*(v/MAXV))+'"></i>'+v;
+    lg.appendChild(s);
+  });
+  var last=document.createElement("span"); last.textContent="件 → 多"; lg.appendChild(last);
+
+  /* 工時趨勢：柱＋線 */
+  var T=document.querySelector("#vT .chart"),
+      MON=["3月","4月","5月","6月","7月","8月"],
+      JOBSN=[14,17,15,22,26,24], AVGH=[3.4,3.2,3.3,2.9,2.6,2.5],
+      TX=46, TW=286, TY=140, TH=104, JMAX=28, AMAX=4;
+  T.appendChild(el("line",{x1:TX,y1:TY,x2:TX+TW,y2:TY,style:"stroke:var(--rule)","stroke-width":1}));
+  MON.forEach(function(m,i){
+    var w=30, x=TX+18+i*46, hgt=(JOBSN[i]/JMAX)*TH,
+        bar=el("rect",{x:x,y:TY-hgt,width:w,height:hgt,rx:3,class:"cell",style:"fill:var(--gold-soft)"});
+    bar.addEventListener("mouseenter",function(){
+      tip.innerHTML="<b>"+m+"</b>　"+JOBSN[i]+" 件　平均 "+AVGH[i]+" 小時／件"+
+        (i>0?"　（件數 "+(JOBSN[i]>=JOBSN[i-1]?"↑":"↓")+"　工時 "+(AVGH[i]<=AVGH[i-1]?"↓":"↑")+"）":"");
+    });
+    T.appendChild(bar);
+    T.appendChild(txt({x:x+w/2,y:TY+14,"text-anchor":"middle"},m));
+    T.appendChild(txt({x:x+w/2,y:TY-hgt-5,"text-anchor":"middle",style:"fill:var(--ink-soft)"},JOBSN[i]));
+  });
+  var pts=AVGH.map(function(a,i){ return (TX+18+i*46+15)+","+(TY-(a/AMAX)*TH); }).join(" ");
+  T.appendChild(el("polyline",{points:pts,style:"fill:none;stroke:var(--ink);stroke-width:1.6"}));
+  AVGH.forEach(function(a,i){
+    T.appendChild(el("circle",{cx:TX+18+i*46+15,cy:TY-(a/AMAX)*TH,r:3,style:"fill:var(--ink)"}));
+  });
+  T.appendChild(txt({x:TX,y:168,style:"fill:var(--gold)"},"件數上升的同時平均工時下降 — 排程開始有效率，不是師傅在趕工"));
+
+  /* 出勤矩陣 */
+  var A=document.querySelector("#vA .chart"),
+      NAMES=["A 君","B 君","C 君","D 君","E 君","F 君","G 君","H 君"],
+      CSS=["var(--paper-deep)","var(--gold-soft)","var(--ink)"],
+      LABEL=["缺席","請假（有代理）","出席"],
+      GRID=[[2,2,2,2,2,2,2,2],[2,2,1,2,2,2,2,2],[2,2,2,2,1,2,2,2],[2,1,2,2,2,2,1,2],
+            [2,2,2,1,2,2,2,2],[1,2,0,2,2,1,2,2],[2,2,2,2,2,2,2,2],[0,1,0,2,0,1,0,2]];
+  for(var w2=0;w2<8;w2++) A.appendChild(txt({x:56+w2*34+13,y:12,"text-anchor":"middle"},"W"+(w2+1)));
+  GRID.forEach(function(row,r){
+    A.appendChild(txt({x:48,y:32+r*15,"text-anchor":"end"},NAMES[r]));
+    row.forEach(function(v,c){
+      var rect=el("rect",{x:56+c*34,y:22+r*15,width:26,height:11,rx:2,class:"cell",style:"fill:"+CSS[v]});
+      rect.addEventListener("mouseenter",function(){ tip.innerHTML="<b>"+NAMES[r]+" · 第 "+(c+1)+" 週</b>　"+LABEL[v]; });
+      A.appendChild(rect);
+    });
+  });
+  A.appendChild(txt({x:56,y:145,style:"fill:var(--gold)"},"H 君近八週只到 2 次 — 系統已標記為需要關心"));
+
+  /* 互惠散點 */
+  var B=document.querySelector("#vB .chart"),
+      PTS=[{n:"A 君",g:9,r:4},{n:"B 君",g:6,r:6},{n:"C 君",g:3,r:8},{n:"D 君",g:11,r:5},
+           {n:"E 君",g:2,r:2},{n:"F 君",g:7,r:9},{n:"G 君",g:5,r:1},{n:"H 君",g:1,r:3}],
+      X0=42,Y0=160,BW=250,BH=132,MAX=12;
+  B.appendChild(el("line",{x1:X0,y1:Y0,x2:X0+BW,y2:Y0,style:"stroke:var(--rule)","stroke-width":1}));
+  B.appendChild(el("line",{x1:X0,y1:Y0,x2:X0,y2:Y0-BH,style:"stroke:var(--rule)","stroke-width":1}));
+  B.appendChild(el("line",{x1:X0,y1:Y0,x2:X0+BW,y2:Y0-BH,style:"stroke:var(--gold-soft)","stroke-width":1,"stroke-dasharray":"3 3"}));
+  B.appendChild(txt({x:X0+BW,y:Y0+16,"text-anchor":"end"},"給出的引薦 →"));
+  B.appendChild(txt({x:X0-6,y:Y0-BH+4,"text-anchor":"end"},"收到"));
+  PTS.forEach(function(p){
+    var c=el("circle",{cx:X0+(p.g/MAX)*BW,cy:Y0-(p.r/MAX)*BH,r:5,class:"pt",
+      style:"fill:"+(p.g>p.r?"var(--gold)":"var(--chat-bg)")+";fill-opacity:.85"});
+    c.addEventListener("mouseenter",function(){
+      var d=p.g-p.r;
+      tip.innerHTML="<b>"+p.n+"</b>　給出 "+p.g+"　收到 "+p.r+"　"+
+        (d>2?"付出明顯多於回收，幹部該去問一下":d<-2?"收得比給得多":"大致平衡");
+    });
+    B.appendChild(c);
+  });
+
+  /* 切換 */
+  var VIEW={G:document.getElementById("vG"),H:document.getElementById("vH"),T:document.getElementById("vT"),
+            A:document.getElementById("vA"),B:document.getElementById("vB")},
+      Q={G:"要回答的問題：<b>明天誰還排得下？有沒有人被排到撞期？</b>",
+         H:"要回答的問題：<b>哪幾個時段該多派人？哪幾個空得下來排保養回訪？</b>",
+         T:"要回答的問題：<b>接得比較多的時候，品質有沒有被犧牲掉？</b>",
+         A:"要回答的問題：<b>誰快要掉出去了？</b>",
+         B:"要回答的問題：<b>誰一直在付出卻沒被回應？</b>"},
+      D={G:"把游標移到色塊上。",H:"把游標移到格子上。",T:"把游標移到柱子上。",A:"把游標移到格子上。",B:"把游標移到圓點上。"},
+      qline=document.getElementById("qline"), seg=document.getElementById("seg");
+  function show(v){
+    for(var k in VIEW) VIEW[k].hidden=(k!==v);
+    [].slice.call(seg.children).forEach(function(b){ b.setAttribute("aria-pressed",b.dataset.v===v?"true":"false"); });
+    qline.innerHTML=Q[v]; tip.textContent=D[v];
+  }
+  seg.addEventListener("click",function(e){ var b=e.target.closest("button"); if(b) show(b.dataset.v); });
+  show("G");
+})();
+
+/* ══════ 05 自動提醒 ══════ */
+(function(){
+  "use strict";
+  var date=document.getElementById("rDate"), cycle=document.getElementById("rCycle"),
+      lead=document.getElementById("rLead"), msg=document.getElementById("rMsg"),
+      fill=document.getElementById("rFill"), nB=document.getElementById("nB");
+  var months=6, days=7, today=new Date();
+  date.value=today.getFullYear()+"-"+String(today.getMonth()+1).padStart(2,"0")+"-"+String(today.getDate()).padStart(2,"0");
+
+  function fmt(d){ return (d.getMonth()+1)+"/"+d.getDate(); }
+  function full(d){ return d.getFullYear()+" 年 "+(d.getMonth()+1)+" 月 "+d.getDate()+" 日"; }
+  function paint(){
+    var s=new Date(date.value||today); if(isNaN(s)) s=new Date(today);
+    var due=new Date(s); due.setMonth(due.getMonth()+months);
+    var rem=new Date(due); rem.setDate(rem.getDate()-days);
+    var span=due-s, ratio=span>0?Math.max(0,Math.min(1,(rem-s)/span)):.5, pos=6+ratio*88;
+    nB.style.left=pos+"%"; fill.style.width=pos+"%";
+    document.getElementById("dA").textContent=fmt(s);
+    document.getElementById("dB").textContent=fmt(rem);
+    document.getElementById("dC").textContent=fmt(due);
+    msg.innerHTML="王小姐您好，您的淨水器濾心用到 <b>"+full(due)+"</b> 就該換囉。<br><br>"+
+      "上次更換是 "+full(s)+"，已經 "+months+" 個月了。需要幫您安排師傅到府嗎？<br><br>"+
+      '<span style="color:#6B655C;font-size:.76rem">回覆「好」就幫您排時間</span>';
+  }
+  function bind(box,attr,set){
+    box.addEventListener("click",function(e){
+      var c=e.target.closest(".chip"); if(!c) return;
+      [].slice.call(box.querySelectorAll(".chip")).forEach(function(x){ x.setAttribute("aria-pressed","false"); });
+      c.setAttribute("aria-pressed","true"); set(parseInt(c.dataset[attr],10)); paint();
+    });
+  }
+  bind(cycle,"m",function(v){ months=v; });
+  bind(lead,"d",function(v){ days=v; });
+  date.addEventListener("change",paint);
+  paint();
+})();
+
+/* ══════ 架構圖 ══════ */
+(function(){
+  "use strict";
+  var NS="http://www.w3.org/2000/svg", svg=document.getElementById("archSvg"),
+      tip=document.getElementById("archTip");
+  function el(n,a){ var e=document.createElementNS(NS,n); for(var k in a) e.setAttribute(k,a[k]); return e; }
+
+  var NODES=[
+    {x:14,y:40,w:112,h:52,t:"客戶手機",s:"LINE 官方帳號",d:"客戶只看到一個 LINE 帳號。查進度、預約、報修都在這裡完成，不用下載任何東西。"},
+    {x:14,y:150,w:112,h:52,t:"師傅手機",s:"LINE 群組",d:"師傅在原本就在用的群組裡接單、回報。這是整個系統唯一沒有被改變的習慣。"},
+    {x:186,y:95,w:124,h:52,t:"LINE 平台",s:"Messaging API",d:"負責收訊息、發訊息。Webhook 把事件送到後面，推播配額要算著用——這是實務上最容易爆掉的地方。"},
+    {x:370,y:95,w:124,h:52,t:"Google Apps Script",s:"Web App ／ 排程",d:"整套系統的大腦。路由、驗證、商業邏輯、定時任務都在這裡。免費、不用機器、有 Google 帳號就能跑。"},
+    {x:554,y:34,w:132,h:52,t:"Ragic",s:"資料庫 ／ REST",d:"資料的家，在客戶自己的帳號底下。老闆自己也能開來看、能匯出、能改欄位——不綁人。"},
+    {x:554,y:156,w:132,h:52,t:"後台與圖表",s:"網頁介面",d:"讀 Ragic 的資料畫成圖。就是上面那五張圖的來源。"}
+  ];
+  var WIRES=[
+    {d:"M126 66 H186",f:1},{d:"M126 176 H186",f:1},
+    {d:"M310 121 H370",f:1},{d:"M370 133 H310",f:0},
+    {d:"M494 112 H528 V60 H554",f:1},
+    {d:"M494 130 H528 V182 H554",f:1}
+  ];
+
+  WIRES.forEach(function(w){
+    svg.appendChild(el("path",{d:w.d,class:"wire"}));
+    if(w.f) svg.appendChild(el("path",{d:w.d,class:"flow"}));
+  });
+
+  NODES.forEach(function(n){
+    var g=el("g",{}),
+        r=el("rect",{x:n.x,y:n.y,width:n.w,height:n.h,rx:8,class:"box"});
+    g.appendChild(r);
+    g.appendChild(el("text",{x:n.x+n.w/2,y:n.y+24,"text-anchor":"middle",class:"lbl"})).textContent=n.t;
+    g.appendChild(el("text",{x:n.x+n.w/2,y:n.y+38,"text-anchor":"middle",class:"sub"})).textContent=n.s;
+    g.addEventListener("mouseenter",function(){
+      tip.innerHTML="<b>"+n.t+"　"+n.s+"</b><br>"+n.d;
+      r.classList.add("hot");
+    });
+    g.addEventListener("mouseleave",function(){ r.classList.remove("hot"); });
+    svg.appendChild(g);
+  });
+
+  if(window.matchMedia("(prefers-reduced-motion: reduce)").matches){
+    [].slice.call(svg.querySelectorAll(".flow")).forEach(function(p){ p.style.animation="none"; });
+  }
+})();
+/* ══════ 單據狀態機 ══════ */
+(function(){
+  "use strict";
+  var NS="http://www.w3.org/2000/svg",
+      svg=document.getElementById("smSvg"),
+      tip=document.getElementById("archTip");
+  function el(n,a){ var e=document.createElementNS(NS,n); for(var k in a) e.setAttribute(k,a[k]); return e; }
+  function label(x,y,s,cls){ var t=el("text",{x:x,y:y,"text-anchor":"middle",class:cls||"tr"}); t.textContent=s; return t; }
+
+  var defs=el("defs",{}),
+      mk=el("marker",{id:"ah",markerWidth:6,markerHeight:6,refX:5,refY:3,orient:"auto"});
+  mk.appendChild(el("path",{d:"M0 0 L6 3 L0 6 z",fill:"currentColor"}));
+  defs.appendChild(mk); svg.appendChild(defs);
+
+  var W=112,H=42,Y=46,YE=170,
+      S=[
+        {id:"a",x:16, y:Y, t:"待指派",  by:"系統建立",
+         d:"客戶下單或老闆手動開單時產生。<b>誰能推進：老闆</b>。系統同時把新單推到工班群組。"},
+        {id:"b",x:158,y:Y, t:"已指派",  by:"老闆指派",
+         d:"指定師傅後進入這一格。<b>誰能推進：該師傅</b>。系統推播給師傅本人，不吵到其他人。"},
+        {id:"c",x:300,y:Y, t:"施工中",  by:"師傅接單",
+         d:"師傅按下接單就開始計時。<b>誰能推進：該師傅</b>。老闆的後台這時候才看得到「有人在做」。"},
+        {id:"d",x:442,y:Y, t:"已完工",  by:"回報通過",
+         d:"照片與時數齊全才進得來——這是擋漏件的關卡。<b>誰能推進：老闆</b>。"},
+        {id:"e",x:584,y:Y, t:"已結案",  by:"老闆確認",
+         d:"確認後鎖定，資料進當月統計。<b>終點狀態</b>，之後只能查、不能改。"},
+        {id:"x",x:16, y:YE,t:"已取消",  ex:1,by:"客戶取消",
+         d:"取消也要留紀錄。<b>終點狀態</b>。取消率是後來排班要看的數字之一。"},
+        {id:"y",x:300,y:YE,t:"待補件",  ex:1,by:"資料不齊",
+         d:"照片沒拍、時數沒填就會掉到這裡，系統自動提醒師傅補。<b>補齊後回到已完工</b>。這一格是後來加的——因為現場真的常常漏。"},
+        {id:"z",x:442,y:YE,t:"需複驗",  ex:1,by:"客戶回報問題",
+         d:"客戶事後反映有問題，單子回到施工中重跑一次。<b>不開新單</b>，因為要看得出這是同一件事的重工。"}
+      ];
+
+  var A=[
+    {d:"M128 67 H158", l:"指派",       lx:143,ly:61},
+    {d:"M270 67 H300", l:"接單",       lx:285,ly:61},
+    {d:"M412 67 H442", l:"回報",       lx:427,ly:61},
+    {d:"M554 67 H584", l:"確認",       lx:569,ly:61},
+    {d:"M214 46 C214 12 72 12 72 42",  l:"退回／改期",lx:143,ly:9, ex:1},
+    {d:"M72 88 V166",  l:"客戶取消",   lx:96, ly:132,ex:1},
+    {d:"M356 88 V166", l:"照片沒拍",   lx:380,ly:132,ex:1},
+    {d:"M412 191 H470 V92",  l:"補齊後歸位", lx:440,ly:185,ex:1},
+    {d:"M520 88 V166", l:"客戶反映",   lx:544,ly:132,ex:1},
+    {d:"M498 212 V230 H286 V78 H296", l:"重工（不開新單）",lx:392,ly:238,ex:1}
+  ];
+
+  A.forEach(function(a){
+    svg.appendChild(el("path",{d:a.d,class:"arw"+(a.ex?" ex":""),
+      "marker-end":"url(#ah)",style:"color:"+(a.ex?"var(--alert)":"var(--ink-faint)")}));
+    if(a.l) svg.appendChild(label(a.lx,a.ly,a.l));
+  });
+
+  S.forEach(function(s){
+    var g=el("g",{}),
+        r=el("rect",{x:s.x,y:s.y,width:W,height:H,rx:7,class:"st"+(s.ex?" ex":"")});
+    g.appendChild(r);
+    g.appendChild(label(s.x+W/2,s.y+20,s.t,"lbl"));
+    g.appendChild(label(s.x+W/2,s.y+32,s.by,"sub"));
+    g.addEventListener("mouseenter",function(){
+      tip.innerHTML="<b>"+s.t+"</b>　"+s.d; r.classList.add("hot");
+    });
+    g.addEventListener("mouseleave",function(){ r.classList.remove("hot"); });
+    svg.appendChild(g);
+  });
+
+  svg.appendChild(label(350,248,"實線是正常流程，紅色虛線是異常分支。這張圖在寫第一行程式之前就要畫完。","sub"));
+
+  var seg=document.getElementById("archSeg"),
+      flow=document.getElementById("archSvg"),
+      DEF={flow:"把游標移到方塊上。",state:"把游標移到狀態上，看誰能把單子推到下一格。"};
+  seg.addEventListener("click",function(e){
+    var b=e.target.closest("button"); if(!b) return;
+    var v=b.dataset.a;
+    [].slice.call(seg.children).forEach(function(x){
+      x.setAttribute("aria-pressed",x.dataset.a===v?"true":"false");
+    });
+    flow.hidden=(v!=="flow"); svg.hidden=(v!=="state");
+    tip.textContent=DEF[v];
+  });
+})();
+
+</script>
+</body>
+</html>
